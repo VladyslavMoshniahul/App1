@@ -2,330 +2,217 @@
 <html lang="uk">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Батьківська сторінка</title>
-    <link rel="stylesheet" href="styles/main.css">
-    <style>
-        .nav-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Батьківська сторінка</title>
+  <link rel="stylesheet" href="styles/main.css" />
+  <style>
+    body.dark-theme {
+      background: linear-gradient(to bottom, #1f1f1f, #2c2c2c, #3a3a3a);
+      color: #f0f0f0;
+    }
 
-        .nav-tabs button {
-            background: #444;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px 5px 0 0;
-            cursor: pointer;
-            font-weight: bold;
-        }
+    body.dark-theme header,
+    body.dark-theme .aboutme-card,
+    body.dark-theme .info-card,
+    body.dark-theme section,
+    body.dark-theme .nav-tabs button,
+    body.dark-theme input,
+    body.dark-theme textarea,
+    body.dark-theme select {
+      background-color: #2b2b2b;
+      color: #f0f0f0;
+    }
 
-        .nav-tabs button.active {
-            background: #ff4c4c;
-            color: #fff;
-        }
+    body.dark-theme .nav-tabs button {
+      background-color: #444;
+      color: #ccc;
+    }
 
-        .page-section {
-            display: none;
-        }
+    body.dark-theme .nav-tabs button.active {
+      background-color: #66bb6a;
+      color: white;
+    }
 
-        .page-section.active {
-            display: block;
-        }
+    body.dark-theme input,
+    body.dark-theme textarea,
+    body.dark-theme select {
+      border: 1px solid #666;
+    }
 
-        .aboutme-card {
-            background: #fff;
-            color: #222;
-            border-radius: 8px;
-            padding: 18px 24px;
-            margin-bottom: 18px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
-            border-left: 5px solid #0066cc;
-        }
+    body.dark-theme button,
+    body.dark-theme .lang-toggle-button {
+      background-color: #43a047;
+      color: white;
+    }
 
-        .aboutme-card h2 {
-            color: #0066cc;
-            margin-bottom: 10px;
-        }
+    body.dark-theme button:hover,
+    body.dark-theme .lang-toggle-button:hover {
+      background-color: #2e7d32;
+    }
 
-        .aboutme-card p {
-            margin-bottom: 6px;
-        }
-    </style>
+    .nav-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+
+    .nav-tabs button {
+      background: #444;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px 5px 0 0;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .nav-tabs button.active {
+      background: #4ddd48;
+      color: #fff;
+    }
+
+    .page-section {
+      display: none;
+    }
+
+    .page-section.active {
+      display: block;
+    }
+
+    .aboutme-card {
+      background: #fff;
+      color: #222;
+      border-radius: 8px;
+      padding: 18px 24px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+      border-left: 5px solid #6eee5d;
+    }
+
+    .aboutme-card h2 {
+      color: #5edd2c;
+      margin-bottom: 10px;
+    }
+
+    .aboutme-card p {
+      margin-bottom: 6px;
+    }
+
+    .lang-toggle-button {
+      background: #5caf50;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      margin-left: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .info-card {
+      background: #fff;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      margin-top: 20px;
+    }
+  </style>
 </head>
 
 <body>
-    <header>
-        <h1>Батьківська панель</h1>
-        <button id="logoutButton">Вийти</button>
-    </header>
-    <div class="nav-tabs">
-        <button id="tab-main" class="active" type="button">Головна інформація</button>
-        <button id="tab-profile" type="button">Інформація про мене</button>
-    </div>
-    <main>
-        <section id="main-page" class="page-section active">
-            <section id="invitations-section">
-                <h2>Запрошення на батьківські збори</h2>
-                <ul id="invitations-list"></ul>
-            </section>
-            <section id="calendar-section">
-                <h2>Календар подій</h2>
-                <div class="calendar-header">
-                    <button id="prev-month">◀</button>
-                    <span id="month-name"></span>
-                    <button id="next-month">▶</button>
-                </div>
-                <table id="calendar-table">
-                    <thead>
-                        <tr>
-                            <th>Пн</th>
-                            <th>Вт</th>
-                            <th>Ср</th>
-                            <th>Чт</th>
-                            <th>Пт</th>
-                            <th>Сб</th>
-                            <th>Нд</th>
-                        </tr>
-                    </thead>
-                    <tbody id="calendar-body"></tbody>
-                </table>
-            </section>
-        </section>
-        <section id="profile-page" class="page-section">
-            <div class="aboutme-card">
-                <h2>Про мене</h2>
-                <p><strong>Ім'я:</strong> <span id="profile-firstName">-</span></p>
-                <p><strong>Прізвище:</strong> <span id="profile-lastName">-</span></p>
-                <p><strong>Дата народження:</strong> <span id="profile-dateOfBirth">-</span></p>
-                <p><strong>Про мене:</strong> <span id="profile-aboutMe">-</span></p>
-                <p><strong>Email:</strong> <span id="profile-email">-</span></p>
-                <p><strong>Роль:</strong> <span id="profile-role">-</span></p>
-            </div>
-            <section id="update-profile-info-section">
-                <h2>Оновити профіль</h2>
-                <form id="editProfileForm">
-                    <label for="edit-firstName">Ім'я:</label>
-                    <input type="text" id="edit-firstName" name="firstName">
-                    <label for="edit-lastName">Прізвище:</label>
-                    <input type="text" id="edit-lastName" name="lastName">
-                    <label for="edit-aboutMe">Про мене:</label>
-                    <textarea id="edit-aboutMe" name="aboutMe"></textarea>
-                    <label for="edit-dateOfBirth">Дата народження:</label>
-                    <input type="date" id="edit-dateOfBirth" name="dateOfBirth">
-                    <label for="edit-email">Email:</label>
-                    <input type="email" id="edit-email" name="email">
-                    <label for="edit-password">Новий пароль:</label>
-                    <input type="password" id="edit-password" name="password">
-                    <label for="confirm-password">Підтвердження пароля:</label>
-                    <input type="password" id="confirm-password" name="confirmPassword">
-                    <button type="submit">Оновити профіль</button>
-                </form>
-            </section>
-        </section>
-    </main>
-    <script src="scripts/parent.js"></script>
-    <!-- Event modal placeholder -->
-    <div id="event-modal" style="display:none"></div>
-</body>
+  <header>
+    <h1>Батьківська панель</h1>
+    <button id="logoutButton">Вийти</button>
+    <button id="themeToggle" class="lang-toggle-button">🌙</button>
+  </header>
 
-</html><!DOCTYPE html>
-<html lang="uk">
+  <div class="nav-tabs">
+    <button id="tab-main" class="active" type="button">Головна інформація</button>
+    <button id="tab-profile" type="button">Інформація про мене</button>
+  </div>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Батьківська сторінка</title>
-    <link rel="stylesheet" href="styles/main.css">
-    <style>
-        .nav-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
+  <main>
+    <section id="main-page" class="page-section active">
+      <section id="calendar-section">
+        <h2>Календар подій</h2>
+        <div class="calendar-header">
+          <button id="prev-month">◀</button>
+          <span id="month-name"></span>
+          <button id="next-month">▶</button>
+        </div>
+        <table id="calendar-table">
+          <thead>
+            <tr>
+              <th>Пн</th>
+              <th>Вт</th>
+              <th>Ср</th>
+              <th>Чт</th>
+              <th>Пт</th>
+              <th>Сб</th>
+              <th>Нд</th>
+            </tr>
+          </thead>
+          <tbody id="calendar-body"></tbody>
+        </table>
+      </section>
 
-        .nav-tabs button {
-            background: #444;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px 5px 0 0;
-            cursor: pointer;
-            font-weight: bold;
-        }
+      <section>
+        <div class="info-card">
+          <h2>Голосування</h2>
+          <div id="available-votes-container"></div>
+        </div>
+        <div id="vote-create-container"></div>
+      </section>
+    </section>
 
-        .nav-tabs button.active {
-            background: #4ddd48;
-            color: #fff;
-        }
+    <section id="profile-page" class="page-section">
+      <div class="aboutme-card">
+        <h2>Про мене</h2>
+        <p><strong>Ім'я:</strong> <span id="profile-firstName">-</span></p>
+        <p><strong>Прізвище:</strong> <span id="profile-lastName">-</span></p>
+        <p><strong>Дата народження:</strong> <span id="profile-dateOfBirth">-</span></p>
+        <p><strong>Про мене:</strong> <span id="profile-aboutMe">-</span></p>
+        <p><strong>Email:</strong> <span id="profile-email">-</span></p>
+        <p><strong>Роль:</strong> <span id="profile-role">-</span></p>
+      </div>
 
-        .page-section {
-            display: none;
-        }
+      <section id="update-profile-info-section">
+        <h2>Оновити профіль</h2>
+        <form id="editProfileForm">
+          <label for="edit-firstName">Ім'я:</label>
+          <input type="text" id="edit-firstName" name="firstName" />
+          <label for="edit-lastName">Прізвище:</label>
+          <input type="text" id="edit-lastName" name="lastName" />
+          <label for="edit-aboutMe">Про мене:</label>
+          <textarea id="edit-aboutMe" name="aboutMe"></textarea>
+          <label for="edit-dateOfBirth">Дата народження:</label>
+          <input type="date" id="edit-dateOfBirth" name="dateOfBirth" />
+          <label for="edit-email">Email:</label>
+          <input type="email" id="edit-email" name="email" />
+          <label for="edit-password">Новий пароль:</label>
+          <input type="password" id="edit-password" name="password" />
+          <label for="confirm-password">Підтвердження пароля:</label>
+          <input type="password" id="confirm-password" name="confirmPassword" />
+          <button type="submit">Оновити профіль</button>
+        </form>
+      </section>
+    </section>
+  </main>
 
-        .page-section.active {
-            display: block;
-        }
+  <div id="event-modal" style="display: none"></div>
 
-        .aboutme-card {
-            background: #fff;
-            color: #222;
-            border-radius: 8px;
-            padding: 18px 24px;
-            margin-bottom: 18px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
-            border-left: 5px solid #6eee5d;
-        }
-
-        .aboutme-card h2 {
-            color: #5edd2c;
-            margin-bottom: 10px;
-        }
-
-        .aboutme-card p {
-            margin-bottom: 6px;
-        }
-        .lang-toggle-button {
-  background: #5caf50;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  margin-left: 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-}
-body.dark-theme {
-  background: linear-gradient(to bottom, #1f1f1f, #2c2c2c, #3a3a3a);
-  color: #f0f0f0;
-}
-
-body.dark-theme header,
-body.dark-theme .aboutme-card,
-body.dark-theme .info-card,
-body.dark-theme section,
-body.dark-theme .nav-tabs button,
-body.dark-theme input,
-body.dark-theme textarea,
-body.dark-theme select {
-  background-color: #2b2b2b;
-  color: #f0f0f0;
-}
-
-body.dark-theme .nav-tabs button {
-  background-color: #444;
-  color: #ccc;
-}
-
-body.dark-theme .nav-tabs button.active {
-  background-color: #66bb6a;
-  color: white;
-}
-
-body.dark-theme input,
-body.dark-theme textarea,
-body.dark-theme select {
-  border: 1px solid #666;
-}
-
-body.dark-theme button,
-body.dark-theme .lang-toggle-button {
-  background-color: #43a047;
-  color: white;
-}
-
-body.dark-theme button:hover,
-body.dark-theme .lang-toggle-button:hover {
-  background-color: #2e7d32;
-}
-
-    </style>
-</head>
-
-<body>
-    <header>
-        <h1>Батьківська панель</h1>
-        <button id="logoutButton">Вийти</button>
-<button id="themeToggle" class="lang-toggle-button">🌙</button>
-
-    </header>
-    <div class="nav-tabs">
-        <button id="tab-main" class="active" type="button">Головна інформація</button>
-        <button id="tab-profile" type="button">Інформація про мене</button>
-    </div>
-    <main>
-        <section id="main-page" class="page-section active">
-
-            <section id="calendar-section">
-                <h2>Календар подій</h2>
-                <div class="calendar-header">
-                    <button id="prev-month">◀</button>
-                    <span id="month-name"></span>
-                    <button id="next-month">▶</button>
-                </div>
-                <table id="calendar-table">
-                    <thead>
-                        <tr>
-                            <th>Пн</th>
-                            <th>Вт</th>
-                            <th>Ср</th>
-                            <th>Чт</th>
-                            <th>Пт</th>
-                            <th>Сб</th>
-                            <th>Нд</th>
-                        </tr>
-                    </thead>
-                    <tbody id="calendar-body"></tbody>
-                </table>
-                <section>
-                    <div class="info-card">
-                        <h2>Голосування</h2>
-                        <div id="available-votes-container"></div>
-                    </div>
-                    <div id="vote-create-container"></div>
-                </section>
-            </section>
-        </section>
-        <section id="profile-page" class="page-section">
-            <div class="aboutme-card">
-                <h2>Про мене</h2>
-                <p><strong>Ім'я:</strong> <span id="profile-firstName">-</span></p>
-                <p><strong>Прізвище:</strong> <span id="profile-lastName">-</span></p>
-                <p><strong>Дата народження:</strong> <span id="profile-dateOfBirth">-</span></p>
-                <p><strong>Про мене:</strong> <span id="profile-aboutMe">-</span></p>
-                <p><strong>Email:</strong> <span id="profile-email">-</span></p>
-                <p><strong>Роль:</strong> <span id="profile-role">-</span></p>
-            </div>
-            <section id="update-profile-info-section">
-                <h2>Оновити профіль</h2>
-                <form id="editProfileForm">
-                    <label for="edit-firstName">Ім'я:</label>
-                    <input type="text" id="edit-firstName" name="firstName">
-                    <label for="edit-lastName">Прізвище:</label>
-                    <input type="text" id="edit-lastName" name="lastName">
-                    <label for="edit-aboutMe">Про мене:</label>
-                    <textarea id="edit-aboutMe" name="aboutMe"></textarea>
-                    <label for="edit-dateOfBirth">Дата народження:</label>
-                    <input type="date" id="edit-dateOfBirth" name="dateOfBirth">
-                    <label for="edit-email">Email:</label>
-                    <input type="email" id="edit-email" name="email">
-                    <label for="edit-password">Новий пароль:</label>
-                    <input type="password" id="edit-password" name="password">
-                    <label for="confirm-password">Підтвердження пароля:</label>
-                    <input type="password" id="confirm-password" name="confirmPassword">
-                    <button type="submit">Оновити профіль</button>
-                </form>
-            </section>
-        </section>
-    </main>
-    <script type="module" src="scripts/parent.js"></script>
-    <script type="module" src="scripts/vote.js"></script>
-    
+  <script type="module" src="scripts/parent.js"></script>
+  <script type="module" src="scripts/vote.js"></script>
 </body>
 
 </html>
