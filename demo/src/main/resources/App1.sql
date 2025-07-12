@@ -2,7 +2,7 @@ DROP DATABASE IF EXISTS `App1`;
 CREATE DATABASE `App1` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `App1`;
 
---SCHOOLS AND CLASSES--
+/*SCHOOLS AND CLASSES*/
 CREATE TABLE IF NOT EXISTS `schools` (
   `id`       BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `name`     VARCHAR(100) NOT NULL UNIQUE
@@ -16,10 +16,10 @@ CREATE TABLE IF NOT EXISTS `classes` (
   FOREIGN KEY (`school_id`) REFERENCES `schools`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
---USERS--
+/*USERS*/
 CREATE TABLE IF NOT EXISTS `users` (
-  `id`             BIGINT  NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `school_id`      BIGINT  NULL,
+  `id`             BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `school_id`      BIGINT NULL,
   `class_id`       BIGINT NULL,
   `first_name`     VARCHAR(50) NOT NULL,
   `last_name`      VARCHAR(50) NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   FOREIGN KEY (`class_id`)  REFERENCES `classes`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
---VOTES--
+/*VOTES*/
 CREATE TABLE IF NOT EXISTS `voting` (
     `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `school_id` BIGINT NOT NULL,
@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS `voting_participant` (
     UNIQUE KEY `unique_participant` (`voting_id`, `user_id`)
 ) ENGINE=InnoDB;
 
---PETITIONS--
+/*PETITIONS*/
 CREATE TABLE IF NOT EXISTS `petitions` (
   `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `title` VARCHAR(250) NOT NULL,
@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS `petitions_comments`(
   FOREIGN KEY (`petition_id`) REFERENCES `petitions`(`id`) ON DELETE CASCADE
 )ENGINE=InnoDB;
 
---EVENTS--
+/*EVENTS*/
 CREATE TABLE IF NOT EXISTS `events` (
   `id`               BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `school_id`        BIGINT NOT NULL,
@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS `user_invitations_status` (
   FOREIGN KEY (`user_id`)       REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- TASKS --
+/* TASKS */
 CREATE TABLE IF NOT EXISTS `tasks` (
   `id`         BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `school_id`  BIGINT NOT NULL,

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Сторінка директора</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <style>
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .nav-tabs button {
+            background: #444;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .nav-tabs button.active {
+            background: #83ec59;
+            color: #fff;
+        }
+
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+        .lang-toggle-button {
+  background: #5caf50;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  margin-left: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+body.dark-theme {
+  background: linear-gradient(to bottom, #1f1f1f, #2c2c2c, #3a3a3a);
+  color: #f0f0f0;
+}
+
+body.dark-theme header,
+body.dark-theme .aboutme-card,
+body.dark-theme .info-card,
+body.dark-theme section,
+body.dark-theme .nav-tabs button,
+body.dark-theme input,
+body.dark-theme textarea,
+body.dark-theme select {
+  background-color: #2b2b2b;
+  color: #f0f0f0;
+}
+
+body.dark-theme .nav-tabs button {
+  background-color: #444;
+  color: #ccc;
+}
+
+body.dark-theme .nav-tabs button.active {
+  background-color: #66bb6a;
+  color: white;
+}
+
+body.dark-theme input,
+body.dark-theme textarea,
+body.dark-theme select {
+  border: 1px solid #666;
+}
+
+body.dark-theme button,
+body.dark-theme .lang-toggle-button {
+  background-color: #43a047;
+  color: white;
+}
+
+body.dark-theme button:hover,
+body.dark-theme .lang-toggle-button:hover {
+  background-color: #2e7d32;
+}
+
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Панель директора</h1>
+        <button id="logoutButton" class="auth-button">Вийти</button>
+<button id="themeToggle" class="lang-toggle-button">🌙</button>
+
+    </header>
+
+    <div class="nav-tabs">
+        <button id="tab-users" class="active" type="button">Користувачі</button>
+        <button id="tab-create" type="button">Додавання/Статистика</button>
+        <button id="tab-profile" type="button">Профіль</button>
+    </div>
+
+    <main>
+        <!-- User Management Page -->
+        <section id="users-page" class="page-section active">
+            <section>
+                <h2>Список користувачів</h2>
+                <ul id="user-list"></ul>
+            </section>
+            <section id="edit-user-section" style="display:none; margin-top:20px;">
+                <h3>Редагувати користувача</h3>
+                <form id="edit-user-form">
+                    <input type="hidden" id="edit-user-id">
+                    <div>
+                        <label>Ім'я: <input type="text" id="edit-firstName" required /></label>
+                    </div>
+                    <div>
+                        <label>Прізвище: <input type="text" id="edit-lastName" required /></label>
+                    </div>
+                    <div>
+                        <label>Про себе: <input type="text" id="edit-aboutMe" required /></label>
+                    </div>
+                    <div>
+                        <label>Дата народження: <input type="date" id="edit-dateOfBirth" required /></label>
+                    </div>
+                    <button type="submit">Зберегти</button>
+                    <button type="button" id="cancel-edit">Скасувати</button>
+                </form>
+            </section>
+        </section>
+
+        <!-- Creation/Stats Page -->
+        <section id="create-page" class="page-section">
+            <section id="selection-section">
+                <label>Школа:
+                    <select id="school-select">
+                        <option>Завантаження шкіл...</option>
+                    </select>
+                </label>
+                <label>Клас:
+                    <select id="class-select">
+                        <option>Оберіть школу</option>
+                    </select>
+                </label>
+            </section>
+
+            <section id="stats-section">
+                <h2>Статистика</h2>
+            </section>
+
+            <section>
+                <h2>Створити користувача</h2>
+                <input id="new-user-first" placeholder="Ім’я">
+                <input id="new-user-last" placeholder="Прізвище">
+                <input id="new-user-email" placeholder="Email">
+                <input id="new-user-pass" type="password" placeholder="Пароль">
+                <input id="new-user-aboutMe" placeholder="Про себе">
+                <input id="new-user-dateOfBirth" type="date" placeholder="Дата народження">
+                <select id="new-user-role">
+                    <option value="">Оберіть роль</option>
+                    <option value="TEACHER">Вчитель</option>
+                    <option value="STUDENT">Учень</option>
+                    <option value="PARENT">Батьки</option>
+                </select>
+                <button id="create-user-button">Створити користувача</button>
+            </section>
+            <section>
+                <div id="vote-create-container"></div>
+            </section>
+
+        </section>
+
+        <!-- Профіль -->
+        <section id="profile-section" class="page-section">
+            <header>
+                <h1>Мій профіль</h1>
+            </header>
+            <section id="profile-info">
+                <h2>Інформація про профіль</h2>
+                <p><strong>Ім'я:</strong> <span id="profile-firstName">-</span></p>
+                <p><strong>Прізвище:</strong> <span id="profile-lastName">-</span></p>
+                <p><strong>Дата народження:</strong> <span id="profile-dateOfBirth">-</span></p>
+                <p><strong>Про мене:</strong> <span id="profile-aboutMe">-</span></p>
+                <p><strong>Email:</strong> <span id="profile-email">-</span></p>
+                <p><strong>Роль:</strong> <span id="profile-role">-</span></p>
+            </section>
+            <section id="update-profile-info-section">
+                <h2>Оновити профіль</h2>
+                <form id="editProfileForm">
+                    <label for="edit-firstName">Ім'я:</label>
+                    <input type="text" id="edit-firstName" name="firstName" />
+
+                    <label for="edit-lastName">Прізвище:</label>
+                    <input type="text" id="edit-lastName" name="lastName" />
+
+                    <label for="edit-aboutMe">Про мене:</label>
+                    <textarea id="edit-aboutMe" name="aboutMe"></textarea>
+
+                    <label for="edit-dateOfBirth">Дата народження:</label>
+                    <input type="date" id="edit-dateOfBirth" name="dateOfBirth" />
+
+                    <label for="edit-email">Email:</label>
+                    <input type="email" id="edit-email" name="email" />
+
+                    <label for="edit-password">Новий пароль:</label>
+                    <input type="password" id="edit-password" name="password" />
+
+                    <label for="confirm-password">Підтвердження пароля:</label>
+                    <input type="password" id="confirm-password" name="confirmPassword" />
+
+                    <button type="submit">Оновити профіль</button>
+                </form>
+            </section>
+        </section>
+
+    </main>
+
+    <script type="module" src="scripts/teacher.js"></script>
+    <script type="module" src="scripts/vote.js"></script>
+
+</body>
+
+</html>

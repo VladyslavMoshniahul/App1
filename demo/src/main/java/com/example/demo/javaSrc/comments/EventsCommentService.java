@@ -2,7 +2,7 @@ package com.example.demo.javaSrc.comments;
 
 import org.springframework.stereotype.Service;
 
-@Service
+//@Service
 public class EventsCommentService {
 
 }
