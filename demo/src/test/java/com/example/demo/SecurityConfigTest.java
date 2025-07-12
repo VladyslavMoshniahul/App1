@@ -3,8 +3,7 @@ package com.example.demo;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.example.demo.javaSrc.people.People;
-import com.example.demo.javaSrc.people.PeopleRepository;
+import com.example.demo.javaSrc.users.*;
 import com.example.demo.javaSrc.security.JwtAuthenticationFilter;
 import com.example.demo.javaSrc.security.JwtUtils;
 import com.example.demo.javaSrc.security.SecurityConfig;
@@ -26,11 +25,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 public class SecurityConfigTest {
 
     private SecurityConfig securityConfig;
-    private PeopleRepository peopleRepository;
+    private UserRepository peopleRepository;
 
     @BeforeEach
     void setUp() {
-        peopleRepository = mock(PeopleRepository.class);
+        peopleRepository = mock(UserRepository.class);
         securityConfig = new SecurityConfig();
     }
 
@@ -60,10 +59,10 @@ public class SecurityConfigTest {
 
     @Test
     void testUserDetailsServiceReturnsUser() {
-        People person = new People();
+        User person = new User();
         person.setEmail("user@example.com");
         person.setPassword("encodedPassword");
-        person.setRole(People.Role.STUDENT);
+        person.setRole(User.Role.STUDENT);
 
         when(peopleRepository.findByEmail("user@example.com")).thenReturn(Optional.of(person));
 

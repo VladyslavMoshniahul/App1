@@ -1,7 +1,7 @@
 package com.example.demo;
 
 
-import com.example.demo.javaSrc.eventsANDtask.*;
+import com.example.demo.javaSrc.tasks.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;

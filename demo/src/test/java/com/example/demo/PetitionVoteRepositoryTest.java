@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.example.demo.javaSrc.people.People;
-import com.example.demo.javaSrc.people.PeopleRepository;
+import com.example.demo.javaSrc.users.*;
+
 import com.example.demo.javaSrc.petitions.Petition;
 import com.example.demo.javaSrc.petitions.PetitionRepository;
 import com.example.demo.javaSrc.petitions.PetitionVote;
@@ -28,7 +28,7 @@ public class PetitionVoteRepositoryTest {
     private PetitionRepository petitionRepository;
 
     @Autowired
-    private PeopleRepository peopleRepository;
+    private UserRepository peopleRepository;
 
     @Autowired
     private SchoolRepository schoolRepository;
@@ -54,12 +54,12 @@ public class PetitionVoteRepositoryTest {
         petition.setCreatedBy(1L);
         petition = petitionRepository.save(petition);
 
-        People student = new People();
+        User student = new User();
         student.setFirstName("John");
         student.setLastName("Doe");
         student.setEmail("john.doe@example.com");
         student.setPassword("password");
-        student.setRole(People.Role.STUDENT);
+        student.setRole(User.Role.STUDENT);
         student.setSchoolId(school.getId());
         student = peopleRepository.save(student);
 

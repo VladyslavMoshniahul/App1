@@ -15,8 +15,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.example.demo.javaSrc.people.People;
-import com.example.demo.javaSrc.people.PeopleRepository;
+import com.example.demo.javaSrc.users.*;
 import com.example.demo.javaSrc.petitions.Petition;
 import com.example.demo.javaSrc.petitions.PetitionRepository;
 import com.example.demo.javaSrc.petitions.PetitionService;
@@ -34,13 +33,13 @@ public class PetitionServiceTest {
     private PetitionRepository petitionRepository;
 
     @MockBean
-    private PeopleRepository peopleRepository;
+    private UserRepository peopleRepository;
 
     @MockBean
     private PetitionVoteRepository petitionVoteRepository;
 
     private Petition petition;
-    private People student;
+    private User student;
 
     @BeforeEach
     void setup() {
@@ -58,8 +57,8 @@ public class PetitionServiceTest {
         petition.setCurrentPositiveVoteCount(0);
         petition.setDirectorsDecision(Petition.DirectorsDecision.NOT_ENOUGH_VOTING);
 
-        student = new People();
-        student.setRole(People.Role.STUDENT);
+        student = new User();
+        student.setRole(User.Role.STUDENT);
         student.setSchoolId(1L);
         student.setClassId(1L);
     }
@@ -144,7 +143,7 @@ public class PetitionServiceTest {
 
         // Здесь заменили строку на enum
         when(peopleRepository.findByRoleAndSchoolIdAndClassId(
-                People.Role.STUDENT, 1L, 1L))
+                User.Role.STUDENT, 1L, 1L))
             .thenReturn(List.of(student));
 
         when(petitionVoteRepository.save(any())).thenAnswer(i -> i.getArgument(0));

@@ -1,7 +1,6 @@
 package com.example.demo;
 
-import com.example.demo.javaSrc.people.People;
-import com.example.demo.javaSrc.people.PeopleRepository;
+import com.example.demo.javaSrc.users.*;
 import com.example.demo.javaSrc.voting.*;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -36,13 +35,13 @@ class VoteServiceTest {
     @Mock
     private VotingVoteRepository votingVoteRepository;
     @Mock
-    private PeopleRepository peopleRepository;
+    private UserRepository peopleRepository;
 
     @InjectMocks
     private VoteService voteService;
 
     private Vote mockVote;
-    private People mockUser;
+    private User mockUser;
     private VotingVariant mockVariant1;
     private VotingVariant mockVariant2;
 
@@ -54,11 +53,11 @@ class VoteServiceTest {
         votingVoteRepository.deleteAll();
         voteRepository.deleteAll();
 
-        mockUser = new People();
+        mockUser = new User();
         mockUser.setId(1L);
         mockUser.setSchoolId(100L);
         mockUser.setClassId(10L);
-        mockUser.setRole(People.Role.STUDENT);
+        mockUser.setRole(User.Role.STUDENT);
 
         mockVote = new Vote();
         mockVote.setId(1L);
@@ -376,7 +375,7 @@ class VoteServiceTest {
 
     @Test
     void getAccessibleVotingsForUser_shouldReturnTeachersGroupVoteForTeacherInThatSchool() {
-        mockUser.setRole(People.Role.TEACHER);
+        mockUser.setRole(User.Role.TEACHER);
         Vote teacherGroupVote = new Vote();
         teacherGroupVote.setId(4L);
         teacherGroupVote.setSchoolId(100L);
@@ -396,7 +395,7 @@ class VoteServiceTest {
 
     @Test
     void getAccessibleVotingsForUser_shouldNotReturnTeachersGroupVoteForNonTeacher() {
-        mockUser.setRole(People.Role.STUDENT); 
+        mockUser.setRole(User.Role.STUDENT); 
         Vote teacherGroupVote = new Vote();
         teacherGroupVote.setId(4L);
         teacherGroupVote.setSchoolId(100L);

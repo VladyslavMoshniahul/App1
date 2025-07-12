@@ -1,7 +1,6 @@
 package com.example.demo;
 
-import com.example.demo.javaSrc.people.People;
-import com.example.demo.javaSrc.people.PeopleService;
+import com.example.demo.javaSrc.users.*;
 import com.example.demo.javaSrc.security.JwtUtils;
 import com.example.demo.javaSrc.worker.AuthController;
 import com.example.demo.javaSrc.worker.AuthRequest;
@@ -29,7 +28,7 @@ public class AuthControllerTest {
     private JwtUtils jwtUtils;
 
     @Mock
-    private PeopleService peopleService;
+    private UserService peopleService;
 
     @Mock
     private HttpServletResponse servletResponse;
@@ -51,9 +50,9 @@ public class AuthControllerTest {
         when(jwtUtils.generateToken(any())).thenReturn("mockToken");
         when(jwtUtils.getJwtExpirationMs()).thenReturn(3600000L); // 1 hour
 
-        People user = new People();
+        User user = new User();
         user.setEmail("test@example.com");
-        user.setRole(People.Role.STUDENT);
+        user.setRole(User.Role.STUDENT);
 
         when(peopleService.findByEmail("test@example.com")).thenReturn(user);
 
@@ -86,9 +85,9 @@ public class AuthControllerTest {
         when(jwtUtils.generateToken(any())).thenReturn("mockToken");
         when(jwtUtils.getJwtExpirationMs()).thenReturn(3600000L);
 
-        People user = new People();
+        User user = new User();
         user.setEmail("test@example.com");
-        user.setRole(People.Role.STUDENT);
+        user.setRole(User.Role.STUDENT);
 
         when(peopleService.findByEmail("test@example.com")).thenReturn(user);
 

@@ -14,8 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.example.demo.javaSrc.people.People;
-import com.example.demo.javaSrc.people.PeopleRepository;
+import com.example.demo.javaSrc.users.*;
 import com.example.demo.javaSrc.school.ClassRepository;
 import com.example.demo.javaSrc.school.School;
 import com.example.demo.javaSrc.school.SchoolClass;
@@ -38,13 +37,13 @@ public class VotingVoteRepositoryTest {
     @Autowired
     private SchoolRepository schoolRepository;
     @Autowired
-    private PeopleRepository peopleRepository;
+    private UserRepository peopleRepository;
     @Autowired
     private VotingVariantRepository votingVariantRepository;
 
     private School school;
     private SchoolClass schoolClass;
-    private People user;
+    private User user;
     private Vote vote;
     private VotingVariant variant;
 
@@ -66,13 +65,13 @@ public class VotingVoteRepositoryTest {
         schoolClass.setSchoolId(school.getId());
         classRepository.save(schoolClass);
 
-        user = new People();
+        user = new User();
         user.setFirstName("Test");
         user.setLastName("User");
         user.setEmail("vsd@vvxhsbg");
         user.setSchoolId(school.getId());
         user.setClassId(schoolClass.getId());
-        user.setRole(People.Role.STUDENT);
+        user.setRole(User.Role.STUDENT);
         user.setPassword("password");
         peopleRepository.save(user);
 

@@ -5,8 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.example.demo.javaSrc.people.People;
-import com.example.demo.javaSrc.people.PeopleRepository;
+import com.example.demo.javaSrc.users.*;
 import com.example.demo.javaSrc.petitions.Petition;
 import com.example.demo.javaSrc.petitions.PetitionRepository;
 import com.example.demo.javaSrc.school.ClassRepository;
@@ -25,7 +24,7 @@ public class PetitionRepositoryTest {
     private PetitionRepository petitionRepository;
 
     @Autowired
-    private PeopleRepository peopleRepository;
+    private UserRepository peopleRepository;
 
     @Autowired
     private ClassRepository classRepository;
@@ -33,7 +32,7 @@ public class PetitionRepositoryTest {
     @Autowired
     private SchoolRepository schoolRepository;
 
-    private People testUser;
+    private User testUser;
     private SchoolClass schoolClass;
     private Petition testPetition;
     private School school;
@@ -55,14 +54,14 @@ public class PetitionRepositoryTest {
         schoolClass.setSchoolId(school.getId());
         classRepository.save(schoolClass);
 
-        testUser = new People();
+        testUser = new User();
         testUser.setSchoolId(school.getId());
         testUser.setClassId(schoolClass.getId());
         testUser.setFirstName("Test");
         testUser.setLastName("User");
         testUser.setEmail("test@example.com");
         testUser.setPassword("pass");
-        testUser.setRole(People.Role.STUDENT);
+        testUser.setRole(User.Role.STUDENT);
         peopleRepository.save(testUser);
 
         testPetition = new Petition(

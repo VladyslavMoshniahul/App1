@@ -1,8 +1,7 @@
 package com.example.demo;
 
-import com.example.demo.javaSrc.comments.Comment;
-import com.example.demo.javaSrc.comments.CommentRepository;
-import com.example.demo.javaSrc.people.*;
+import com.example.demo.javaSrc.comments.*;
+import com.example.demo.javaSrc.users.*;
 import com.example.demo.javaSrc.petitions.Petition;
 import com.example.demo.javaSrc.petitions.PetitionRepository;
 import com.example.demo.javaSrc.school.ClassRepository;
@@ -27,10 +26,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CommentRepositoryTest {
 
     @Autowired
-    private CommentRepository commentRepository;
+    private PetitionsCommentRepository commentRepository;
 
     @Autowired
-    private PeopleRepository peopleRepository;
+    private UserRepository peopleRepository;
 
     @Autowired
     private PetitionRepository petitionRepository;
@@ -41,7 +40,7 @@ public class CommentRepositoryTest {
     @Autowired
     private SchoolRepository schoolRepository;
 
-    private People testPeople;
+    private User testPeople;
     private Petition testPetition;
 
     @BeforeEach
@@ -61,14 +60,14 @@ public class CommentRepositoryTest {
         class1.setSchoolId(school.getId());  
         class1 = classRepository.save(class1);
 
-        testPeople = new People();
+        testPeople = new User();
         testPeople.setSchoolId(school.getId());
         testPeople.setClassId(class1.getId());
         testPeople.setFirstName("test");
         testPeople.setLastName("ggg");
         testPeople.setEmail("email@test.com");
         testPeople.setPassword("wvvrvfrere");
-        testPeople.setRole(People.Role.STUDENT);
+        testPeople.setRole(User.Role.STUDENT);
         testPeople = peopleRepository.save(testPeople);
 
         Date start = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
@@ -90,46 +89,46 @@ public class CommentRepositoryTest {
 
     @Test
     void testSaveAndFindByPetitionId() {
-        Comment comment = new Comment(testPeople.getId(), testPetition.getId(), "Great idea!");
+        PetitionsComment comment = new PetitionsComment(testPeople.getId(), testPetition.getId(), "Great idea!");
         commentRepository.save(comment);
 
-        List<Comment> comments = commentRepository.findByPetitionId(testPetition.getId());
+        List<PetitionsComment> comments = commentRepository.findByPetitionId(testPetition.getId());
         assertThat(comments).hasSize(1);
         assertThat(comments.get(0).getText()).isEqualTo("Great idea!");
     }
 
     @Test
     void testFindByPeopleId() {
-        commentRepository.save(new Comment(testPeople.getId(), testPetition.getId(), "Great idea!"));
+        commentRepository.save(new PetitionsComment(testPeople.getId(), testPetition.getId(), "Great idea!"));
 
-        List<Comment> comments = commentRepository.findByUserId(testPeople.getId());
+        List<PetitionsComment> comments = commentRepository.findByUserId(testPeople.getId());
         assertThat(comments).hasSize(1);
     }
 
     @Test
     void testFindByPetitionIdAndPeopleId() {
-        commentRepository.save(new Comment(testPeople.getId(), testPetition.getId(), "Great idea!"));
+        commentRepository.save(new PetitionsComment(testPeople.getId(), testPetition.getId(), "Great idea!"));
 
-        List<Comment> comments = commentRepository.findByPetitionIdAndUserId(testPetition.getId(), testPeople.getId());
+        List<PetitionsComment> comments = commentRepository.findByPetitionIdAndUserId(testPetition.getId(), testPeople.getId());
         assertThat(comments).hasSize(1);
     }
 
     @Test
     void testDeleteByPetitionId() {
        
-        commentRepository.save(new Comment(testPeople.getId(), testPetition.getId(), "Great idea!"));
+        commentRepository.save(new PetitionsComment(testPeople.getId(), testPetition.getId(), "Great idea!"));
         commentRepository.deleteByPetitionId(testPetition.getId());
 
-        List<Comment> comments = commentRepository.findByPetitionId(testPetition.getId());
+        List<PetitionsComment> comments = commentRepository.findByPetitionId(testPetition.getId());
         assertThat(comments).isEmpty();
     }
 
     @Test
     void testDeleteByPeopleId() {
-        commentRepository.save(new Comment(testPeople.getId(), testPetition.getId(), "Great idea!"));
+        commentRepository.save(new PetitionsComment(testPeople.getId(), testPetition.getId(), "Great idea!"));
         commentRepository.deleteByUserId(testPeople.getId());
 
-        List<Comment> comments = commentRepository.findByUserId(testPeople.getId());
+        List<PetitionsComment> comments = commentRepository.findByUserId(testPeople.getId());
         assertThat(comments).isEmpty();
     }
 }

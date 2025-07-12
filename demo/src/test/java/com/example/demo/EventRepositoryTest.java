@@ -9,10 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.example.demo.javaSrc.eventsANDtask.Event;
-import com.example.demo.javaSrc.eventsANDtask.EventRepository;
-import com.example.demo.javaSrc.people.People;
-import com.example.demo.javaSrc.people.PeopleRepository;
+import com.example.demo.javaSrc.events.*;
+import com.example.demo.javaSrc.users.*;
 
 @SpringBootTest
 public class EventRepositoryTest {
@@ -21,7 +19,7 @@ public class EventRepositoryTest {
     private EventRepository eventRepository;
 
     @Autowired
-    private PeopleRepository peopleRepository;
+    private UserRepository peopleRepository;
 
     @BeforeEach
     public void setUp() {
@@ -31,12 +29,12 @@ public class EventRepositoryTest {
 
     @Test
     void testFindBySchoolId() {
-        People creator = new People();
+        User creator = new User();
         creator.setFirstName("Creator");
         creator.setLastName("Test");
         creator.setEmail("creator@example.com");
         creator.setPassword("password123");
-        creator.setRole(People.Role.TEACHER);
+        creator.setRole(User.Role.TEACHER);
         creator.setSchoolId(1L);
         creator.setClassId(1L);
         peopleRepository.save(creator); 
@@ -59,12 +57,12 @@ public class EventRepositoryTest {
 
     @Test
     void testFindBySchoolIdAndClassId() {
-       People creator = new People();
+       User creator = new User();
         creator.setFirstName("Creator");
         creator.setLastName("Test");
         creator.setEmail("creator@example.com");
         creator.setPassword("password123");
-        creator.setRole(People.Role.TEACHER);
+        creator.setRole(User.Role.TEACHER);
         creator.setSchoolId(1L);
         creator.setClassId(1L);
         peopleRepository.save(creator); 
@@ -87,12 +85,12 @@ public class EventRepositoryTest {
 
     @Test
     void testFindByCreatedByAndStartEventAfter() {
-        People creator = new People();
+        User creator = new User();
         creator.setFirstName("Creator");
         creator.setLastName("Test");
         creator.setEmail("creator@example.com");
         creator.setPassword("password123");
-        creator.setRole(People.Role.TEACHER);
+        creator.setRole(User.Role.TEACHER);
         creator.setSchoolId(1L);
         creator.setClassId(1L);
         peopleRepository.save(creator); 
@@ -114,12 +112,12 @@ public class EventRepositoryTest {
 
     @Test
     void testFindByCreatedByAndStartEventBefore() {
-                People creator = new People();
+                User creator = new User();
         creator.setFirstName("Creator");
         creator.setLastName("Test");
         creator.setEmail("creator@example.com");
         creator.setPassword("password123");
-        creator.setRole(People.Role.TEACHER);
+        creator.setRole(User.Role.TEACHER);
         creator.setSchoolId(1L);
         creator.setClassId(1L);
         peopleRepository.save(creator); 
@@ -141,12 +139,12 @@ public class EventRepositoryTest {
 
     @Test
     void testFindByCreatedByAndTitleContainingIgnoreCase() {
-        People creator = new People();
+        User creator = new User();
         creator.setFirstName("Creator");
         creator.setLastName("Test");
         creator.setEmail("creator@example.com");
         creator.setPassword("password123");
-        creator.setRole(People.Role.TEACHER);
+        creator.setRole(User.Role.TEACHER);
         creator.setSchoolId(1L);
         creator.setClassId(1L);
         peopleRepository.save(creator); 
@@ -170,12 +168,12 @@ public class EventRepositoryTest {
 
     @Test
     void testFindByCreatedByAndStartEventBetween() {
-        People creator = new People();
+        User creator = new User();
         creator.setFirstName("Creator");
         creator.setLastName("Test");
         creator.setEmail("creator@example.com");
         creator.setPassword("password123");
-        creator.setRole(People.Role.TEACHER);
+        creator.setRole(User.Role.TEACHER);
         creator.setSchoolId(1L);
         creator.setClassId(1L);
         peopleRepository.save(creator); 

@@ -12,8 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.example.demo.javaSrc.people.People;
-import com.example.demo.javaSrc.people.PeopleRepository;
+import com.example.demo.javaSrc.users.*;
 import com.example.demo.javaSrc.school.ClassRepository;
 import com.example.demo.javaSrc.school.School;
 import com.example.demo.javaSrc.school.SchoolClass;
@@ -35,7 +34,7 @@ public class VotingParticipantRepositoryTest {
     @Autowired
     private SchoolRepository schoolRepository;
     @Autowired
-    private PeopleRepository peopleRepository;
+    private UserRepository peopleRepository;
 
     @Test
     void testFindByVoteId() {
@@ -55,13 +54,13 @@ public class VotingParticipantRepositoryTest {
         schoolClass.setSchoolId(school.getId());
         classRepository.save(schoolClass);
 
-        People user = new People();
+        User user = new User();
         user.setFirstName("Test");
         user.setLastName("User");
         user.setEmail("vsd@vvxhsbg");
         user.setSchoolId(school.getId());
         user.setClassId(schoolClass.getId());
-        user.setRole(People.Role.STUDENT);
+        user.setRole(User.Role.STUDENT);
         user.setPassword("password");
         peopleRepository.save(user);
 
@@ -115,13 +114,13 @@ public class VotingParticipantRepositoryTest {
         schoolClass.setSchoolId(school.getId());
         schoolClass = classRepository.save(schoolClass);
 
-        People user = new People();
+        User user = new User();
         user.setFirstName("Test");
         user.setLastName("User");
         user.setEmail("vsd@vvxhsbg");
         user.setSchoolId(school.getId());
         user.setClassId(schoolClass.getId());
-        user.setRole(People.Role.STUDENT);
+        user.setRole(User.Role.STUDENT);
         user.setPassword("password");
         user = peopleRepository.save(user);
 

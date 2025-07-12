@@ -9,8 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.example.demo.javaSrc.people.People;
-import com.example.demo.javaSrc.people.PeopleRepository;
+import com.example.demo.javaSrc.users.*;
 import com.example.demo.javaSrc.school.ClassRepository;
 import com.example.demo.javaSrc.school.School;
 import com.example.demo.javaSrc.school.SchoolClass;
@@ -19,16 +18,16 @@ import com.example.demo.javaSrc.school.SchoolRepository;
 @SpringBootTest
 public class PeopleRepositoryTest {
     @Autowired
-    private PeopleRepository peopleRepository;
+    private UserRepository peopleRepository;
     @Autowired
     private ClassRepository classRepository;
     @Autowired
     private SchoolRepository schoolRepository;
 
-    private People person;
+    private User person;
     private SchoolClass class1;
     private School school;
-    private People person2;
+    private User person2;
     private SchoolClass class2;
     private School school2;
 
@@ -55,18 +54,18 @@ public class PeopleRepositoryTest {
         class2.setSchoolId(school2.getId());
         classRepository.save(class2); 
 
-        person = new People();
+        person = new User();
         person.setSchoolId(school.getId());
         person.setClassId(class1.getId());
         person.setEmail("testemail@gmail.com");
         person.setPassword("password123");
         person.setFirstName("John");
         person.setLastName("Doe");
-        person.setRole(People.Role.STUDENT);
+        person.setRole(User.Role.STUDENT);
         peopleRepository.save(person);
 
-        person2 = new People();
-        person2.setRole(People.Role.TEACHER);
+        person2 = new User();
+        person2.setRole(User.Role.TEACHER);
         person2.setSchoolId(school2.getId());
         person2.setClassId(class2.getId());
         person2.setEmail("testemail1@gmail.com");
@@ -81,7 +80,7 @@ public class PeopleRepositoryTest {
     @Test
     void testFindByEmail() {
         String email = person.getEmail();
-        Optional<People> found = peopleRepository.findByEmail(email);
+        Optional<User> found = peopleRepository.findByEmail(email);
 
         assertThat(found).isPresent();
         assertThat(found.get().getEmail()).isEqualTo(email);
@@ -91,8 +90,8 @@ public class PeopleRepositoryTest {
     @Test
     void testFindByRole() {
 
-        List<People> students = peopleRepository.findByRole(People.Role.STUDENT);
-        List<People> teachers = peopleRepository.findByRole(People.Role.TEACHER);
+        List<User> students = peopleRepository.findByRole(User.Role.STUDENT);
+        List<User> teachers = peopleRepository.findByRole(User.Role.TEACHER);
 
         assertThat(students).hasSize(1);
         assertThat(teachers).hasSize(1);
@@ -101,8 +100,8 @@ public class PeopleRepositoryTest {
    @Test
     void testFindBySchoolId() {
 
-        List<People> school1People = peopleRepository.findBySchoolId(school.getId());
-        List<People> school2People = peopleRepository.findBySchoolId(school2.getId());
+        List<User> school1People = peopleRepository.findBySchoolId(school.getId());
+        List<User> school2People = peopleRepository.findBySchoolId(school2.getId());
 
         assertThat(school1People).hasSize(1);
         assertThat(school2People).hasSize(1);
@@ -110,8 +109,8 @@ public class PeopleRepositoryTest {
 
     @Test
     void testFindBySchoolIdAndClassId() {
-         List<People> class1People = peopleRepository.findBySchoolIdAndClassId(school.getId(), class1.getId());
-        List<People> class2People = peopleRepository.findBySchoolIdAndClassId(school2.getId(), class2.getId());
+         List<User> class1People = peopleRepository.findBySchoolIdAndClassId(school.getId(), class1.getId());
+        List<User> class2People = peopleRepository.findBySchoolIdAndClassId(school2.getId(), class2.getId());
 
         assertThat(class1People).hasSize(1);
         assertThat(class2People).hasSize(1);

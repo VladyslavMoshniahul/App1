@@ -11,14 +11,19 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.example.demo.javaSrc.people.*;
-import com.example.demo.javaSrc.school.*;
-import com.example.demo.javaSrc.worker.*;
+import com.example.demo.javaSrc.users.*;
 import com.example.demo.javaSrc.petitions.*;
 import com.example.demo.javaSrc.voting.*;
+import com.example.demo.javaSrc.events.*;
+import com.example.demo.javaSrc.security.*;
+import com.example.demo.javaSrc.tasks.*;
+import com.example.demo.javaSrc.school.*;
 import com.example.demo.javaSrc.comments.*;
+import com.example.demo.javaSrc.worker.*;
+import com.example.demo.javaSrc.invitations.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.mockito.InjectMocks;
@@ -40,7 +45,7 @@ public class ApiControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private PeopleService peopleService;
+    private UserService peopleService;
 
     @MockBean
     private PasswordEncoder passwordEncoder;
@@ -52,7 +57,7 @@ public class ApiControllerTest {
     private ClassService classService;
 
     @MockBean
-    private PeopleRepository peopleRepository;
+    private UserRepository peopleRepository;
 
     @MockBean
     private VoteService voteService;
@@ -64,10 +69,13 @@ public class ApiControllerTest {
     private PetitionRepository petitionRepository;
 
     @MockBean
-    private CommentService commentService;
+    private PetitionsCommentService commentService;
 
     @MockBean
-    private CommentRepository commentRepository;
+    private PetitionsCommentRepository commentRepository;
+
+    @MockBean
+    private EventService eventService;
 
     @InjectMocks
     private ApiController apiController;
@@ -77,7 +85,7 @@ public class ApiControllerTest {
     @BeforeEach
     void setUp() {
         reset(peopleService, schoolService, classService, voteService, 
-              petitionService, commentService, passwordEncoder);
+              petitionService, commentService, passwordEncoder,eventService);
     }
 
     @Test
@@ -122,18 +130,18 @@ public class ApiControllerTest {
     @Test
     @WithMockUser(username = "user", roles = {"TEACHER"})
     void testGetAllUsers() throws Exception {
-        People people1 = new People();
+        User people1 = new User();
         people1.setFirstName("John");
         people1.setLastName("Doe");
         people1.setEmail("jo@gg.com");
-        People people2 = new People();
+        User people2 = new User();
         people2.setFirstName("Jane");
         people2.setLastName("Doe");
         people2.setEmail("ja@gg.com");
 
-        List<People> peopleList = List.of(people1, people2);
+        List<User> peopleList = List.of(people1, people2);
 
-        when(peopleService.getAllPeople()).thenReturn(peopleList);
+        when(peopleService.getAllUsers()).thenReturn(peopleList);
 
         mockMvc.perform(get("/api/loadUsers")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -147,20 +155,20 @@ public class ApiControllerTest {
     @Test
     @WithMockUser(username = "user", roles = {"TEACHER"})
     void testGetUsersByRole() throws Exception {
-        People people1 = new People();
+        User people1 = new User();
         people1.setFirstName("John");
         people1.setLastName("Doe");
         people1.setEmail("jo@gg.com");
-        people1.setRole(People.Role.STUDENT);
-        People people2 = new People();
+        people1.setRole(User.Role.STUDENT);
+        User people2 = new User();
         people2.setFirstName("Jane");
         people2.setLastName("Doe");
         people2.setEmail("ja@gg.com");
-        people2.setRole(People.Role.STUDENT);
+        people2.setRole(User.Role.STUDENT);
 
-        List<People> peopleList = List.of(people1, people2);
+        List<User> peopleList = List.of(people1, people2);
 
-        when(peopleService.getPeopleByRole("STUDENT")).thenReturn(peopleList);
+        when(peopleService.getUserByRole("STUDENT")).thenReturn(peopleList);
 
         mockMvc.perform(get("/api/users/role/STUDENT")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -174,12 +182,12 @@ public class ApiControllerTest {
     @WithMockUser(username = "teacher@test.com", roles = {"TEACHER"})
     void testUpdateUserByTeacher_Success() throws Exception {
         Long userId = 1L;
-        People updatedUser = new People();
+        User updatedUser = new User();
         updatedUser.setId(userId);
         updatedUser.setFirstName("Updated");
         updatedUser.setLastName("User");
 
-        when(peopleService.updateProfile(eq(userId), any(People.class))).thenReturn(updatedUser);
+        when(peopleService.updateProfile(eq(userId), any(User.class))).thenReturn(updatedUser);
 
         mockMvc.perform(put("/api/users/{id}", userId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -188,16 +196,16 @@ public class ApiControllerTest {
                 .andExpect(jsonPath("$.firstName").value("Updated"))
                 .andExpect(jsonPath("$.lastName").value("User"));
 
-        verify(peopleService).updateProfile(eq(userId), any(People.class));
+        verify(peopleService).updateProfile(eq(userId), any(User.class));
     }
 
     @Test
     @WithMockUser(username = "teacher@test.com", roles = {"TEACHER"})
     void testUpdateUserByTeacher_NotFound() throws Exception {
         Long userId = 999L;
-        People updatedUser = new People();
+        User updatedUser = new User();
 
-        when(peopleService.updateProfile(eq(userId), any(People.class))).thenReturn(null);
+        when(peopleService.updateProfile(eq(userId), any(User.class))).thenReturn(null);
 
         mockMvc.perform(put("/api/users/{id}", userId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -210,7 +218,7 @@ public class ApiControllerTest {
     @Test
     void testSignPetition_Success() throws Exception {
         Long petitionId = 1L;
-        People student = new People();
+        User student = new User();
         student.setId(1L);
         student.setEmail("student@test.com");
 
@@ -228,7 +236,7 @@ public class ApiControllerTest {
     @Test
     void testSignPetition_BadRequest() throws Exception {
         Long petitionId = 1L;
-        People student = new People();
+        User student = new User();
         student.setId(1L);
         student.setEmail("student@test.com");
 
@@ -279,7 +287,7 @@ public class ApiControllerTest {
         Long votingId = 1L;
         List<Long> variantIds = List.of(1L);
         
-        People user = new People();
+        User user = new User();
         user.setId(1L);
         
         Vote vote = new Vote();
@@ -315,124 +323,15 @@ public class ApiControllerTest {
     }
 
 
-
-}
-package com.example.demo;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.web.servlet.MockMvc;
-
-import com.example.demo.javaSrc.eventsANDtask.*;
-import com.example.demo.javaSrc.people.*;
-import com.example.demo.javaSrc.school.*;
-import com.example.demo.javaSrc.worker.*;
-
-import java.time.LocalDateTime;
-import java.util.List;
-
-import org.mockito.InjectMocks;
-import org.mockito.Mockito;
-
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import org.springframework.security.test.context.support.WithMockUser;
-
-
-
-@SpringBootTest
-@AutoConfigureMockMvc
-public class ApiControllerTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
-    private TaskService taskService;
-
-    @MockBean
-    private EventService eventService;
-
-    @MockBean
-    private PeopleService peopleService;
-
-    @MockBean
-    private PasswordEncoder passwordEncoder;
-
-    @MockBean
-    private SchoolService schoolService;
-
-    @MockBean
-    private ClassService classService;
-
-    @MockBean
-    private PeopleRepository peopleRepository;
-
-   
-    @InjectMocks
-    private ApiController apiController;  
-
     
-    @BeforeEach
-    void setUp() {
-        peopleRepository.deleteAll();
-    }
-
-    @Test
-    @WithMockUser(username = "user", roles = {"TEACHER"})
-    void testGetAllSchool() throws Exception {
-        School school1 = new School();
-        school1.setName("School 1");
-        School school2 = new School();
-        school2.setName("School 2");
-        List<School> schools = List.of(school1, school2);
-
-        when(schoolService.getAllSchools()).thenReturn(schools);
-
-        mockMvc.perform(get("/api/schools")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("School 1"))
-                .andExpect(jsonPath("$[1].name").value("School 2"));
-    }
-
-    @Test
-    @WithMockUser(username = "user", roles = {"TEACHER"})
-    void testGetAllClasses() throws Exception {
-        SchoolClass class1 = new SchoolClass();
-        class1.setName("Class 1");
-        class1.setSchoolId(1L);
-        SchoolClass class2 = new SchoolClass();
-        class2.setName("Class 2");
-        class2.setSchoolId(1L);
-        List<SchoolClass> classes = List.of(class1, class2);
-
-        when(classService.getBySchoolId(1L)).thenReturn(classes);
-
-        mockMvc.perform(get("/api/classes")
-                        .param("schoolId", "1")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Class 1"))
-                .andExpect(jsonPath("$[1].name").value("Class 2"));
-    }
-
     @Test
     @WithMockUser(username = "user", roles = {"TEACHER"})
     void testGetEvents() throws Exception {
-        People person1 = new People();
+        User person1 = new User();
         person1.setFirstName("John");
         person1.setEmail("testemail@gmail.com");
         person1.setPassword("password123");
-        person1.setRole(People.Role.STUDENT);
+        person1.setRole(User.Role.STUDENT);
         person1.setSchoolId(1L);
         person1.setClassId(1L); 
 
@@ -461,58 +360,6 @@ public class ApiControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].title").value("Event 1"))
             .andExpect(jsonPath("$[1].title").value("Event 2"));
-    }
-
-    @Test
-    @WithMockUser(username = "user", roles = {"TEACHER"})
-    void testGetAllUsers() throws Exception {
-        People people1 = new People();
-        people1.setFirstName("John");
-        people1.setLastName("Doe");
-        people1.setEmail("jo@gg.com");
-        People people2 = new People();
-        people2.setFirstName("Jane");
-        people2.setLastName("Doe");
-        people2.setEmail("ja@gg.com");
-
-        List<People> peopleList = List.of(people1, people2);
-
-        when(peopleService.getAllPeople()).thenReturn(peopleList);
-
-        mockMvc.perform(get("/api/loadUsers")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].firstName").value("John"))
-                .andExpect(jsonPath("$[0].lastName").value("Doe"))
-                .andExpect(jsonPath("$[1].firstName").value("Jane"))
-                .andExpect(jsonPath("$[1].lastName").value("Doe"));
-    }
-
-    @Test
-    @WithMockUser(username = "user", roles = {"TEACHER"})
-    void testGetUsersByRole() throws Exception {
-        People people1 = new People();
-        people1.setFirstName("John");
-        people1.setLastName("Doe");
-        people1.setEmail("jo@gg.com");
-        people1.setRole(People.Role.STUDENT);
-        People people2 = new People();
-        people2.setFirstName("Jane");
-        people2.setLastName("Doe");
-        people2.setEmail("ja@gg.com");
-        people2.setRole(People.Role.STUDENT);
-
-        List<People> peopleList = List.of(people1, people2);
-
-        when(peopleService.getPeopleByRole("STUDENT")).thenReturn(peopleList);
-        Authentication auth = Mockito.mock(Authentication.class);
-
-        
-        mockMvc.perform(get("/api/users/role/STUDENT")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].firstName").value("John"))
-                .andExpect(jsonPath("$[1].firstName").value("Jane"));
     }
 
 }

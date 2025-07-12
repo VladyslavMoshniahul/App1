@@ -9,8 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.example.demo.javaSrc.eventsANDtask.Task;
-import com.example.demo.javaSrc.eventsANDtask.TaskRepository;
+import com.example.demo.javaSrc.tasks.*;
 
 @SpringBootTest
 public class TaskRepositoryTest {

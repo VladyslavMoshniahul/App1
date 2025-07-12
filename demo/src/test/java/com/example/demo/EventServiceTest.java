@@ -13,9 +13,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.example.demo.javaSrc.eventsANDtask.Event;
-import com.example.demo.javaSrc.eventsANDtask.EventRepository;
-import com.example.demo.javaSrc.eventsANDtask.EventService;
+import com.example.demo.javaSrc.events.*;
+
 
 public class EventServiceTest {
 
