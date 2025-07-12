@@ -5,6 +5,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.Comparator;
+import java.util.stream.Collectors;
+
+
+
+import com.example.demo.javaSrc.events.Event;
+import com.example.demo.javaSrc.events.EventService;
+import com.example.demo.javaSrc.tasks.Task;
+import com.example.demo.javaSrc.tasks.TaskService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -63,6 +74,8 @@ public class ApiController {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final PetitionsCommentService petitionsCommentService;
     private final PetitionsCommentRepository petitionsCommentRepository;
+    private final TaskService taskService;
+    private final EventService eventService;
 
     @Autowired
     public ApiController(
@@ -74,7 +87,9 @@ public class ApiController {
             PetitionService petitionService,
             PetitionRepository petitionRepository,
             PetitionsCommentService petitionsCommentService,
-            PetitionsCommentRepository petitionsCommentRepository) {
+            PetitionsCommentRepository petitionsCommentRepository,
+            TaskService taskService,
+            EventService eventService) {
 
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
@@ -85,6 +100,8 @@ public class ApiController {
         this.petitionRepository = petitionRepository;
         this.petitionsCommentService = petitionsCommentService;
         this.petitionsCommentRepository = petitionsCommentRepository;
+        this.taskService = taskService;
+        this.eventService = eventService;
     }
 
     private User currentUser(Authentication auth) {
@@ -551,5 +568,205 @@ public class ApiController {
     public ResponseEntity<Void> deleteCommentsByUser(@PathVariable Long userId) {
         petitionsCommentService.deleteCommentsByUserId(userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/tasks")
+    public List<Task> getTasks(
+            Authentication auth,
+            @RequestParam(required = false) Long schoolId,
+            @RequestParam(required = false) Long classId) {
+
+        User me = currentUser(auth);
+        Long sch = schoolId != null ? schoolId : me.getSchoolId();
+        Long cls = classId != null ? classId : me.getClassId();
+
+        List<Task> tasksForClass = taskService.getBySchoolAndClass(sch, cls);
+        List<Task> tasksForAll = taskService.getBySchoolAndClass(sch, null);
+
+        if (classId == null) {
+            return tasksForAll;
+        } else {
+            List<Task> result = new ArrayList<>(tasksForAll);
+            result.addAll(tasksForClass);
+            return result;
+        }
+    }
+
+    @GetMapping("/getEvents")
+    public List<Event> getEvents(
+            Authentication auth,
+            @RequestParam(required = false) Long schoolId,
+            @RequestParam(required = false) Long classId,
+            @RequestParam(required = false) Long userId) {
+
+        User me = currentUser(auth);
+
+        if (userId != null) {
+            User target = userService.getAllUsers().stream()
+                .filter(u -> u.getId().equals(userId))
+                .findFirst().orElse(null);
+            if (target == null) {
+                return List.of();
+            }
+            Long sch = target.getSchoolId();
+            Long cls = target.getClassId();
+            List<Event> events = eventService.getEventsForSchool(sch);
+            return events.stream()
+                .filter(e -> e.getClassId() == null || (cls != null && cls.equals(e.getClassId())))
+                .sorted(Comparator.comparing(Event::getStartEvent))
+                .collect(Collectors.toList());
+        }
+
+        Long sch = schoolId != null ? schoolId : me.getSchoolId();
+        Long cls = classId != null ? classId : me.getClassId();
+        List<Event> events = eventService.getEventsForSchool(sch);
+        return events.stream()
+            .filter(e -> e.getClassId() == null || (cls != null && cls.equals(e.getClassId())))
+            .sorted(Comparator.comparing(Event::getStartEvent))
+            .collect(Collectors.toList());
+    }
+
+    
+
+    @PostMapping("/tasks/{id}/toggle-complete")
+    public ResponseEntity<Void> toggleTask(@PathVariable Long id) {
+        taskService.toggleComplete(id);
+        return ResponseEntity.ok().build();
+    }
+
+
+    @PreAuthorize("hasRole('TEACHER')")
+    @PostMapping("/tasks")
+    public ResponseEntity<Task> createTask(
+            @RequestBody Task newTask,
+            Authentication auth) {
+
+        if (newTask.getSchoolId() == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        return ResponseEntity.ok(taskService.createTask(newTask));
+    }
+
+    @PreAuthorize("hasRole('TEACHER')")
+    @PostMapping("/events")
+    public ResponseEntity<Event> createEvent(
+            @RequestBody Map<String,Object> payload,
+            Authentication auth) {
+
+        String title      = (String) payload.get("title");
+        String content    = (String) payload.get("content");
+        String loc        = (String) payload.get("location_or_link");
+        String startRaw   = (String) payload.get("start_event");
+        String type       = (String) payload.get("event_type");
+
+        Object durObj     = payload.get("duration");
+        int duration = durObj instanceof Number
+            ? ((Number) durObj).intValue()
+            : Integer.parseInt((String) durObj);
+
+        Long sid = payload.get("schoolId") != null
+            ? (payload.get("schoolId") instanceof Number
+                ? ((Number) payload.get("schoolId")).longValue()
+                : Long.parseLong(payload.get("schoolId").toString()))
+            : null; 
+
+        if (sid == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        Long cid;
+        if (payload.get("classId") == null || payload.get("classId").toString().isBlank()) {
+            cid = null;
+        } else if (payload.get("classId") instanceof Number) {
+            cid = ((Number) payload.get("classId")).longValue();
+        } else {
+            cid = Long.parseLong(payload.get("classId").toString());
+        }
+
+        LocalDateTime startEvent = OffsetDateTime.parse(startRaw)
+            .toLocalDateTime();
+
+        Event e = new Event();
+        e.setTitle(title);
+        e.setContent(content);
+        e.setLocationOrLink(loc);
+        e.setStartEvent(startEvent);
+        e.setDuration(duration);
+        e.setEventType(Event.EventType.valueOf(type));
+        e.setSchoolId(sid);
+        e.setClassId(cid);
+        e.setCreatedBy(currentUser(auth).getId());
+
+        Event saved = eventService.createEvent(e);
+        return ResponseEntity.ok(saved);
+    }
+
+    @PreAuthorize("hasRole('TEACHER')")
+    @GetMapping("/stats")
+    public Map<String, Long> getStats(
+            Authentication auth,
+            @RequestParam(required = false) Long schoolId,
+            @RequestParam(required = false) Long classId) {
+
+        User me = currentUser(auth);
+        Long sch = schoolId != null ? schoolId : me.getSchoolId();
+        Long cls = classId  != null ? classId  : me.getClassId();
+
+        long totalTasks     = taskService.getBySchoolAndClass(sch, cls).size();
+        long completedTasks = taskService.getBySchoolAndClass(sch, cls)
+                                         .stream().filter(Task::isCompleted).count();
+        long totalEvents    = eventService.getBySchoolAndClass(sch, cls).size();
+
+        return Map.of(
+            "totalTasks",     totalTasks,
+            "completedTasks", completedTasks,
+            "totalEvents",    totalEvents
+        );
+    }
+
+    @GetMapping("/future/{userId}")
+    public List<Event> getFutureEvents(
+            @PathVariable Long userId,
+            Authentication auth) {
+
+        User me = currentUser(auth);
+        return eventService.getFutureEvents(userId);
+    }
+
+    @GetMapping("/past/{userId}")
+    public List<Event> getPastEvents(
+            @PathVariable Long userId,
+            Authentication auth) {
+
+        User me = currentUser(auth);
+        return eventService.getPastEvents(userId);
+    }
+
+    @GetMapping("/search/title")
+    public List<Event> searchByTitle(
+            @RequestParam Long userId,
+            @RequestParam String keyword,
+            Authentication auth) {
+
+        User me = currentUser(auth);
+        return eventService.searchByTitle(
+            userId, keyword
+        );
+    }
+
+    @GetMapping("/search/date")
+    public List<Event> searchByDateRange(
+            @RequestParam Long userId,
+            @RequestParam String from,
+            @RequestParam String to,
+            Authentication auth) {
+
+        User me = currentUser(auth);
+        return eventService.searchByDateRange(
+            userId,
+            LocalDateTime.parse(from),
+            LocalDateTime.parse(to)
+        );
     }
 }
