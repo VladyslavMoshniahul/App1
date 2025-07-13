@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 
@@ -41,37 +41,37 @@ public class ApiControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Mock
     private UserService peopleService;
 
-    @MockBean
+    @Mock
     private PasswordEncoder passwordEncoder;
 
-    @MockBean
+    @Mock
     private SchoolService schoolService;
 
-    @MockBean
+    @Mock
     private ClassService classService;
 
-    @MockBean
+    @Mock
     private UserRepository peopleRepository;
 
-    @MockBean
+    @Mock
     private VoteService voteService;
 
-    @MockBean
+    @Mock
     private PetitionService petitionService;
 
-    @MockBean
+    @Mock
     private PetitionRepository petitionRepository;
 
-    @MockBean
+    @Mock
     private PetitionsCommentService commentService;
 
-    @MockBean
+    @Mock
     private PetitionsCommentRepository commentRepository;
 
-    @MockBean
+    @Mock
     private EventService eventService;
 
     @InjectMocks

@@ -20,12 +20,14 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 public class AuthController {
-
+    @Autowired
     private final AuthenticationManager authManager;
+    @Autowired
     private final JwtUtils jwtUtils;
+    @Autowired
     private final UserService UserService;
 
-    @Autowired
+    
     public AuthController(AuthenticationManager authManager,
                           JwtUtils jwtUtils,
                           UserService UserService) {

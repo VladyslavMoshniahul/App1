@@ -5,8 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-
+import org.mockito.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -29,13 +28,13 @@ public class PetitionServiceTest {
     @Autowired
     private PetitionService petitionService;
 
-    @MockBean
+    @Mock
     private PetitionRepository petitionRepository;
 
-    @MockBean
+    @Mock
     private UserRepository peopleRepository;
 
-    @MockBean
+    @Mock
     private PetitionVoteRepository petitionVoteRepository;
 
     private Petition petition;

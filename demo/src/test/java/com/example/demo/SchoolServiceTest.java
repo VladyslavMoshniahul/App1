@@ -11,16 +11,17 @@ import java.util.List;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.example.demo.javaSrc.school.*;
 
 @SpringBootTest
 public class SchoolServiceTest {
-    @MockBean
+    @Mock
     private SchoolRepository schoolRepository;
 
     @Autowired

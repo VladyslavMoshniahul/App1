@@ -41,6 +41,7 @@ public class AuthControllerTest {
         MockitoAnnotations.openMocks(this);
     }
 
+    @SuppressWarnings("null")
     @Test
     void testSuccessfulLogin() {
         AuthRequest request = new AuthRequest("test@example.com", "password", "STUDENT");
@@ -62,6 +63,7 @@ public class AuthControllerTest {
         assertThat(((Map<?, ?>) response.getBody()).get("role")).isEqualTo("STUDENT");
     }
 
+    @SuppressWarnings("null")
     @Test
     void testBadCredentials() {
         AuthRequest request = new AuthRequest("wrong@example.com", "badpass", "STUDENT");
@@ -76,6 +78,7 @@ public class AuthControllerTest {
                 .isEqualTo("Невірний email або пароль");
     }
 
+    @SuppressWarnings("null")
     @Test
     void testRoleMismatch() {
         AuthRequest request = new AuthRequest("test@example.com", "password", "TEACHER");

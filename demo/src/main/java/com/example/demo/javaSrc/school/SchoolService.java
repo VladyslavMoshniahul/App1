@@ -7,9 +7,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class SchoolService {
-       private final SchoolRepository schoolRepository;
-
     @Autowired
+    private final SchoolRepository schoolRepository;
+
     public SchoolService(SchoolRepository schoolRepository) {
         this.schoolRepository = schoolRepository;
     }

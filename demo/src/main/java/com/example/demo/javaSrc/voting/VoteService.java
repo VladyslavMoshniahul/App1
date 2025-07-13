@@ -13,13 +13,17 @@ import com.example.demo.javaSrc.users.*;
 
 @Service
 public class VoteService {
+    @Autowired
     private final VoteRepository voteRepository;
+    @Autowired
     private final VotingVariantRepository votingVariantRepository;
+    @Autowired
     private final VotingParticipantRepository votingParticipantRepository;
+    @Autowired
     private final VotingVoteRepository votingVoteRepository;
+    @Autowired
     private final UserRepository userRepository;
 
-    @Autowired
     public VoteService(VoteRepository voteRepository,
             VotingVariantRepository votingVariantRepository,
             VotingParticipantRepository votingParticipantRepository,
