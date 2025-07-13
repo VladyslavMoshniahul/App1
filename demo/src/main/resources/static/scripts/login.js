@@ -43,6 +43,7 @@ document.getElementById("loginButton").addEventListener("click", async () => {
         break;
       case "ADMIN":
         window.location.href = "admin.html";
+        break;
       default:
         alert("Невідома роль: " + realRole);
     }
