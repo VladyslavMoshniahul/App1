@@ -38,12 +38,10 @@ import java.util.Date;
 import java.util.LinkedHashSet;
 
 import com.example.demo.javaSrc.comments.PetitionsComment;
-import com.example.demo.javaSrc.comments.PetitionsCommentRepository;
 import com.example.demo.javaSrc.comments.PetitionsCommentService;
 import com.example.demo.javaSrc.petitions.Petition;
 import com.example.demo.javaSrc.petitions.PetitionCreateRequest;
 import com.example.demo.javaSrc.petitions.PetitionDto;
-import com.example.demo.javaSrc.petitions.PetitionRepository;
 import com.example.demo.javaSrc.petitions.PetitionService;
 import com.example.demo.javaSrc.petitions.PetitionVoteRequest;
 import com.example.demo.javaSrc.school.ClassService;
@@ -63,18 +61,27 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @RequestMapping("/api")
 public class ApiController {
     
+    @Autowired
     private final UserService userService;
+    @Autowired
     private final PasswordEncoder passwordEncoder;
+    @Autowired
     private final SchoolService schoolService;
+    @Autowired
     private final ClassService classService;
+    @Autowired
     private final VoteService voteService;
+    @Autowired
     private final PetitionService petitionService;
+    @Autowired
     private final ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
     private final PetitionsCommentService petitionsCommentService;
+    @Autowired
     private final TaskService taskService;
+    @Autowired
     private final EventService eventService;
 
-    @Autowired
     public ApiController(
             UserService userService,
             PasswordEncoder passwordEncoder,
@@ -723,7 +730,6 @@ public class ApiController {
             @PathVariable Long userId,
             Authentication auth) {
 
-        User me = currentUser(auth);
         return eventService.getFutureEvents(userId);
     }
 
@@ -732,7 +738,6 @@ public class ApiController {
             @PathVariable Long userId,
             Authentication auth) {
 
-        User me = currentUser(auth);
         return eventService.getPastEvents(userId);
     }
 
@@ -742,7 +747,6 @@ public class ApiController {
             @RequestParam String keyword,
             Authentication auth) {
 
-        User me = currentUser(auth);
         return eventService.searchByTitle(
             userId, keyword
         );
@@ -755,7 +759,6 @@ public class ApiController {
             @RequestParam String to,
             Authentication auth) {
 
-        User me = currentUser(auth);
         return eventService.searchByDateRange(
             userId,
             LocalDateTime.parse(from),

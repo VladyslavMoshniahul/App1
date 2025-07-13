@@ -16,6 +16,6 @@ public class AuthRequest {
     this.email = email;
     this.password = password;
     this.role = role;
-}
+    }
 
 }
