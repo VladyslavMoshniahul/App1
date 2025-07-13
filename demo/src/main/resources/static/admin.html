@@ -1,146 +1,151 @@
 <!DOCTYPE html>
 <html lang="uk">
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Сторінка адміна</title>
-        <link rel="stylesheet" href="styles/admin.css">
-    </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Сторінка адміна</title>
+  <link rel="stylesheet" href="styles/admin.css" />
+</head>
 
-    <body>
-        
-        <header>
-            <h1>Панель адміна</h1>
-            <button id="logoutButton" class="auth-button">Вийти</button>
-            <button id="themeToggle" class="lang-toggle-button">🌙</button>
-        </header>
+<body>
+  <header>
+    <h1>Панель адміна</h1>
+    <div class="header-buttons">
+      <button id="logoutButton" class="auth-button">Вийти</button>
+      <button id="themeToggle" class="theme-toggle-button">🌙</button>
+    </div>
+  </header>
 
-        <div class="nav-tabs">
-            <button id="tab-profile" class="active" type="button">Профіль</button>
-            <button id="tab-statistic" type ="button">Статистика</button>
-            <button id="tab-creating"  type="button">Сторення</button>
-        </div>
+  <div class="nav-tabs">
+    <button id="tab-profile" class="active" type="button">Профіль</button>
+    <button id="tab-statistic" type="button">Статистика</button>
+    <button id="tab-creating" type="button">Створення</button>
+  </div>
 
-        <main>
-            <section id="profile-section" class="page-section active">
-                <header>
-                    <h1>Мій профіль</h1>
-                </header>
-                <section id="profile-info">
-                    <h2>Інформація про профіль</h2>
-                    <p><strong>Ім'я:</strong> <span id="profile-firstName">-</span></p>
-                    <p><strong>Прізвище:</strong> <span id="profile-lastName">-</span></p>
-                    <p><strong>Дата народження:</strong> <span id="profile-dateOfBirth">-</span></p>
-                    <p><strong>Про мене:</strong> <span id="profile-aboutMe">-</span></p>
-                    <p><strong>Email:</strong> <span id="profile-email">-</span></p>
-                    <p><strong>Роль:</strong> <span id="profile-role">-</span></p>
-                </section>
-                <section id="update-profile-info-section">
-                    <h2>Оновити профіль</h2>
-                    <form id="editProfileForm">
-                        <label for="edit-firstName">Ім'я:</label>
-                        <input type="text" id="edit-firstName" name="firstName" />
+  <main>
+    <!-- === Профіль === -->
+    <section id="profile-section" class="page-section active">
+      <h1>Мій профіль</h1>
 
-                        <label for="edit-lastName">Прізвище:</label>
-                        <input type="text" id="edit-lastName" name="lastName" />
+      <div id="profile-info">
+        <h2>Інформація про профіль</h2>
+        <p><strong>Ім'я:</strong> <span id="profile-firstName">-</span></p>
+        <p><strong>Прізвище:</strong> <span id="profile-lastName">-</span></p>
+        <p><strong>Дата народження:</strong> <span id="profile-dateOfBirth">-</span></p>
+        <p><strong>Про мене:</strong> <span id="profile-aboutMe">-</span></p>
+        <p><strong>Email:</strong> <span id="profile-email">-</span></p>
+        <p><strong>Роль:</strong> <span id="profile-role">-</span></p>
+      </div>
 
-                        <label for="edit-aboutMe">Про мене:</label>
-                        <textarea id="edit-aboutMe" name="aboutMe"></textarea>
+      <div id="update-profile-info-section">
+        <h2>Оновити профіль</h2>
+        <form id="editProfileForm">
+          <label for="edit-firstName">Ім'я:</label>
+          <input type="text" id="edit-firstName" name="firstName" />
 
-                        <label for="edit-dateOfBirth">Дата народження:</label>
-                        <input type="date" id="edit-dateOfBirth" name="dateOfBirth" />
+          <label for="edit-lastName">Прізвище:</label>
+          <input type="text" id="edit-lastName" name="lastName" />
 
-                        <label for="edit-email">Email:</label>
-                        <input type="email" id="edit-email" name="email" />
+          <label for="edit-aboutMe">Про мене:</label>
+          <textarea id="edit-aboutMe" name="aboutMe"></textarea>
 
-                        <label for="edit-password">Новий пароль:</label>
-                        <input type="password" id="edit-password" name="password" />
+          <label for="edit-dateOfBirth">Дата народження:</label>
+          <input type="date" id="edit-dateOfBirth" name="dateOfBirth" />
 
-                        <label for="confirm-password">Підтвердження пароля:</label>
-                        <input type="password" id="confirm-password" name="confirmPassword" />
+          <label for="edit-email">Email:</label>
+          <input type="email" id="edit-email" name="email" />
 
-                        <button type="submit">Оновити профіль</button>
-                    </form>
-                </section>
-            </section>
+          <label for="edit-password">Новий пароль:</label>
+          <input type="password" id="edit-password" name="password" />
 
-            <section id = "statistics-section" class = "page-section">
+          <label for="confirm-password">Підтвердження пароля:</label>
+          <input type="password" id="confirm-password" name="confirmPassword" />
 
-                <section id="admins-list">
-                    <h2>Список адмінів</h2>
-                    <ul id="admins-list"></ul>
-                </section>
+          <button type="submit">Оновити профіль</button>
+        </form>
+      </div>
+    </section>
 
-                <section id="school-list">
-                    <h2>Список шкіл</h2>
-                    <ul id="school-list"></ul>
-                </section>
+    <!-- === Статистика === -->
+    <section id="statistics-section" class="page-section">
+      <div id="admins-section">
+        <h2>Список адмінів</h2>
+        <ul id="admins-list"></ul>
+      </div>
 
-                <section id="class-lists">
-                    <h2>Список класів</h2>
-                    <input type="text" id="choose-school" placeholder="Назва школи">
-                </section>
+      <div id="schools-section">
+        <h2>Список шкіл</h2>
+        <ul id="schools-list"></ul>
+      </div>
 
-                <section id="directors-list">
-                    <h2>Список директорів</h2>
-                    <input type="text" id="choose-school" placeholder="Назва школи">
-                    <ul id="directors-list"></ul>
-                </section>
+      <div id="classes-section">
+        <h2>Список класів</h2>
+        <input type="text" id="classes-school-input" placeholder="Назва школи" />
+        <ul id="classes-list"></ul>
+      </div>
 
-                <section id="teachers-list">
-                    <h2>Список вчителів</h2>
-                    <input type="text" id="choose-school" placeholder="Назва школи">
-                    <input type="text" id="choose-class" placeholder="Назва класу">
-                    <ul id="teachers-list"></ul>
-                </section>
+      <div id="directors-section">
+        <h2>Список директорів</h2>
+        <input type="text" id="directors-school-input" placeholder="Назва школи" />
+        <ul id="directors-list"></ul>
+      </div>
 
-            </section>
+      <div id="teachers-section">
+        <h2>Список вчителів</h2>
+        <input type="text" id="teachers-school-input" placeholder="Назва школи" />
+        <input type="text" id="teachers-class-input" placeholder="Назва класу" />
+        <ul id="teachers-list"></ul>
+      </div>
+    </section>
 
-            <section id="creating-page" class="page-section">
-                <section>
-                    <h2>Створити адміна</h2>
-                    <input id="new-user-first" placeholder="Ім’я">
-                    <input id="new-user-last" placeholder="Прізвище">
-                    <input id="new-user-email" placeholder="Email">
-                    <input id="new-user-pass" type="password" placeholder="Пароль">
-                    <input id="new-user-dateOfBirth" type="date" placeholder="Дата народження">
-                    <button id="create-user-button">Створити адміна</button>
-                </section>
+    <!-- === Створення === -->
+    <section id="creating-page" class="page-section">
+      <div id="create-admin">
+        <h2>Створити адміна</h2>
+        <input id="admin-first-name" placeholder="Ім’я" />
+        <input id="admin-last-name" placeholder="Прізвище" />
+        <input id="admin-email" placeholder="Email" />
+        <input id="admin-password" type="password" placeholder="Пароль" />
+        <input id="admin-dateOfBirth" type="date" placeholder="Дата народження" />
+        <button id="create-admin-button">Створити адміна</button>
+      </div>
 
-                <section>
-                    <h2>Створити школу</h2>
-                    <input id="new-school-name" placeholder="Назва школи">
-                    <button id="create-school-button">Створити школу</button>
-                </section>
-                
-                <section>
-                    <h2>Створити клас</h2>
-                    <input id="new-class-school-name" placeholder="Назва школи">
-                    <input id="new-class-name" placeholder="Назва класу">
-                    <button id="create-class-button">Створити клас</button>
-                </section>
+      <div id="create-school">
+        <h2>Створити школу</h2>
+        <input id="school-name" placeholder="Назва школи" />
+        <button id="create-school-button">Створити школу</button>
+      </div>
 
-                <section>
-                    <h2>Створити користувача</h2>
-                    <input id="new-user-first" placeholder="Ім’я">
-                    <input id="new-user-last" placeholder="Прізвище">
-                    <input id="new-user-email" placeholder="Email">
-                    <input id="new-user-pass" type="password" placeholder="Пароль">
-                    <input id="new-user-school" placeholder="Назва школи">
-                    <input id="new-user-class" placeholder="Клас(Для вчителя)">
-                    <input id="new-user-dateOfBirth" type="date" placeholder="Дата народження">
-                    <select id="new-user-role">
-                        <option value="">Оберіть роль</option>
-                        <option value="TEACHER">Вчитель</option>
-                        <option value="DIRECTOR">Директор</option>
-                    </select>
-                    <button id="create-user-button">Створити користувача</button>
-                </section>
+      <div id="create-class">
+        <h2>Створити клас</h2>
+        <input id="class-school-name" placeholder="Назва школи" />
+        <input id="class-name" placeholder="Назва класу" />
+        <button id="create-class-button">Створити клас</button>
+      </div>
 
-            </section>
+      <div id="create-user">
+        <h2>Створити користувача</h2>
+        <input id="user-first-name" placeholder="Ім’я" />
+        <input id="user-last-name" placeholder="Прізвище" />
+        <input id="user-email" placeholder="Email" />
+        <input id="user-password" type="password" placeholder="Пароль" />
+        <input id="user-school" placeholder="Назва школи" />
+        <input id="user-class" placeholder="Клас (для вчителя)" />
+        <input id="user-dateOfBirth" type="date" placeholder="Дата народження" />
 
-        </main>
-        <script type="module" src="scripts/admin.js"></script>
-    </body>
+        <select id="user-role">
+          <option value="">Оберіть роль</option>
+          <option value="TEACHER">Вчитель</option>
+          <option value="DIRECTOR">Директор</option>
+        </select>
+
+        <button id="create-user-button">Створити користувача</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="scripts/admin.js"></script>
+</body>
+
 </html>
