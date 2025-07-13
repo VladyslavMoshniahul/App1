@@ -23,7 +23,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -70,10 +69,8 @@ public class ApiController {
     private final ClassService classService;
     private final VoteService voteService;
     private final PetitionService petitionService;
-    private final PetitionRepository petitionRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final PetitionsCommentService petitionsCommentService;
-    private final PetitionsCommentRepository petitionsCommentRepository;
     private final TaskService taskService;
     private final EventService eventService;
 
@@ -85,9 +82,7 @@ public class ApiController {
             ClassService classService,
             VoteService voteService,
             PetitionService petitionService,
-            PetitionRepository petitionRepository,
             PetitionsCommentService petitionsCommentService,
-            PetitionsCommentRepository petitionsCommentRepository,
             TaskService taskService,
             EventService eventService) {
 
@@ -97,9 +92,7 @@ public class ApiController {
         this.classService = classService;
         this.voteService = voteService;
         this.petitionService = petitionService;
-        this.petitionRepository = petitionRepository;
         this.petitionsCommentService = petitionsCommentService;
-        this.petitionsCommentRepository = petitionsCommentRepository;
         this.taskService = taskService;
         this.eventService = eventService;
     }
