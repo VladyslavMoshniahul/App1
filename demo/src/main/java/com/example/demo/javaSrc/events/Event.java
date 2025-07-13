@@ -4,6 +4,7 @@ package com.example.demo.javaSrc.events;
 import java.time.LocalDateTime;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 
 @Entity
 @Table(name = "events")
@@ -86,7 +87,7 @@ public class Event {
     public void setEventType(EventType eventType) { this.eventType = eventType; }
 
     // Allow setting eventType from string for JSON deserialization
-    @com.fasterxml.jackson.annotation.JsonSetter("event_type")
+    @JsonSetter("event_type")
     public void setEventTypeFromString(Object eventType) {
         if (eventType instanceof String str) {
             this.eventType = EventType.valueOf(str.toUpperCase());
