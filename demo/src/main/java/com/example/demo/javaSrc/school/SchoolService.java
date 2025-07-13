@@ -21,4 +21,12 @@ public class SchoolService {
     public School createSchool(School school) {
         return schoolRepository.save(school);
     }
+
+    public School getSchoolById(long id) {
+        return schoolRepository.findById(id);
+    }
+
+    public School getSchoolByName(String name) {
+        return schoolRepository.findByName(name);
+    }
 }
