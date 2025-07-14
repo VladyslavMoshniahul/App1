@@ -24,31 +24,26 @@ public class Task {
     @JoinColumn(name = "event_id")
     private Event event;
 
-    private Long eventId;
 
-    @Column(nullable = false)
+    @Column(name = "title",nullable = false)
     private String title;
 
-    @Column
+    @Column(name="content")
     private String content;
 
-    @Column(nullable = false)
+    @Column(name = "deadline",nullable = false)
     private Date deadline;
-
-    @Column(nullable = false)
-    private boolean completed;
 
     public Task() {}
 
-    public Task(Long schoolId, Long classId, Long eventId,
+    public Task(Long schoolId, Long classId, Event event,
                 String title, String content, Date deadline) {
         this.schoolId = schoolId;
         this.classId = classId;
-        this.eventId = eventId;
+        this.event = event;
         this.title = title;
         this.content = content;
         this.deadline = deadline;
-        this.completed = false;
     }
 
     public Long getId() { return id; }
@@ -58,9 +53,6 @@ public class Task {
 
     public Long getClassId() { return classId; }
     public void setClassId(Long classId) { this.classId = classId; }
-
-    public Long getEventId() { return eventId; }
-    public void setEventId(Long eventId) { this.eventId = eventId; }
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
@@ -90,9 +82,6 @@ public class Task {
             this.deadline = d;
         }
     }
-
-    public boolean isCompleted() { return completed; }
-    public void setCompleted(boolean completed) { this.completed = completed; }
 
     public Event getEvent() {
         return event;

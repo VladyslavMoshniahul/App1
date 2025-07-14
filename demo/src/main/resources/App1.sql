@@ -183,7 +183,6 @@ CREATE TABLE IF NOT EXISTS `tasks` (
   `title`      VARCHAR(100) NOT NULL,
   `content`    TEXT NULL,
   `deadline`   DATETIME NOT NULL,
-  `completed`  BOOLEAN NOT NULL DEFAULT FALSE,
   FOREIGN KEY (`school_id`)  REFERENCES `schools`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`class_id`)   REFERENCES `classes`(`id`) ON DELETE SET NULL,
   FOREIGN KEY (`event_id`)   REFERENCES `events`(`id`)  ON DELETE SET NULL
@@ -191,7 +190,7 @@ CREATE TABLE IF NOT EXISTS `tasks` (
 
 CREATE TABLE IF NOT EXISTS `user_task_status` (
   `id`           BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-   `user_id`      BIGINT NOT NULL,
+  `user_id`      BIGINT NOT NULL,
   `task_id`      BIGINT NOT NULL,
   `is_completed` BOOLEAN NOT NULL DEFAULT FALSE,
   `completed_at` TIMESTAMP NULL,

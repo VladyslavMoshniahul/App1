@@ -19,6 +19,8 @@ import com.example.demo.javaSrc.tasks.Task;
 import com.example.demo.javaSrc.tasks.TaskService;
 import com.example.demo.javaSrc.users.User;
 
+import jakarta.persistence.EntityNotFoundException;
+
 @RestController
 @RequestMapping("/api/task")
 public class TaskController {
@@ -35,12 +37,16 @@ public class TaskController {
     }
 
 
-        @PostMapping("/tasks/{id}/toggle-complete")
-    public ResponseEntity<Void> toggleTask(@PathVariable Long id) {
-        taskService.toggleComplete(id);
-        return ResponseEntity.ok().build();
+   @PostMapping("/tasks/{id}/toggle-complete")
+    public ResponseEntity<Void> toggleTask(@PathVariable Long taskId,
+                                            Authentication auth) {
+        try {
+            taskService.toggleComplete(taskId, userController.currentUser(auth).getId());
+            return ResponseEntity.ok().build();
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
-
 
     @PreAuthorize("hasRole('TEACHER')")
     @PostMapping("/tasks")

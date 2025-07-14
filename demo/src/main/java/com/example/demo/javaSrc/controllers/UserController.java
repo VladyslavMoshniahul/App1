@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.javaSrc.tasks.Task;
 import com.example.demo.javaSrc.tasks.TaskService;
+import com.example.demo.javaSrc.tasks.UserTaskStatusRepository;
 import com.example.demo.javaSrc.users.User;
 import com.example.demo.javaSrc.users.UserService;
 import com.example.demo.javaSrc.events.EventService;
@@ -33,17 +34,17 @@ public class UserController {
     @Autowired
     private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private final TaskService taskService;
+  //  @Autowired
+  //  private final TaskService taskService;
 
-    @Autowired
-    private final EventService eventService;
+  //  @Autowired
+   // private final EventService eventService;
 
-    public UserController(UserService userService, PasswordEncoder passwordEncoder, TaskService taskService,EventService eventService) {
+    public UserController(UserService userService, PasswordEncoder passwordEncoder/*, TaskService taskService,EventService eventService*/) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
-        this.taskService = taskService;
-        this.eventService = eventService;
+      //  this.taskService = taskService;
+        //this.eventService = eventService;
     }
 
     public User currentUser(Authentication auth) {
@@ -199,26 +200,5 @@ public class UserController {
         }
     }
 
-    @PreAuthorize("hasRole('TEACHER')")
-    @GetMapping("/stats")
-    public Map<String, Long> getStatsByTeacher(
-            Authentication auth,
-            @RequestParam(required = false) Long schoolId,
-            @RequestParam(required = false) Long classId) {
-
-        User me = currentUser(auth);
-        Long sch = schoolId != null ? schoolId : me.getSchoolId();
-        Long cls = classId  != null ? classId  : me.getClassId();
-
-        long totalTasks     = taskService.getBySchoolAndClass(sch, cls).size();
-        long completedTasks = taskService.getBySchoolAndClass(sch, cls)
-                                         .stream().filter(Task::isCompleted).count();
-        long totalEvents    = eventService.getBySchoolAndClass(sch, cls).size();
-
-        return Map.of(
-            "totalTasks",     totalTasks,
-            "completedTasks", completedTasks,
-            "totalEvents",    totalEvents
-        );
-    }
+    
 }
