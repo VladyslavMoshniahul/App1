@@ -2,6 +2,9 @@ package com.example.demo.javaSrc.tasks;
 
 
 import java.util.Date;
+
+import com.example.demo.javaSrc.events.Event;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -16,8 +19,11 @@ public class Task {
 
     @Column(name = "class_id")
     private Long classId;
+ 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    private Event event;
 
-    @Column(name = "event_id")
     private Long eventId;
 
     @Column(nullable = false)
@@ -65,12 +71,10 @@ public class Task {
     public Date getDeadline() { return (Date) deadline.clone(); }
     public void setDeadline(Date deadline) { this.deadline = deadline; }
 
-    // Robust setter for JSON deserialization (accepts ISO string or Date)
     @com.fasterxml.jackson.annotation.JsonSetter("deadline")
     public void setDeadlineFromJson(Object deadline) {
         if (deadline instanceof String str) {
             try {
-                // Accept both "2024-06-01T12:00:00.000Z" and "2024-06-01T12:00:00"
                 java.time.Instant instant;
                 if (str.endsWith("Z")) {
                     instant = java.time.Instant.parse(str);
@@ -89,4 +93,13 @@ public class Task {
 
     public boolean isCompleted() { return completed; }
     public void setCompleted(boolean completed) { this.completed = completed; }
+
+    public Event getEvent() {
+        return event;
+    }
+
+    public void setEvent(Event event) {
+        this.event = event;
+    }
+
 }

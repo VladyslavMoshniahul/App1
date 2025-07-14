@@ -12,9 +12,12 @@ import org.springframework.stereotype.Service;
 public class EventService {
     @Autowired
     private final EventRepository eventRepository;
+    @Autowired
+    private final EventFileRepository eventFileRepository;
 
-    public EventService(EventRepository eventRepository) {
+    public EventService(EventRepository eventRepository, EventFileRepository eventFileRepository) {
         this.eventRepository = eventRepository;
+        this.eventFileRepository = eventFileRepository;
     }
 
     public List<Event> getAllEvents() {
@@ -53,4 +56,21 @@ public class EventService {
     public List<Event> getEventsForClass(Long schoolId, Long classId) {
         return eventRepository.findBySchoolIdAndClassId(schoolId, classId);
     }
+
+    public Event getEventById(Long eventId) {
+        return eventRepository.findById(eventId).orElse(null);
+    }
+
+    public EventFile saveEventFile(EventFile file) {
+        return eventFileRepository.save(file);
+    }
+
+    public List<EventFile> getFilesForEvent(Long eventId) {
+        return eventFileRepository.findByEventId(eventId);
+    }
+
+    public EventFile getEventFileById(Long fileId) {
+        return eventFileRepository.findById(fileId).orElse(null);
+    }
+
 }

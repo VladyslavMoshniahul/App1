@@ -37,4 +37,10 @@ public class Invitation {
     public int getUserId() { return userId; }
     public Timestamp getCreatedAt() { return createdAt; }
     public Status getStatus() { return status; }
+
+    public void setId(Long id) { this.id = id; }
+    public void setEventId(int eventId) { this.eventId = eventId; }
+    public void setUserId(int userId) { this.userId = userId; }
+    public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
+    public void setStatus(Status status) { this.status = status; }
 }

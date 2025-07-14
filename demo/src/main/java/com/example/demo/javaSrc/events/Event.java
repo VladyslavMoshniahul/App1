@@ -2,7 +2,11 @@ package com.example.demo.javaSrc.events;
 
 
 import java.time.LocalDateTime;
+import java.util.List;
+
 import jakarta.persistence.*;
+
+import com.example.demo.javaSrc.tasks.Task;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
@@ -42,6 +46,10 @@ public class Event {
 
     @Column(name = "created_by", nullable = false)
     private Long createdBy;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
+    private List<Task> tasks; 
+
 
     public Event() {}
 
