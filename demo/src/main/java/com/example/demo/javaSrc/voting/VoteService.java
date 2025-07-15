@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -168,13 +169,17 @@ public class VoteService {
     }
 
     @Transactional
+    @Scheduled(fixedRate = 60000) 
     public void closeExpiredVotings() {
         Date now = new Date();
         List<Vote> openVotings = voteRepository.findByStatus(Vote.VoteStatus.OPEN);
-        openVotings.stream()
+
+        List<Vote> expired = openVotings.stream()
                 .filter(vote -> vote.getEndDate().before(now))
-                .forEach(vote -> vote.setStatus(Vote.VoteStatus.CLOSED));
-        voteRepository.saveAll(openVotings);
+                .peek(vote -> vote.setStatus(Vote.VoteStatus.CLOSED))
+                .toList();
+
+        voteRepository.saveAll(expired);
     }
 
     @Transactional

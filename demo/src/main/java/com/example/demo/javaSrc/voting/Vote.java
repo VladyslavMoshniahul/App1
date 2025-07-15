@@ -3,7 +3,7 @@ package com.example.demo.javaSrc.voting;
 
 import jakarta.persistence.*;
 import java.util.Date;
-import java.util.List; // For the @OneToMany relationship
+import java.util.List; 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 

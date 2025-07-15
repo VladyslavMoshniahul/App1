@@ -2,6 +2,7 @@ package com.example.demo.javaSrc.controllers;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -41,14 +42,14 @@ public class VoteController {
     }
 
     @PostMapping("/createVoting")
-    public ResponseEntity<Vote> createVoting(@RequestBody Vote request) {
+    public ResponseEntity<Vote> createVoting(@RequestBody Vote request, Authentication auth) {
         try {
             Vote newVote = new Vote();
-            newVote.setSchoolId(request.getSchoolId());
+            newVote.setSchoolId(userController.currentUser(auth).getSchoolId());
             newVote.setClassId(request.getClassId());
             newVote.setTitle(request.getTitle());
             newVote.setDescription(request.getDescription());
-            newVote.setCreatedBy(request.getCreatedBy());
+            newVote.setCreatedBy(userController.currentUser(auth).getId());
             newVote.setStartDate(request.getStartDate());
             newVote.setEndDate(request.getEndDate());
             newVote.setMultipleChoice(request.isMultipleChoice());
@@ -155,13 +156,13 @@ public class VoteController {
     }
 
     @PutMapping("voting/{id}")
-    public ResponseEntity<Vote> updateVoting(@PathVariable Long id, @RequestBody Vote request) {
+    public ResponseEntity<Vote> updateVoting(@PathVariable Long id, @RequestBody Vote request, Authentication auth) {
         Vote updatedVote = new Vote();
-        updatedVote.setSchoolId(request.getSchoolId());
+        updatedVote.setSchoolId(userController.currentUser(auth).getSchoolId());
         updatedVote.setClassId(request.getClassId());
         updatedVote.setTitle(request.getTitle());
         updatedVote.setDescription(request.getDescription());
-        updatedVote.setCreatedBy(request.getCreatedBy());
+        updatedVote.setCreatedBy(userController.currentUser(auth).getId());
         updatedVote.setStartDate(request.getStartDate());
         updatedVote.setEndDate(request.getEndDate());
         updatedVote.setMultipleChoice(request.isMultipleChoice());
