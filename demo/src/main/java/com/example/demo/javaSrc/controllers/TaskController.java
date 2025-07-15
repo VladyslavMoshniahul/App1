@@ -66,5 +66,42 @@ public class TaskController {
         return ResponseEntity.ok(taskService.createTask(newTask));
     }
 
+    @GetMapping("/tasks")
+    public ResponseEntity<List<Task>> getTasks(
+            Authentication auth,
+            @RequestParam(required = false) Long classId,
+            @RequestParam(required = false) Long eventId,
+            @RequestParam(required = false) Boolean onlyFuture
+    ) {
+        User me = userController.currentUser(auth);
+        if (me == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        Long schoolId = me.getSchoolId();
+        Long userClassId = me.getClassId();
+
+        List<Task> result = new ArrayList<>();
+
+        result.addAll(taskService.getBySchoolAndClass(schoolId, null));
+
+        if (userClassId != null) {
+            result.addAll(taskService.getBySchoolAndClass(schoolId, userClassId));
+        }
+
+        if (classId != null) {
+            result.removeIf(task -> !classId.equals(task.getClassId()));
+        }
+
+        if (eventId != null) {
+            result.removeIf(task -> !eventId.equals(task.getEvent().getId()));
+        }
+
+        if (Boolean.TRUE.equals(onlyFuture)) {
+            result.removeIf(task -> task.getDeadline().before(new java.util.Date()));
+        }
+
+        result.sort(Comparator.comparing(Task::getDeadline));
+
+        return ResponseEntity.ok(result);
+    }
 
 }

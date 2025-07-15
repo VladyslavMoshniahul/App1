@@ -2,10 +2,9 @@ package com.example.demo.javaSrc.controllers;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +79,7 @@ public class EventController {
             Long cls = target.getClassId();
             List<Event> events = eventService.getEventsForSchool(sch);
             return events.stream()
-                .filter(e -> e.getClassId() == null || (cls != null && cls.equals(e.getClassId())))
+                .filter(event -> event.getClassId() == null || (cls != null && cls.equals(event.getClassId())))
                 .sorted(Comparator.comparing(Event::getStartEvent))
                 .collect(Collectors.toList());
         }
@@ -89,66 +88,43 @@ public class EventController {
         Long cls = classId != null ? classId : me.getClassId();
         List<Event> events = eventService.getEventsForSchool(sch);
         return events.stream()
-            .filter(e -> e.getClassId() == null || (cls != null && cls.equals(e.getClassId())))
+            .filter(event -> event.getClassId() == null || (cls != null && cls.equals(event.getClassId())))
             .sorted(Comparator.comparing(Event::getStartEvent))
             .collect(Collectors.toList());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Event> getEventById(@PathVariable Long id) {
+        Event event = eventService.getEventById(id);
+        if (event == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(event);
+    }
+
+
     @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR', 'STUDENT')")
     @PostMapping("/events")
-    public ResponseEntity<Event> createEvent(
-            @RequestBody Map<String,Object> payload,
+    public ResponseEntity<?> createEvent(
+            @RequestBody Event req,
             Authentication auth) {
 
-        String title      = (String) payload.get("title");
-        String content    = (String) payload.get("content");
-        String loc        = (String) payload.get("location_or_link");
-        String startRaw   = (String) payload.get("start_event");
-        String type       = (String) payload.get("event_type");
-
-        Object durObj     = payload.get("duration");
-        int duration = durObj instanceof Number
-            ? ((Number) durObj).intValue()
-            : Integer.parseInt((String) durObj);
-
-        Long sid = payload.get("schoolId") != null
-            ? (payload.get("schoolId") instanceof Number
-                ? ((Number) payload.get("schoolId")).longValue()
-                : Long.parseLong(payload.get("schoolId").toString()))
-            : null; 
-
-        if (sid == null) {
-            return ResponseEntity.badRequest().body(null);
+        Event event = new Event();
+        event.setTitle(req.getTitle());
+        event.setContent(req.getContent());
+        event.setLocationOrLink(req.getLocationOrLink());
+        event.setStartEvent(req.getStartEvent());
+        event.setDuration(req.getDuration());
+        event.setEventType(req.getEventType());
+        event.setSchoolId(userController.currentUser(auth).getSchoolId());
+        Long classId = req.getClassId() != null ? 
+                                                        req.getClassId() : userController.currentUser(auth).getClassId();
+        if (userController.currentUser(auth).getRole() == User.Role.STUDENT 
+                            && !Objects.equals(req.getClassId(), userController.currentUser(auth).getClassId())) {
+            return ResponseEntity.status(403).body("Учень може створювати події лише для свого класу");
         }
+        event.setClassId(classId);
+        event.setCreatedBy(userController.currentUser(auth).getId());
 
-        Long cid;
-        if (payload.get("classId") == null || payload.get("classId").toString().isBlank()) {
-            cid = null;
-        } else if (payload.get("classId") instanceof Number) {
-            cid = ((Number) payload.get("classId")).longValue();
-        } else {
-            cid = Long.parseLong(payload.get("classId").toString());
-        }
-
-        if (userController.currentUser(auth).getRole() == User.Role.STUDENT && !type.equals("PERSONAL")) {
-            return ResponseEntity.status(403).body(null);
-        }
-
-        LocalDateTime startEvent = OffsetDateTime.parse(startRaw)
-            .toLocalDateTime();
-
-        Event e = new Event();
-        e.setTitle(title);
-        e.setContent(content);
-        e.setLocationOrLink(loc);
-        e.setStartEvent(startEvent);
-        e.setDuration(duration);
-        e.setEventType(Event.EventType.valueOf(type));
-        e.setSchoolId(sid);
-        e.setClassId(cid);
-        e.setCreatedBy(userController.currentUser(auth).getId());
-
-        Event saved = eventService.createEvent(e);
+        Event saved = eventService.createEvent(event);
         return ResponseEntity.ok(saved);
     }
 
@@ -212,7 +188,7 @@ public class EventController {
             );
             EventFile saved = eventService.saveEventFile(eventFile);
             return ResponseEntity.ok(saved);
-        } catch (Exception e) {
+        } catch (Exception event) {
             return ResponseEntity.badRequest().build();
         }
     }
@@ -235,10 +211,17 @@ public class EventController {
     }
 
     @GetMapping("/my-invitations")
-    public List<Invitation> getMyInvitations(Authentication auth) {
+    public List<Invitation> getMyInvitations(
+            Authentication auth,
+            @RequestParam(required = false) Invitation.Status status) {
+
         Long userId = userController.currentUser(auth).getId();
+        if (status != null) {
+            return invitationRepository.findByUserIdAndStatus(userId, status);
+        }
         return invitationRepository.findByUserId(userId);
     }
+
 
     @PostMapping("/invite")
     public ResponseEntity<?> sendInvitations(
@@ -264,7 +247,7 @@ public class EventController {
             case PARENT -> {
                 return ResponseEntity.status(403).body("Батьки не можуть створювати події або надсилати запрошення");
             }
-            case ADMIN ->{ return ResponseEntity.status(200).build();}
+            case ADMIN ->{ return ResponseEntity.status(403).body("Адміністратор не може створювати події і відповідно надсилати запрошення");}
             case TEACHER->{ return ResponseEntity.status(200).build();}
             case DIRECTOR->{ return ResponseEntity.status(200).build();}
         }
@@ -279,6 +262,22 @@ public class EventController {
         }).toList();
 
         return ResponseEntity.ok(saved);
+    }
+    
+    @PostMapping("/respond-invitation")
+    public ResponseEntity<?> respondToInvitation(
+            @RequestParam Long invitationId,
+            @RequestParam Invitation.Status status,
+            Authentication auth) {
+
+        Long userId = userController.currentUser(auth).getId();
+        Invitation invitation = invitationRepository.findById(invitationId).orElse(null);
+        if (invitation == null || invitation.getUserId() != userId.intValue()) {
+            return ResponseEntity.status(403).body("Немає доступу до запрошення");
+        }
+        invitation.setStatus(status);
+        invitationRepository.save(invitation);
+        return ResponseEntity.ok(invitation);
     }
 
     @PostMapping("/event/{eventId}/task")
