@@ -45,7 +45,9 @@ public class VoteController {
         try {
             Vote newVote = new Vote();
             newVote.setSchoolId(userController.currentUser(auth).getSchoolId());
-            newVote.setClassId(request.getClassId());
+            Long classId = request.getClassId() != null ? 
+                                                        request.getClassId() : userController.currentUser(auth).getClassId();
+            newVote.setClassId(classId);
             newVote.setTitle(request.getTitle());
             newVote.setDescription(request.getDescription());
             newVote.setCreatedBy(userController.currentUser(auth).getId());
@@ -53,7 +55,6 @@ public class VoteController {
             newVote.setEndDate(request.getEndDate());
             newVote.setMultipleChoice(request.isMultipleChoice());
 
-            // Defensive: ensure votingLevel is not null and valid
             if (request.getVotingLevel() != null) {
                 newVote.setVotingLevel(request.getVotingLevel());
             } else {
@@ -62,7 +63,6 @@ public class VoteController {
 
             newVote.setStatus(Vote.VoteStatus.OPEN);
 
-            // Serialize variants to JSON for variantsJson field
             try {
                 if (request.getVariants() != null && !request.getVariants().isEmpty()) {
                     String variantsJson = objectMapper.writeValueAsString(
@@ -158,7 +158,9 @@ public class VoteController {
     public ResponseEntity<Vote> updateVoting(@PathVariable Long id, @RequestBody Vote request, Authentication auth) {
         Vote updatedVote = new Vote();
         updatedVote.setSchoolId(userController.currentUser(auth).getSchoolId());
-        updatedVote.setClassId(request.getClassId());
+         Long classId = request.getClassId() != null ? 
+                                                        request.getClassId() : userController.currentUser(auth).getClassId();
+        updatedVote.setClassId(classId);
         updatedVote.setTitle(request.getTitle());
         updatedVote.setDescription(request.getDescription());
         updatedVote.setCreatedBy(userController.currentUser(auth).getId());
