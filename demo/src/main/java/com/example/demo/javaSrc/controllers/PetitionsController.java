@@ -50,6 +50,7 @@ public class PetitionsController {
         this.userController = userController;
         this.petitionsCommentService = petitionsCommentService;
     }
+
     @PreAuthorize("hasRole('STUDENT')")
     @PostMapping("/createPetition")
     public ResponseEntity<PetitionDto> createPetition(
@@ -77,7 +78,8 @@ public class PetitionsController {
         petition.setEndDate(endDate);
 
         petition.setSchoolId(user.getSchoolId());
-        petition.setClassId(req.classId());
+        Long classId = req.classId() != null ? req.classId() : user.getClassId();
+        petition.setClassId(classId);
         petition.setCreatedBy(user.getId());
 
         petition.setStatus(Petition.Status.OPEN);
@@ -161,6 +163,22 @@ public class PetitionsController {
         petitionService.createPetition(petition);
         return ResponseEntity.ok().build();
     }
+
+    @PreAuthorize("hasRole('DIRECTOR')")
+    @PostMapping("/petitions/{id}/reject")
+    public ResponseEntity<Void> directorReject(
+            @PathVariable Long id) {
+
+        Petition petition = petitionService.getPetitionById(id);
+        if (petition == null || petition.getDirectorsDecision() != Petition.DirectorsDecision.PENDING) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        petition.setDirectorsDecision(Petition.DirectorsDecision.REJECTED);
+        petitionService.createPetition(petition);
+        return ResponseEntity.ok().build();
+    }
+
 
     @PostMapping("/comments")
     public ResponseEntity<PetitionsComment> addComment(@RequestBody PetitionsComment comment) {

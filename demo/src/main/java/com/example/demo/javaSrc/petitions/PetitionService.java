@@ -6,24 +6,28 @@ import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.example.demo.javaSrc.users.*;
+import com.example.demo.javaSrc.users.User;
+import com.example.demo.javaSrc.users.UserRepository;
 
 import jakarta.transaction.Transactional;
 
 @Service
 public class PetitionService {
-
+    @Autowired
     private final UserRepository userRepository;
     @Autowired
     private final PetitionRepository petitionRepository;
     @Autowired
-    private PetitionVoteRepository petitionVoteRepository;
+    private final PetitionVoteRepository petitionVoteRepository;
 
-    public PetitionService(PetitionRepository petitionRepository, UserRepository userRepository) {
+    public PetitionService(PetitionRepository petitionRepository, UserRepository userRepository,
+            PetitionVoteRepository petitionVoteRepository) {
         this.petitionRepository = petitionRepository;
         this.userRepository = userRepository;
+        this.petitionVoteRepository = petitionVoteRepository;
     }
 
     public Petition createPetition(Petition petition) {
@@ -58,12 +62,11 @@ public class PetitionService {
         return petitionRepository.findByStartDateBetween(startDate, endDate);
     }
 
-    public List<Petition> getAllPetition() {
+    public List<Petition> getAllPetitions() {
         return petitionRepository.findAll();
     }
 
     public void deletePetition(Long id) {
-
         petitionRepository.deleteById(id);
     }
 
@@ -109,40 +112,63 @@ public class PetitionService {
     }
 
     @Transactional
-    public void vote(Long petitionId, Long studentId, PetitionVote.VoteVariant vote) throws Exception {
+    public void vote(Long petitionId, Long studentId, PetitionVote.VoteVariant vote) {
         Petition petition = petitionRepository.findById(petitionId)
-                .orElseThrow(() -> new Exception("Petition not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Petition not found"));
 
-        if (LocalDateTime.now().isAfter(petition.getEndDate().toInstant()
+        LocalDateTime now = LocalDateTime.now();
+
+        LocalDateTime petitionEnd = petition.getEndDate().toInstant()
                 .atZone(ZoneId.systemDefault())
-                .toLocalDateTime())) {
-            throw new Exception("Petition already ended");
+                .toLocalDateTime();
+
+        if (now.isAfter(petitionEnd)) {
+            throw new IllegalStateException("Petition already ended");
         }
 
         boolean alreadyVoted = petitionVoteRepository.existsByPetitionIdAndStudentId(petitionId, studentId);
         if (alreadyVoted) {
-            throw new Exception("Student already voted for this petition");
+            throw new IllegalStateException("Student already voted for this petition");
         }
 
         PetitionVote petitionVote = new PetitionVote();
         petitionVote.setPetition(petition);
         petitionVote.setStudentId(studentId);
         petitionVote.setVote(vote);
-        petitionVote.setVotedAt(LocalDateTime.now());
+        petitionVote.setVotedAt(now);
         petitionVoteRepository.save(petitionVote);
 
         if (vote == PetitionVote.VoteVariant.YES) {
             int newCount = petition.getCurrentPositiveVoteCount() + 1;
             petition.setCurrentPositiveVoteCount(newCount);
 
-            // Перевірка, чи досягнуто 50%+1 учасників
             int totalStudents = getTotalStudentsForPetition(petition);
+
             if (newCount >= (totalStudents / 2) + 1) {
                 petition.setDirectorsDecision(Petition.DirectorsDecision.PENDING);
             }
 
             petitionRepository.save(petition);
         }
+    }
+
+    @Transactional
+    public Petition closePetition(Long petitionId) {
+        return petitionRepository.findById(petitionId).map(petition -> {
+            petition.setStatus(Petition.Status.CLOSED);
+            return petitionRepository.save(petition);
+        }).orElse(null);
+    }
+
+    @Scheduled(fixedRate = 60000)
+    @Transactional
+    public void closeExpiredPetitions() {
+        Date now = new Date();
+        List<Petition> openPetitions = petitionRepository.findByStatus(Petition.Status.OPEN);
+        openPetitions.stream()
+            .filter(petition -> petition.getEndDate().before(now))
+            .forEach(petition -> petition.setStatus(Petition.Status.CLOSED));
+        petitionRepository.saveAll(openPetitions);
     }
 
 }
