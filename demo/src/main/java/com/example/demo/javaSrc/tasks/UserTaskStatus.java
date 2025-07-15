@@ -1,5 +1,7 @@
 package com.example.demo.javaSrc.tasks;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -24,7 +26,7 @@ public class UserTaskStatus {
     private Boolean isCompleted;
 
     @Column(name = "completed_at")
-    private java.sql.Timestamp completedAt;
+    private LocalDateTime completedAt;
 
     public UserTaskStatus() {}
 
@@ -55,17 +57,17 @@ public class UserTaskStatus {
         this.taskId = taskId;
     }
 
-    public Boolean isCompleted() {
+    public Boolean getIsCompleted() {
         return isCompleted;
     }
     public void setIsCompleted(Boolean isCompleted) {
         this.isCompleted = isCompleted;
     }
 
-    public java.sql.Timestamp getCompletedAt() {
+    public LocalDateTime getCompletedAt() {
         return completedAt;
     }
-    public void setCompletedAt(java.sql.Timestamp completedAt) {
+    public void setCompletedAt(LocalDateTime completedAt) {
         this.completedAt = completedAt;
     }
 }

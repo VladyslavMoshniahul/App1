@@ -1,15 +1,14 @@
 package com.example.demo.javaSrc.tasks;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-@Service
+@Service 
 public class TaskService {
     @Autowired
     private final TaskRepository taskRepository;
@@ -61,14 +60,16 @@ public class TaskService {
         return taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task with ID " + taskId + " not found."));
     }
+    
     @Transactional
     public void toggleComplete(Long taskId, Long userId) {
        UserTaskStatus status = userTaskStatusRepository
             .findByUserIdAndTaskId(userId, taskId)
             .orElseThrow(() -> new RuntimeException("Status not found"));
 
-        status.setIsCompleted(!status.isCompleted());
-        status.setCompletedAt(status.isCompleted() ? new Timestamp(System.currentTimeMillis()) : null);
+        status.setIsCompleted(!status.getIsCompleted());
+        LocalDateTime now = LocalDateTime.now();
+        status.setCompletedAt(status.getIsCompleted() ?  now : null);
         userTaskStatusRepository.save(status);
     }
     public List<Task> getTasksForSchool(Long schoolId) {
@@ -93,7 +94,4 @@ public class TaskService {
             return byTitle;
         }
     }
-
-    
-
 }
