@@ -1,7 +1,8 @@
 package com.example.demo.javaSrc.invitations;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,32 +16,32 @@ public class Invitation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int eventId;
-    private int userId;
-    private Timestamp createdAt;
-    private Status status;
-    public enum Status  { PENDING, ACCEPTED, DECLINED }
+    @Column(name = "event_id", nullable = false)
+    private Long eventId;
+
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
 
     public Invitation() {
     }
 
-    public Invitation(Long id, int eventId, int userId, Timestamp createdAt, Status status) {
+    public Invitation(Long id, Long eventId, Long userId, LocalDateTime createdAt) {
         this.id = id;
         this.eventId = eventId;
         this.userId = userId;
         this.createdAt = createdAt;
-        this.status = status;
     }
     
     public Long getId() { return id; }
-    public int getEventId() { return eventId; }
-    public int getUserId() { return userId; }
-    public Timestamp getCreatedAt() { return createdAt; }
-    public Status getStatus() { return status; }
+    public Long getEventId() { return eventId; }
+    public Long getUserId() { return userId; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
 
     public void setId(Long id) { this.id = id; }
-    public void setEventId(int eventId) { this.eventId = eventId; }
-    public void setUserId(int userId) { this.userId = userId; }
-    public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
-    public void setStatus(Status status) { this.status = status; }
+    public void setEventId(Long eventId) { this.eventId = eventId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

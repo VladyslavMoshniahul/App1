@@ -27,7 +27,8 @@ import com.example.demo.javaSrc.events.Event;
 import com.example.demo.javaSrc.events.EventFile;
 import com.example.demo.javaSrc.events.EventService;
 import com.example.demo.javaSrc.invitations.Invitation;
-import com.example.demo.javaSrc.invitations.InvitationsRepository;
+import com.example.demo.javaSrc.invitations.InvitationsService;
+import com.example.demo.javaSrc.invitations.UserInvitationStatus;
 import com.example.demo.javaSrc.tasks.Task;
 import com.example.demo.javaSrc.tasks.TaskRepository;
 import com.example.demo.javaSrc.users.User;
@@ -43,18 +44,18 @@ public class EventController {
     @Autowired
     private final UserService userService;
     @Autowired
-    private final InvitationsRepository invitationRepository;
+    private final InvitationsService invitationsService;
     @Autowired
     private final TaskRepository taskRepository;
     @Autowired
     private final EventsCommentService eventsCommentService;
 
-    public EventController(UserController userController, EventService eventService, UserService userService,InvitationsRepository invitationRepository,
+    public EventController(UserController userController, EventService eventService, UserService userService,InvitationsService invitationsService,
                                 TaskRepository taskRepository, EventsCommentService eventsCommentService) {
         this.userController = userController;
         this.eventService = eventService;
         this.userService = userService;
-        this.invitationRepository = invitationRepository;
+        this.invitationsService = invitationsService;
         this.taskRepository = taskRepository;
         this.eventsCommentService = eventsCommentService;
     }
@@ -211,17 +212,15 @@ public class EventController {
     }
 
     @GetMapping("/my-invitations")
-    public List<Invitation> getMyInvitations(
+        public List<UserInvitationStatus> getMyInvitations(
             Authentication auth,
-            @RequestParam(required = false) Invitation.Status status) {
-
+            @RequestParam(required = false) UserInvitationStatus.Status status) {
         Long userId = userController.currentUser(auth).getId();
         if (status != null) {
-            return invitationRepository.findByUserIdAndStatus(userId, status);
+            return invitationsService.getUserInvitationsByStatus(userId, status);
         }
-        return invitationRepository.findByUserId(userId);
+        return invitationsService.getUserInvitations(userId);
     }
-
 
     @PostMapping("/invite")
     public ResponseEntity<?> sendInvitations(
@@ -245,39 +244,35 @@ public class EventController {
                 }
             }
             case PARENT -> {
-                return ResponseEntity.status(403).body("Батьки не можуть створювати події або надсилати запрошення");
+                return ResponseEntity.status(403).body("Батьки не можуть надсилати запрошення");
             }
-            case ADMIN ->{ return ResponseEntity.status(403).body("Адміністратор не може створювати події і відповідно надсилати запрошення");}
-            case TEACHER->{ return ResponseEntity.status(200).build();}
-            case DIRECTOR->{ return ResponseEntity.status(200).build();}
+            case ADMIN -> {
+                return ResponseEntity.status(403).body("Адміністратор не може створювати події і запрошення");
+            }
+            default -> {
+                if (event.getCreatedBy() != currentUser.getId()) {
+                    return ResponseEntity.status(403).body("Подія не створена цим користувачем");
+                }
+            }
         }
 
-        List<Invitation> saved = userIds.stream().map(userId -> {
-            Invitation inv = new Invitation();
-            inv.setEventId(eventId.intValue());
-            inv.setUserId(userId.intValue());
-            inv.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-            inv.setStatus(Invitation.Status.PENDING);
-            return invitationRepository.save(inv);
-        }).toList();
-
-        return ResponseEntity.ok(saved);
+        Invitation invitation = invitationsService.createGroupInvitation( eventId,  currentUser.getId(), userIds);
+        return ResponseEntity.ok(invitation);
     }
-    
-    @PostMapping("/respond-invitation")
+
+    @PostMapping("/respond")
     public ResponseEntity<?> respondToInvitation(
             @RequestParam Long invitationId,
-            @RequestParam Invitation.Status status,
+            @RequestParam UserInvitationStatus.Status status,
             Authentication auth) {
 
         Long userId = userController.currentUser(auth).getId();
-        Invitation invitation = invitationRepository.findById(invitationId).orElse(null);
-        if (invitation == null || invitation.getUserId() != userId.intValue()) {
-            return ResponseEntity.status(403).body("Немає доступу до запрошення");
+        boolean updated = invitationsService.respondToInvitation(invitationId, userId, status);
+
+        if (!updated) {
+            return ResponseEntity.status(403).body("Немає доступу до цього запрошення або вже відповіли");
         }
-        invitation.setStatus(status);
-        invitationRepository.save(invitation);
-        return ResponseEntity.ok(invitation);
+        return ResponseEntity.ok("Відповідь прийнята");
     }
 
     @PostMapping("/event/{eventId}/task")

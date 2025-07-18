@@ -1,7 +1,5 @@
 package com.example.demo.javaSrc.events;
 
-
-
 import java.time.LocalDateTime;
 import java.util.List;
 
