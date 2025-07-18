@@ -2,7 +2,6 @@ package com.example.demo.javaSrc.controllers;
 
 import java.util.ArrayList;
 import java.util.List;
-//import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,12 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-//import com.example.demo.javaSrc.tasks.Task;
-//import com.example.demo.javaSrc.tasks.TaskService;
-//import com.example.demo.javaSrc.tasks.UserTaskStatusRepository;
 import com.example.demo.javaSrc.users.User;
 import com.example.demo.javaSrc.users.UserService;
-//import com.example.demo.javaSrc.events.EventService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @RestController
@@ -34,17 +29,10 @@ public class UserController {
     @Autowired
     private final PasswordEncoder passwordEncoder;
 
-  //  @Autowired
-  //  private final TaskService taskService;
-
-  //  @Autowired
-   // private final EventService eventService;
-
-    public UserController(UserService userService, PasswordEncoder passwordEncoder/*, TaskService taskService,EventService eventService*/) {
+    public UserController(UserService userService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
-      //  this.taskService = taskService;
-        //this.eventService = eventService;
+
     }
 
     public User currentUser(Authentication auth) {
@@ -79,36 +67,44 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    public List<User> getUsers(
-            Authentication auth,
+    public List<User> getAllUsers(
             @RequestParam(required = false) Long schoolId,
             @RequestParam(required = false) Long classId,
-            @RequestParam(required = false) String name) {
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String email) {
 
-        User me = currentUser(auth);
-        Long sch = schoolId != null ? schoolId : me.getSchoolId();
-        Long cls = classId != null ? classId : me.getClassId();
+        List<User> all = userService.getAllUsers();
 
-        List<User> all;
-        if (classId == null) {
-            all = userService.getBySchoolAndClass(sch, null);
-        } else {
-            all = new ArrayList<>();
-            all.addAll(userService.getBySchoolAndClass(sch, null));
-            all.addAll(userService.getBySchoolAndClass(sch, cls));
+        if (schoolId != null) {
+            all = all.stream()
+                    .filter(p -> p.getSchoolId() != null && p.getSchoolId().equals(schoolId))
+                    .toList();
+        }
+
+        if (classId != null) {
+            all = all.stream()
+                    .filter(p -> p.getClassId() != null && p.getClassId().equals(classId))
+                    .toList();
         }
 
         if (name != null && !name.isBlank()) {
             all = all.stream()
-                    .filter(p -> p.getFirstName().contains(name)
-                            || p.getLastName().contains(name))
+                    .filter(p -> p.getFirstName() != null && p.getFirstName().toLowerCase().contains(name.toLowerCase()))
                     .toList();
         }
+
+        if (email != null && !email.isBlank()) {
+            all = all.stream()
+                    .filter(p -> p.getEmail() != null && p.getEmail().equalsIgnoreCase(email))
+                    .toList();
+        }
+
         return all;
     }
 
+
     @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR', 'ADMIN')")
-    @PostMapping("/users")
+    @PostMapping("/create_users")
     public ResponseEntity<User> createUser(
             @RequestBody User newUser,
             Authentication auth) {
@@ -200,5 +196,10 @@ public class UserController {
         }
     }
 
-    
+    @GetMapping("/users/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        User user = userService.getUserById(id);
+        return user != null ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
+    }
+
 }
