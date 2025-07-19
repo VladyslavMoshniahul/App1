@@ -8,7 +8,6 @@ import jakarta.persistence.GenerationType;
 
 import java.time.LocalDateTime;
 
-import com.example.demo.javaSrc.users.User;
 
 import jakarta.persistence.Column;
 
