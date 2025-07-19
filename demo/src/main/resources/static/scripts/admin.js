@@ -57,6 +57,13 @@ logoutButton.addEventListener("click", () => {
   window.location.href = "/login.html"; // або на головну
 });
 
+document.getElementById("openButton").addEventListener("click", () => {
+  document.getElementById("updateProfile").style.display = "flex";
+});
+
+document.getElementById("closeButton").addEventListener("click", () => {
+  document.getElementById("updateProfile").style.display = "none";
+});
 // === Валідація оновлення профілю ===
 const profileForm = document.getElementById("editProfileForm");
 profileForm.addEventListener("submit", (e) => {
