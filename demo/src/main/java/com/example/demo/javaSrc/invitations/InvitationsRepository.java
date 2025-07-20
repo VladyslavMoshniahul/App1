@@ -10,5 +10,4 @@ public interface InvitationsRepository  extends JpaRepository<Invitation, Long>{
     List<Invitation> findByEventId(Long eventId);
     List<Invitation> findByUserId(Long userId);
     List<Invitation> findByEventIdAndUserId(Long eventId, Long userId);
-    List<Invitation> findByCreatedBy(Long userId);
 }

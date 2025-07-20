@@ -2,7 +2,6 @@ package com.example.demo.javaSrc.invitations;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,22 +92,19 @@ public class InvitationsService {
         }).toList();
     }
 
-
-    public List<Invitation> getSentInvitationsByUser(Long inviterId) {
-        return invitationsRepository.findByCreatedBy(inviterId);
+    public List<Invitation> getInvitationsByEventId(Long eventId) {
+        return invitationsRepository.findByEventId(eventId);
     }
-
+    public List<Invitation> getInvitationsByUserId(Long userId) {
+        return invitationsRepository.findByUserId(userId);
+    }
     public void deleteInvitation(Long invitationId) {
         userInvitationStatusRepository.deleteByInvitationId(invitationId);
         invitationsRepository.deleteById(invitationId);
     }
 
-    public Map<UserInvitationStatus.Status, Long> getInvitationStatsForEvent(Long eventId) {
+    public List<Object[]> getInvitationStatsForEvent(Long eventId) {
         return userInvitationStatusRepository.countStatusesByEventId(eventId);
-    }
-
-    public List<UserInvitationStatus> getAllStatusesForEvent(Long eventId) {
-        return userInvitationStatusRepository.findAllByEventId(eventId);
     }
 
     public boolean hasUserBeenInvitedToEvent(Long userId, Long eventId) {
@@ -126,7 +122,11 @@ public class InvitationsService {
     }
 
     public List<User> getRespondedUsers(Long eventId, UserInvitationStatus.Status status) {
-        List<Long> userIds = userInvitationStatusRepository.findUserIdsByEventIdAndStatus(eventId, status);
+        if (status == null) {
+            throw new IllegalArgumentException("Status must not be null");
+        }
+        String statusString = status.name();
+        List<Long> userIds = userInvitationStatusRepository.findUserIdsByEventIdAndStatus(eventId, statusString);
         return userRepository.findAllById(userIds);
     }
 
