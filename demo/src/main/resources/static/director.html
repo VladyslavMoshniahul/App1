@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Сторінка директора</title>
-    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/director.css">
     <style>
         .nav-tabs {
             display: flex;
@@ -36,61 +36,61 @@
         .page-section.active {
             display: block;
         }
+
         .lang-toggle-button {
-  background: #5caf50;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  margin-left: 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-}
+            background: #5caf50;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            margin-left: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
 
-body.dark-theme {
-  background: linear-gradient(to bottom, #1f1f1f, #2c2c2c, #3a3a3a);
-  color: #f0f0f0;
-}
+        body.dark-theme {
+            background: linear-gradient(to bottom, #1f1f1f, #2c2c2c, #3a3a3a);
+            color: #f0f0f0;
+        }
 
-body.dark-theme header,
-body.dark-theme .aboutme-card,
-body.dark-theme .info-card,
-body.dark-theme section,
-body.dark-theme .nav-tabs button,
-body.dark-theme input,
-body.dark-theme textarea,
-body.dark-theme select {
-  background-color: #2b2b2b;
-  color: #f0f0f0;
-}
+        body.dark-theme header,
+        body.dark-theme .aboutme-card,
+        body.dark-theme .info-card,
+        body.dark-theme section,
+        body.dark-theme .nav-tabs button,
+        body.dark-theme input,
+        body.dark-theme textarea,
+        body.dark-theme select {
+            background-color: #2b2b2b;
+            color: #f0f0f0;
+        }
 
-body.dark-theme .nav-tabs button {
-  background-color: #444;
-  color: #ccc;
-}
+        body.dark-theme .nav-tabs button {
+            background-color: #444;
+            color: #ccc;
+        }
 
-body.dark-theme .nav-tabs button.active {
-  background-color: #66bb6a;
-  color: white;
-}
+        body.dark-theme .nav-tabs button.active {
+            background-color: #66bb6a;
+            color: white;
+        }
 
-body.dark-theme input,
-body.dark-theme textarea,
-body.dark-theme select {
-  border: 1px solid #666;
-}
+        body.dark-theme input,
+        body.dark-theme textarea,
+        body.dark-theme select {
+            border: 1px solid #666;
+        }
 
-body.dark-theme button,
-body.dark-theme .lang-toggle-button {
-  background-color: #43a047;
-  color: white;
-}
+        body.dark-theme button,
+        body.dark-theme .lang-toggle-button {
+            background-color: #43a047;
+            color: white;
+        }
 
-body.dark-theme button:hover,
-body.dark-theme .lang-toggle-button:hover {
-  background-color: #2e7d32;
-}
-
+        body.dark-theme button:hover,
+        body.dark-theme .lang-toggle-button:hover {
+            background-color: #2e7d32;
+        }
     </style>
 </head>
 
@@ -98,7 +98,7 @@ body.dark-theme .lang-toggle-button:hover {
     <header>
         <h1>Панель директора</h1>
         <button id="logoutButton" class="auth-button">Вийти</button>
-<button id="themeToggle" class="lang-toggle-button">🌙</button>
+        <button id="themeToggle" class="lang-toggle-button">🌙</button>
 
     </header>
 
@@ -223,7 +223,7 @@ body.dark-theme .lang-toggle-button:hover {
 
     </main>
 
-    <script type="module" src="scripts/teacher.js"></script>
+    <script type="module" src="scripts/director.js"></script>
     <script type="module" src="scripts/vote.js"></script>
 
 </body>

@@ -1,0 +1,439 @@
+/* === RESET === */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f9f9f9;
+  color: #333;
+  padding: 20px;
+  margin: 0;
+  min-height: 100vh;
+  background: 
+    radial-gradient(white 1px, transparent 0) 0 0,
+    radial-gradient(white 1px, transparent 0) 25px 25px,
+    linear-gradient(to bottom, #66bb6a, #a5d6a7, #ffffff);
+  background-size: 50px 50px, 50px 50px, 100% 100%;
+  background-repeat: repeat;
+  background-attachment: fixed;
+}
+
+/* === HEADER === */
+header {
+  background: linear-gradient(90deg, #43a047, #2e7d32);
+  color: white;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.main-title {
+  font-size: 2em;
+  font-weight: bold;
+}
+
+.subtitle {
+  font-size: 1em;
+  opacity: 0.85;
+  margin-top: 6px;
+}
+
+.header-buttons {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.auth-button,
+.theme-toggle-button {
+  background-color: white;
+  color: #2e7d32;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.auth-button:hover,
+.theme-toggle-button:hover {
+  background-color: #e0f2f1;
+}
+
+/* === NAVIGATION === */
+.nav-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.nav-tabs button {
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background-color: #e0f2f1;
+  color: #2e7d32;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.nav-tabs button.active {
+  background-color: #2e7d32;
+  color: white;
+}
+
+/* === MAIN CONTENT === */
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page-section {
+  display: none;
+}
+
+.page-section.active {
+  display: block;
+}
+
+.info-card {
+  background-color: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-left: 5px solid #2e7d32;
+}
+
+.info-card h2 {
+  margin-bottom: 16px;
+  color: #2e7d32;
+  font-size: 1.4em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.info-card p,
+.info-card li {
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+/* === STEPS LIST === */
+.steps ol {
+  padding-left: 20px;
+}
+
+/* === FORM ELEMENTS === */
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+button[type="submit"] {
+  background-color: #2e7d32;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+button[type="submit"]:hover {
+  background-color: #1b5e20;
+}
+
+/* === CALENDAR === */
+.calendar-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.calendar-views button {
+  background-color: #c8e6c9;
+  color: #2e7d32;
+  border: none;
+  padding: 8px 12px;
+  margin-right: 6px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.calendar-views button.active {
+  background-color: #2e7d32;
+  color: white;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+#calendar-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  border: 1px solid #a5d6a7;
+}
+
+#calendar-table th,
+#calendar-table td {
+  padding: 10px;
+  border: 1px solid #a5d6a7;
+  height: 80px;
+}
+
+#calendar-table th {
+  background-color: #a5d6a7;
+  color: #2e7d32;
+}
+
+#calendar-table td:hover {
+  background-color: #e8f5e9;
+  cursor: pointer;
+}
+
+
+body {
+    text-align: center;
+}
+
+header, .nav-tabs, main {
+    align-items: center;
+}
+
+.info-card, form, .calendar-controls, .calendar-header, #calendar-view-container {
+    text-align: left;
+    width: 100%;
+    max-width: 800px;
+}
+
+/* === VOTING LIST === */
+.vote-section {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 20px;
+  margin: 16px auto;
+  width: 100%;
+  max-width: 800px;
+  text-align: left;
+}
+
+.vote-section h3 {
+  font-size: 1.5em;
+  color: #2e7d32;
+  margin-bottom: 8px;
+}
+
+.vote-section p {
+  font-size: 1em;
+  margin-bottom: 12px;
+  line-height: 1.4;
+  color: #555;
+}
+
+.vote-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.vote-form label {
+  display: inline-flex;
+  align-items: flex;
+  gap: 8px;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+.vote-form input[type="radio"],
+.vote-form input[type="checkbox"] {
+  width: auto;
+  height: auto;
+  width: 1.2em;
+  height: 1.2em;
+  vertical-align: middle;
+  margin-top: 0
+}
+
+.vote-form button {
+  align-self: flex-start;
+  margin-top: 12px;
+  background-color: #43a047;
+  color: white;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.vote-form button:hover {
+  background-color: #2e7d32;
+}
+
+.vote-result {
+  margin-left: 12px;
+  font-style: italic;
+  color: #666;
+}
+
+
+
+
+
+.header-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin: 10px;
+}
+
+.auth-button, .theme-toggle-button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  background: #4caf50;
+  color: white;
+}
+
+.auth-button:hover, .theme-toggle-button:hover {
+  background: #45a049;
+}
+
+
+
+
+/* === ТЕМНА ТЕМА === */
+body.dark-theme {
+  background: linear-gradient(to bottom, #1c1c1c, #2e2e2e, #3d3d3d);
+  color: #eee;
+}
+
+body.dark-theme .info-card,
+body.dark-theme .vote-section,
+body.dark-theme header {
+  background-color: #2a2a2a;
+  color: #f1f1f1;
+  border-left-color: #81c784;
+}
+
+body.dark-theme .nav-tabs button {
+  background-color: #444;
+  color: #eee;
+}
+
+body.dark-theme .nav-tabs button.active {
+  background-color: #66bb6a;
+  color: #fff;
+}
+
+body.dark-theme input,
+body.dark-theme textarea,
+body.dark-theme select {
+  background-color: #444;
+  color: #fff;
+  border: 1px solid #666;
+}
+
+body.dark-theme button,
+body.dark-theme .auth-button,
+body.dark-theme .theme-toggle-button {
+  background-color: #388e3c;
+  color: white;
+}
+
+body.dark-theme button:hover,
+body.dark-theme .auth-button:hover,
+body.dark-theme .theme-toggle-button:hover {
+  background-color: #2e7d32;
+}
+/* ====== Petitions ====== */
+
+.petition-card {
+  background-color: #fff;
+  border-left: 5px solid #43a047;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 16px;
+  margin-bottom: 16px;
+  max-width: 800px;
+  width: 100%;
+}
+
+.petition-card h4 {
+  margin-bottom: 8px;
+  color: #2e7d32;
+}
+
+.petition-meta {
+  font-size: 0.9em;
+  color: #555;
+  margin-bottom: 12px;
+}
+
+.petition-progress {
+  background: #e0e0e0;
+  border-radius: 4px;
+  height: 8px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.petition-progress-bar {
+  height: 100%;
+  background: #43a047;
+  transition: width 0.3s ease;
+}
+
+.petition-actions button {
+  margin-right: 8px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.petition-actions button.yes {
+  background-color: #43a047;
+  color: white;
+}
+
+.petition-actions button.no {
+  background-color: #e53935;
+  color: white;
+}
+
+.petition-actions button.disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
