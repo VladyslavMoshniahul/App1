@@ -204,4 +204,153 @@ toastr.options = {
   "hideMethod": "fadeOut"
 };
 
+function renderList(listElement, items, emptyMessage = "Немає даних для відображення.") {
+    listElement.innerHTML = ''; // Очищаємо список перед додаванням нових елементів
+
+    if (items && items.length > 0) {
+        items.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            listElement.appendChild(li);
+        });
+    } else {
+        const li = document.createElement('li');
+        li.textContent = emptyMessage;
+        li.style.fontStyle = 'italic';
+        li.style.color = '#777';
+        listElement.appendChild(li);
+    }
+}
+
+function loadAdmins() {
+    const adminsList = document.getElementById('admins-list');
+    
+    setTimeout(() => {
+        const data = ["Адмін 1: Іван Іванов", "Адмін 2: Марія Петренко"];
+       
+        renderList(adminsList, data);
+        if (data.length === 0) {
+            toastr.info("Список адмінів порожній.");
+        }
+    }, 500); // Імітація затримки мережі
+}
+
+
+function loadSchools() {
+    const schoolsList = document.getElementById('schools-list');
+    // Імітація API-запиту
+    setTimeout(() => {
+        const data = ["Школа №1, м. Київ", "Гімназія 'Промінь', м. Львів", "Ліцей 'Ерудит', м. Одеса"];
+       
+        renderList(schoolsList, data);
+        if (data.length === 0) {
+            toastr.info("Список шкіл порожній.");
+        }
+    }, 600);
+}
+
+function loadClasses(schoolName = '') {
+    const classesList = document.getElementById('classes-list');
+    // Імітація API-запиту
+    setTimeout(() => {
+        let data = [];
+        if (schoolName.toLowerCase() === 'школа №1') {
+            data = ["1-А клас", "2-Б клас", "10-В клас"];
+        } else if (schoolName.toLowerCase() === 'гімназія "промінь"') {
+            data = ["5-А клас", "6-Б клас"];
+        } else if (!schoolName) {
+            
+            data = ["1-А (Школа №1)", "2-Б (Школа №1)", "5-А (Гімназія 'Промінь')", "6-Б (Гімназія 'Промінь')"];
+        } else {
+            toastr.warning(`Класи для школи "${schoolName}" не знайдено.`);
+        }
+        renderList(classesList, data, `Класи для "${schoolName}" не знайдено.`);
+    }, 700);
+}
+
+
+function loadDirectors(schoolName = '') {
+    const directorsList = document.getElementById('directors-list');
+    // Імітація API-запиту
+    setTimeout(() => {
+        let data = [];
+        if (schoolName.toLowerCase() === 'школа №1') {
+            data = ["Директор Школи №1: Олег Верес"];
+        } else if (schoolName.toLowerCase() === 'гімназія "промінь"') {
+            data = ["Директор Гімназії 'Промінь': Світлана Коваленко"];
+        } else if (!schoolName) {
+            data = ["Олег Верес (Школа №1)", "Світлана Коваленко (Гімназія 'Промінь')"];
+        } else {
+            toastr.warning(`Директори для школи "${schoolName}" не знайдено.`);
+        }
+        renderList(directorsList, data, `Директори для "${schoolName}" не знайдено.`);
+    }, 800);
+}
+
+function loadTeachers(schoolName = '', className = '') {
+    const teachersList = document.getElementById('teachers-list');
+    // Імітація API-запиту
+    setTimeout(() => {
+        let data = [];
+        if (schoolName.toLowerCase() === 'школа №1') {
+            if (className.toLowerCase() === '1-а клас') {
+                data = ["Вчитель 1А: Анна Сидоренко"];
+            } else if (!className) {
+                data = ["Вчитель А (Школа №1)", "Вчитель Б (Школа №1)"];
+            }
+        } else if (schoolName.toLowerCase() === 'гімназія "промінь"') {
+             if (className.toLowerCase() === '5-а клас') {
+                data = ["Вчитель 5А: Віктор Кравчук"];
+            } else if (!className) {
+                data = ["Вчитель В (Гімназія 'Промінь')", "Вчитель Г (Гімназія 'Промінь')"];
+            }
+        } else if (!schoolName && !className) {
+             data = ["Іван Іванов (Математика)", "Олена Смірна (Українська мова)"];
+        }
+
+        if (data.length === 0 && (schoolName || className)) {
+            let message = "Вчителі ";
+            if (schoolName) message += `для "${schoolName}" `;
+            if (className) message += `та класу "${className}" `;
+            message += "не знайдено.";
+            toastr.warning(message);
+        }
+
+        renderList(teachersList, data, "Немає вчителів для відображення.");
+    }, 900);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadAdmins();
+    loadSchools();
+    loadClasses(); 
+    loadDirectors(); 
+    loadTeachers(); 
+
+    const classesSchoolInput = document.getElementById('classes-school-input');
+    if (classesSchoolInput) {
+        classesSchoolInput.addEventListener('input', (event) => {
+            loadClasses(event.target.value.trim());
+        });
+    }
+
+    const directorsSchoolInput = document.getElementById('directors-school-input');
+    if (directorsSchoolInput) {
+        directorsSchoolInput.addEventListener('input', (event) => {
+            loadDirectors(event.target.value.trim());
+        });
+    }
+
+    const teachersSchoolInput = document.getElementById('teachers-school-input');
+    const teachersClassInput = document.getElementById('teachers-class-input');
+    if (teachersSchoolInput && teachersClassInput) {
+        const updateTeachersList = () => {
+            const school = teachersSchoolInput.value.trim();
+            const className = teachersClassInput.value.trim();
+            loadTeachers(school, className);
+        };
+        teachersSchoolInput.addEventListener('input', updateTeachersList);
+        teachersClassInput.addEventListener('input', updateTeachersList);
+    }
+});
 
