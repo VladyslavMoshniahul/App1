@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Сторінка адміна</title>
   <link rel="stylesheet" href="styles/admin.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
 </head>
 
 <body>
@@ -29,7 +30,7 @@
       <h1>Мій профіль</h1>
 
       <div id="profile-info">
-        <h2>Інформація про профіль</h2>
+        <h2>Інформація про мене</h2>
         <p><strong>Ім'я:</strong> <span id="profile-firstName">-</span></p>
         <p><strong>Прізвище:</strong> <span id="profile-lastName">-</span></p>
         <p><strong>Дата народження:</strong> <span id="profile-dateOfBirth">-</span></p>
@@ -42,7 +43,7 @@
       <div id="updateProfile" class="updateProfile-overlay">
         <div class="updateProfile">
           <h2>Оновити профіль</h2>
-          <form id="editProfileForm"> 
+          <form id="editProfileForm">
             <label for="edit-firstName">Ім'я:</label>
             <input type="text" id="edit-firstName" name="firstName" />
 
@@ -64,8 +65,8 @@
             <label for="confirm-password">Підтвердження пароля:</label>
             <input type="password" id="confirm-password" name="confirmPassword" />
 
-            <button type="button" onclick="saveProfile()">Зберегти</button>
-            <button id="closeButton">Скасувати</button>
+            <button type="submit" id="saveButton">Зберегти</button>
+            <button id="closeButton" type="button">Скасувати</button>
           </form>
         </div>
       </div>
@@ -106,36 +107,43 @@
     <!-- === Створення === -->
     <section id="creating-page" class="page-section">
       <div id="create-admin">
-        <h2>Створити адміна</h2>
-        <input id="admin-first-name" placeholder="Ім’я" />
-        <input id="admin-last-name" placeholder="Прізвище" />
-        <input id="admin-email" placeholder="Email" />
-        <input id="admin-password" type="password" placeholder="Пароль" />
-        <input id="admin-dateOfBirth" type="date" placeholder="Дата народження" />
-        <button id="create-admin-button">Створити адміна</button>
+        <form id="create-admin-form">
+          <h2>Створити адміна</h2>
+          <input id="admin-first-name" placeholder="Ім’я" />
+          <input id="admin-last-name" placeholder="Прізвище" />
+          <input id="admin-email" placeholder="Email" />
+          <input id="admin-password" type="password" placeholder="Пароль" />
+          <input id="admin-dateOfBirth" type="date" placeholder="Дата народження" />
+          <button type="submit" id="create-admin-button">Створити адміна</button>
+        </form>
       </div>
 
       <div id="create-school">
         <h2>Створити школу</h2>
-        <input id="school-name" placeholder="Назва школи" />
-        <button id="create-school-button">Створити школу</button>
+        <form id="create-school-form">
+          <input type="text" id="school-name" placeholder="Назва школи" />
+          <button type="submit" id="create-school-button">Створити школу</button>
+        </form>
       </div>
 
       <div id="create-class">
         <h2>Створити клас</h2>
-        <input id="class-school-name" placeholder="Назва школи" />
-        <input id="class-name" placeholder="Назва класу" />
-        <button id="create-class-button">Створити клас</button>
+        <form id="create-class-form">
+          <input type="text" id="class-school-name" placeholder="Назва школи" />
+          <input type="text" id="class-name" placeholder="Назва класу" />
+          <button type="submit" id="create-class-button">Створити клас</button>
+        </form>
       </div>
 
       <div id="create-user">
         <h2>Створити користувача</h2>
-        <input id="user-first-name" placeholder="Ім’я" />
-        <input id="user-last-name" placeholder="Прізвище" />
+        <form id="create-user-form"></form>
+        <input type="text" id="user-first-name" placeholder="Ім’я" />
+        <input type="text" id="user-last-name" placeholder="Прізвище" />
         <input id="user-email" placeholder="Email" />
         <input id="user-password" type="password" placeholder="Пароль" />
-        <input id="user-school" placeholder="Назва школи" />
-        <input id="user-class" placeholder="Клас (для вчителя)" />
+        <input type="text" id="user-school" placeholder="Назва школи" />
+        <input type="text" id="user-class" placeholder="Клас (для вчителя)" />
         <input id="user-dateOfBirth" type="date" placeholder="Дата народження" />
 
         <select id="user-role">
@@ -144,12 +152,15 @@
           <option value="DIRECTOR">Директор</option>
         </select>
 
-        <button id="create-user-button">Створити користувача</button>
+        <button type="submit" id="create-user-button">Створити користувача</button>
+        </form>
       </div>
     </section>
   </main>
 
-  <script type="module" src="scripts/admin.js" ></script>
+  <script type="module" src="scripts/admin.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 </body>
 
 </html>
