@@ -203,7 +203,7 @@ button:hover {
 
 /* === DARK THEME === */
 body.dark-theme {
-  background: linear-gradient(to bottom, #161515, #04034b, #3d48aa);
+  background: linear-gradient(to bottom, #151615, #041b06, #078611);
   color: #eee;
 }
 

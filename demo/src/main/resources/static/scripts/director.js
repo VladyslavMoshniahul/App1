@@ -14,6 +14,8 @@ tabButtons.forEach((btn) => {
       document.getElementById("statistics-section").classList.add("active");
     } else if (btn.id === "tab-creating") {
       document.getElementById("creating-page").classList.add("active");
+    } else if (btn.id === "tab-stats") {
+      document.getElementById("statistics-section").classList.add("active");
     }
   });
 });
@@ -50,6 +52,7 @@ logoutButton.addEventListener("click", () => {
   window.location.href = "/login.html";
 });
 
+// --- Профіль ---
 document.getElementById("openButton").addEventListener("click", () => {
   document.getElementById("updateProfile").style.display = "flex";
 });
@@ -74,33 +77,15 @@ document.getElementById("editProfileForm").addEventListener("submit", (e) => {
   document.getElementById("editProfileForm").reset();
   document.getElementById("updateProfile").style.display = "none";
 });
+document.addEventListener("DOMContentLoaded", () => {
+}); 
 
-document.getElementById("create-school-form").addEventListener("submit", (e) => {
-  e.preventDefault();
-
-  const schoolName = document.getElementById("school-name").value.trim();
-
-  if (!schoolName) {
-    toastr.error("Будь ласка, введіть назву школи.");
-    return;
-  }
-
-  // --- Тут ваша логіка відправки запиту на сервер ---
-
-  toastr.success(`Школу ${schoolName} успішно створено.`);
-  document.getElementById("create-school-form").reset();
-
-});
-
+// Створення
 document.getElementById("create-class-form").addEventListener("submit", (e) => {
   e.preventDefault();
 
-  const schoolName = document.getElementById("class-school-name").value.trim();
   const className = document.getElementById("class-name").value.trim();
-  if (!schoolName) {
-    toastr.error("Будь ласка, введіть назву школи.");
-    return;
-  } if (!className) {
+ if (!className) {
     toastr.error("Будь ласка, введіть назву класу.");
     return;
   }
@@ -119,7 +104,6 @@ document.getElementById("create-user-form").addEventListener("submit", (e) => {
   const lastName = document.getElementById("user-last-name").value.trim();
   const email = document.getElementById("user-email").value.trim();
   const password = document.getElementById("user-password").value.trim();
-  const schoolName = document.getElementById("user-school").value.trim();
   const role = document.getElementById("user-role").value.trim();
   const dateOfBirth = document.getElementById("user-dateOfBirth").value.trim();
 
@@ -135,10 +119,7 @@ document.getElementById("create-user-form").addEventListener("submit", (e) => {
   } if (!password) {
     toastr.error("Будь ласка, введіть пароль.");
     return;
-  } if (!schoolName) {
-    toastr.error("Будь ласка, введіть назву школи.");
-    return;
-  } if (!role) {
+  }  if (!role) {
     toastr.error("Будь ласка, оберіть роль для користувача.");
     return;
   } if (!dateOfBirth) {
@@ -153,38 +134,6 @@ document.getElementById("create-user-form").addEventListener("submit", (e) => {
 
 });
 
-document.getElementById("create-admin-form").addEventListener("submit", (e) => {
-  e.preventDefault();
-
-  const firstName = document.getElementById("admin-first-name").value.trim();
-  const lastName = document.getElementById("admin-last-name").value.trim();
-  const email = document.getElementById("admin-email").value.trim();
-  const password = document.getElementById("admin-password").value.trim();
-  const dateOfBirth = document.getElementById("admin-dateOfBirth").value.trim();
-
-  if (!firstName) {
-    toastr.error("Будь ласка, введіть ім'я.");
-    return;
-  } if (!lastName) {
-    toastr.error("Будь ласка, введіть прізвище.");
-    return;
-  } if (!email) {
-    toastr.error("Будь ласка, введіть email.");
-    return;
-  } if (!password) {
-    toastr.error("Будь ласка, введіть пароль.");
-    return;
-  } if (!dateOfBirth) {
-    toastr.error("Будь ласка, введіть дату народження.");
-    return;
-  }
-
-  // --- Тут ваша логіка відправки запиту на сервер ---
-
-  toastr.success(`Адміна успішно створено.`);
-  document.getElementById("create-admin-form").reset();
-
-});
 
 toastr.options = {
   "closeButton": true,

@@ -2,96 +2,11 @@
 <html lang="uk">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Сторінка директора</title>
-    <link rel="stylesheet" href="styles/director.css">
-    <style>
-        .nav-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
-
-        .nav-tabs button {
-            background: #444;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px 5px 0 0;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .nav-tabs button.active {
-            background: #83ec59;
-            color: #fff;
-        }
-
-        .page-section {
-            display: none;
-        }
-
-        .page-section.active {
-            display: block;
-        }
-
-        .lang-toggle-button {
-            background: #5caf50;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            margin-left: 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        body.dark-theme {
-            background: linear-gradient(to bottom, #1f1f1f, #2c2c2c, #3a3a3a);
-            color: #f0f0f0;
-        }
-
-        body.dark-theme header,
-        body.dark-theme .aboutme-card,
-        body.dark-theme .info-card,
-        body.dark-theme section,
-        body.dark-theme .nav-tabs button,
-        body.dark-theme input,
-        body.dark-theme textarea,
-        body.dark-theme select {
-            background-color: #2b2b2b;
-            color: #f0f0f0;
-        }
-
-        body.dark-theme .nav-tabs button {
-            background-color: #444;
-            color: #ccc;
-        }
-
-        body.dark-theme .nav-tabs button.active {
-            background-color: #66bb6a;
-            color: white;
-        }
-
-        body.dark-theme input,
-        body.dark-theme textarea,
-        body.dark-theme select {
-            border: 1px solid #666;
-        }
-
-        body.dark-theme button,
-        body.dark-theme .lang-toggle-button {
-            background-color: #43a047;
-            color: white;
-        }
-
-        body.dark-theme button:hover,
-        body.dark-theme .lang-toggle-button:hover {
-            background-color: #2e7d32;
-        }
-    </style>
+    <link rel="stylesheet" href="styles/director.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
 </head>
 
 <body>
@@ -105,7 +20,8 @@
     <div class="nav-tabs">
         <button id="tab-profile" class="active" type="button">Профіль</button>
         <button id="tab-users" type="button">Користувачі</button>
-        <button id="tab-create" type="button">Додавання/Статистика</button>
+        <button id="tab-create" type="button">Додавання</button>
+        <button id="tab-stats" type="button">Статистика</button>
     </div>
 
     <main>
@@ -154,86 +70,68 @@
                     </div>
                 </div>
             </section>
+
             <header>
                 <h1>Персональна статистика</h1>
             </header>
             <section id="personalStatistic">
-                <div>
-                    <p><strong>Кількість створених голосувань: <span id="created-votes-count">-</span></strong></p>
-                    <p><strong>Кількість усіх моїх голосів: <span id="my-votes-count">-</span></strong></p>
-                    <p><strong>Кількість прийнятих петицій: <span id="accepted-petitions-count">-</span></strong></p>
-                    <p><strong>Кількість відхилених петицій: <span id="rejected-petitions-count">-</span></strong></p>
-                    <p><strong></strong></p>
-                </div>
-            </section>
-            <!-- User Management Page -->
-            <section id="users-page" class="page-section">
-                <section>
-                    <h2>Список користувачів</h2>
-                    <ul id="user-list"></ul>
-                </section>
-                <section id="edit-user-section" style="display:none; margin-top:20px;">
-                    <h3>Редагувати користувача</h3>
-                    <form id="edit-user-form">
-                        <input type="hidden" id="edit-user-id">
-                        <div>
-                            <label>Ім'я: <input type="text" id="edit-firstName" required /></label>
-                        </div>
-                        <div>
-                            <label>Прізвище: <input type="text" id="edit-lastName" required /></label>
-                        </div>
-                        <div>
-                            <label>Про себе: <input type="text" id="edit-aboutMe" required /></label>
-                        </div>
-                        <div>
-                            <label>Дата народження: <input type="date" id="edit-dateOfBirth" required /></label>
-                        </div>
-                        <button type="submit">Зберегти</button>
-                        <button type="button" id="cancel-edit">Скасувати</button>
-                    </form>
-                </section>
+                <p><strong>Кількість створених голосувань: <span id="created-votes-count">-</span></strong></p>
+                <p><strong>Кількість усіх моїх голосів: <span id="my-votes-count">-</span></strong></p>
+                <p><strong>Кількість прийнятих петицій: <span id="accepted-petitions-count">-</span></strong></p>
+                <p><strong>Кількість відхилених петицій: <span id="rejected-petitions-count">-</span></strong></p>
+                <p><strong>Кількість створених подій: <span id="created-event-count">-</span></strong></p>
             </section>
 
-            <!-- Creation/Stats Page -->
-            <section id="create-page" class="page-section">
-                <section id="selection-section">
-                    <label>Школа:
-                        <select id="school-select">
-                            <option>Завантаження шкіл...</option>
-                        </select>
-                    </label>
-                    <label>Клас:
-                        <select id="class-select">
-                            <option>Оберіть школу</option>
-                        </select>
-                    </label>
-                </section>
+        </section>
 
-                <section id="stats-section">
-                    <h2>Статистика</h2>
-                </section>
-
-                <section>
-                    <h2>Створити користувача</h2>
-                    <input id="new-user-first" placeholder="Ім’я">
-                    <input id="new-user-last" placeholder="Прізвище">
-                    <input id="new-user-email" placeholder="Email">
-                    <input id="new-user-pass" type="password" placeholder="Пароль">
-                    <input id="new-user-aboutMe" placeholder="Про себе">
-                    <input id="new-user-dateOfBirth" type="date" placeholder="Дата народження">
-                    <select id="new-user-role">
-                        <option value="">Оберіть роль</option>
-                        <option value="TEACHER">Вчитель</option>
-                        <option value="STUDENT">Учень</option>
-                        <option value="PARENT">Батьки</option>
-                    </select>
-                    <button id="create-user-button">Створити користувача</button>
-                </section>
-                <section>
-                    <div id="vote-create-container"></div>
-                </section>
-
+        <!-- User Management Page -->
+        <section id="users-page" class="page-section">
+            <section>
+                <h2>Список користувачів</h2>
+                <ul id="user-list"></ul>
             </section>
+            <section id="edit-user-section" style="display:none; margin-top:20px;">
+                <h3>Редагувати користувача</h3>
+                <form id="edit-user-form">
+                    <input type="hidden" id="edit-user-id">
+                    <div>
+                        <label>Ім'я: <input type="text" id="edit-firstName" required /></label>
+                    </div>
+                    <div>
+                        <label>Прізвище: <input type="text" id="edit-lastName" required /></label>
+                    </div>
+                    <div>
+                        <label>Про себе: <input type="text" id="edit-aboutMe" required /></label>
+                    </div>
+                    <div>
+                        <label>Дата народження: <input type="date" id="edit-dateOfBirth" required /></label>
+                    </div>
+                    <button type="submit">Зберегти</button>
+                    <button type="button" id="cancel-edit">Скасувати</button>
+                </form>
+            </section>
+        </section>
+
+        <!-- Creation Page -->
+        <section id="create-page" class="page-section">
+            <section>
+                <h2>Створити користувача</h2>
+                <input id="new-user-first" placeholder="Ім’я">
+                <input id="new-user-last" placeholder="Прізвище">
+                <input id="new-user-email" placeholder="Email">
+                <input id="new-user-pass" type="password" placeholder="Пароль">
+                <input id="new-user-dateOfBirth" type="date" placeholder="Дата народження">
+                <select id="new-user-role">
+                    <option value="">Оберіть роль</option>
+                    <option value="TEACHER">Вчитель</option>
+                    <option value="STUDENT">Учень</option>
+                    <option value="PARENT">Батьки</option>
+                </select>
+                <button id="create-user-button">Створити користувача</button>
+            </section>
+            
+
+        </section>
 
 
 
