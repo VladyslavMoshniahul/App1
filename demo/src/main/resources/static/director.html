@@ -103,83 +103,14 @@
     </header>
 
     <div class="nav-tabs">
-        <button id="tab-users" class="active" type="button">Користувачі</button>
+        <button id="tab-profile" class="active" type="button">Профіль</button>
+        <button id="tab-users" type="button">Користувачі</button>
         <button id="tab-create" type="button">Додавання/Статистика</button>
-        <button id="tab-profile" type="button">Профіль</button>
     </div>
 
     <main>
-        <!-- User Management Page -->
-        <section id="users-page" class="page-section active">
-            <section>
-                <h2>Список користувачів</h2>
-                <ul id="user-list"></ul>
-            </section>
-            <section id="edit-user-section" style="display:none; margin-top:20px;">
-                <h3>Редагувати користувача</h3>
-                <form id="edit-user-form">
-                    <input type="hidden" id="edit-user-id">
-                    <div>
-                        <label>Ім'я: <input type="text" id="edit-firstName" required /></label>
-                    </div>
-                    <div>
-                        <label>Прізвище: <input type="text" id="edit-lastName" required /></label>
-                    </div>
-                    <div>
-                        <label>Про себе: <input type="text" id="edit-aboutMe" required /></label>
-                    </div>
-                    <div>
-                        <label>Дата народження: <input type="date" id="edit-dateOfBirth" required /></label>
-                    </div>
-                    <button type="submit">Зберегти</button>
-                    <button type="button" id="cancel-edit">Скасувати</button>
-                </form>
-            </section>
-        </section>
-
-        <!-- Creation/Stats Page -->
-        <section id="create-page" class="page-section">
-            <section id="selection-section">
-                <label>Школа:
-                    <select id="school-select">
-                        <option>Завантаження шкіл...</option>
-                    </select>
-                </label>
-                <label>Клас:
-                    <select id="class-select">
-                        <option>Оберіть школу</option>
-                    </select>
-                </label>
-            </section>
-
-            <section id="stats-section">
-                <h2>Статистика</h2>
-            </section>
-
-            <section>
-                <h2>Створити користувача</h2>
-                <input id="new-user-first" placeholder="Ім’я">
-                <input id="new-user-last" placeholder="Прізвище">
-                <input id="new-user-email" placeholder="Email">
-                <input id="new-user-pass" type="password" placeholder="Пароль">
-                <input id="new-user-aboutMe" placeholder="Про себе">
-                <input id="new-user-dateOfBirth" type="date" placeholder="Дата народження">
-                <select id="new-user-role">
-                    <option value="">Оберіть роль</option>
-                    <option value="TEACHER">Вчитель</option>
-                    <option value="STUDENT">Учень</option>
-                    <option value="PARENT">Батьки</option>
-                </select>
-                <button id="create-user-button">Створити користувача</button>
-            </section>
-            <section>
-                <div id="vote-create-container"></div>
-            </section>
-
-        </section>
-
         <!-- Профіль -->
-        <section id="profile-section" class="page-section">
+        <section id="profile-section" class="page-section active">
             <header>
                 <h1>Мій профіль</h1>
             </header>
@@ -191,35 +122,120 @@
                 <p><strong>Про мене:</strong> <span id="profile-aboutMe">-</span></p>
                 <p><strong>Email:</strong> <span id="profile-email">-</span></p>
                 <p><strong>Роль:</strong> <span id="profile-role">-</span></p>
+                <button id="openButton">Оновлення профілю</button>
+                <div id="updateProfile" class="updateProfile-overlay">
+                    <div class="updateProfile">
+                        <h2>Оновити профіль</h2>
+                        <form id="editProfileForm">
+                            <label for="edit-firstName">Ім'я:</label>
+                            <input type="text" id="edit-firstName" name="firstName" />
+
+                            <label for="edit-lastName">Прізвище:</label>
+                            <input type="text" id="edit-lastName" name="lastName" />
+
+                            <label for="edit-aboutMe">Про мене:</label>
+                            <textarea id="edit-aboutMe" name="aboutMe"></textarea>
+
+                            <label for="edit-dateOfBirth">Дата народження:</label>
+                            <input type="date" id="edit-dateOfBirth" name="dateOfBirth" />
+
+                            <label for="edit-email">Email:</label>
+                            <input type="email" id="edit-email" name="email" />
+
+                            <label for="edit-password">Новий пароль:</label>
+                            <input type="password" id="edit-password" name="password" />
+
+                            <label for="confirm-password">Підтвердження пароля:</label>
+                            <input type="password" id="confirm-password" name="confirmPassword" />
+
+                            <button type="submit" id="saveButton">Зберегти</button>
+                            <button id="closeButton" type="button">Скасувати</button>
+                        </form>
+                    </div>
+                </div>
             </section>
-            <section id="update-profile-info-section">
-                <h2>Оновити профіль</h2>
-                <form id="editProfileForm">
-                    <label for="edit-firstName">Ім'я:</label>
-                    <input type="text" id="edit-firstName" name="firstName" />
-
-                    <label for="edit-lastName">Прізвище:</label>
-                    <input type="text" id="edit-lastName" name="lastName" />
-
-                    <label for="edit-aboutMe">Про мене:</label>
-                    <textarea id="edit-aboutMe" name="aboutMe"></textarea>
-
-                    <label for="edit-dateOfBirth">Дата народження:</label>
-                    <input type="date" id="edit-dateOfBirth" name="dateOfBirth" />
-
-                    <label for="edit-email">Email:</label>
-                    <input type="email" id="edit-email" name="email" />
-
-                    <label for="edit-password">Новий пароль:</label>
-                    <input type="password" id="edit-password" name="password" />
-
-                    <label for="confirm-password">Підтвердження пароля:</label>
-                    <input type="password" id="confirm-password" name="confirmPassword" />
-
-                    <button type="submit">Оновити профіль</button>
-                </form>
+            <header>
+                <h1>Персональна статистика</h1>
+            </header>
+            <section id="personalStatistic">
+                <div>
+                    <p><strong>Кількість створених голосувань: <span id="created-votes-count">-</span></strong></p>
+                    <p><strong>Кількість усіх моїх голосів: <span id="my-votes-count">-</span></strong></p>
+                    <p><strong>Кількість прийнятих петицій: <span id="accepted-petitions-count">-</span></strong></p>
+                    <p><strong>Кількість відхилених петицій: <span id="rejected-petitions-count">-</span></strong></p>
+                    <p><strong></strong></p>
+                </div>
             </section>
-        </section>
+            <!-- User Management Page -->
+            <section id="users-page" class="page-section">
+                <section>
+                    <h2>Список користувачів</h2>
+                    <ul id="user-list"></ul>
+                </section>
+                <section id="edit-user-section" style="display:none; margin-top:20px;">
+                    <h3>Редагувати користувача</h3>
+                    <form id="edit-user-form">
+                        <input type="hidden" id="edit-user-id">
+                        <div>
+                            <label>Ім'я: <input type="text" id="edit-firstName" required /></label>
+                        </div>
+                        <div>
+                            <label>Прізвище: <input type="text" id="edit-lastName" required /></label>
+                        </div>
+                        <div>
+                            <label>Про себе: <input type="text" id="edit-aboutMe" required /></label>
+                        </div>
+                        <div>
+                            <label>Дата народження: <input type="date" id="edit-dateOfBirth" required /></label>
+                        </div>
+                        <button type="submit">Зберегти</button>
+                        <button type="button" id="cancel-edit">Скасувати</button>
+                    </form>
+                </section>
+            </section>
+
+            <!-- Creation/Stats Page -->
+            <section id="create-page" class="page-section">
+                <section id="selection-section">
+                    <label>Школа:
+                        <select id="school-select">
+                            <option>Завантаження шкіл...</option>
+                        </select>
+                    </label>
+                    <label>Клас:
+                        <select id="class-select">
+                            <option>Оберіть школу</option>
+                        </select>
+                    </label>
+                </section>
+
+                <section id="stats-section">
+                    <h2>Статистика</h2>
+                </section>
+
+                <section>
+                    <h2>Створити користувача</h2>
+                    <input id="new-user-first" placeholder="Ім’я">
+                    <input id="new-user-last" placeholder="Прізвище">
+                    <input id="new-user-email" placeholder="Email">
+                    <input id="new-user-pass" type="password" placeholder="Пароль">
+                    <input id="new-user-aboutMe" placeholder="Про себе">
+                    <input id="new-user-dateOfBirth" type="date" placeholder="Дата народження">
+                    <select id="new-user-role">
+                        <option value="">Оберіть роль</option>
+                        <option value="TEACHER">Вчитель</option>
+                        <option value="STUDENT">Учень</option>
+                        <option value="PARENT">Батьки</option>
+                    </select>
+                    <button id="create-user-button">Створити користувача</button>
+                </section>
+                <section>
+                    <div id="vote-create-container"></div>
+                </section>
+
+            </section>
+
+
 
     </main>
 
