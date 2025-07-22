@@ -27,6 +27,6 @@ public class SchoolService {
     }
 
     public School getSchoolByName(String name) {
-        return schoolRepository.findByName(name);
+        return schoolRepository.findByNameIgnoreCase(name).orElse(null);
     }
 }

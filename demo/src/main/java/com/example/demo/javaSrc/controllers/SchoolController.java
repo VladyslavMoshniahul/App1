@@ -3,6 +3,7 @@ package com.example.demo.javaSrc.controllers;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.javaSrc.school.ClassService;
+import com.example.demo.javaSrc.school.CreateClassRequest;
 import com.example.demo.javaSrc.school.School;
 import com.example.demo.javaSrc.school.SchoolClass;
 import com.example.demo.javaSrc.school.SchoolService;
@@ -54,7 +56,13 @@ public class SchoolController {
 
     @PreAuthorize("hasAnyRole('ADMIN','DIRECTOR')")
     @PostMapping("/create-class")
-    public ResponseEntity<SchoolClass> createNewClass(@RequestBody SchoolClass schoolClass) {
+    public ResponseEntity<SchoolClass> createNewClass(@RequestBody CreateClassRequest request) {
+        School school = schoolService.getSchoolByName(request.getSchoolName());
+        if (school == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        SchoolClass schoolClass = new SchoolClass(school.getId(), request.getClassName());
         SchoolClass created = classService.createClass(schoolClass);
         return ResponseEntity.ok(created);
     }

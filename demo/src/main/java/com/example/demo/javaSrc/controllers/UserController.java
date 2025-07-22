@@ -109,7 +109,7 @@ public class UserController {
             @RequestBody User newUser,
             Authentication auth) {
 
-        if (newUser.getSchoolId() == null) {
+        if (newUser.getRole() != User.Role.ADMIN && newUser.getSchoolId() == null) {
             return ResponseEntity.badRequest().body(null);
         }
 
