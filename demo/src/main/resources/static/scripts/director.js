@@ -15,6 +15,8 @@ tabButtons.forEach((btn) => {
       document.getElementById("statistics-section").classList.add("active");
     } else if (btn.id === "tab-creating") {
       document.getElementById("creating-page").classList.add("active");
+    } else if (btn.id === "tab-petitions"){
+      document.getElementById("petitions-section").classList.add("active");
     }
   });
 });
@@ -52,6 +54,7 @@ logoutButton.addEventListener("click", () => {
 });
 
 document.getElementById("openButton").addEventListener("click", () => {
+  loadProfileForEdit();
   document.getElementById("updateProfile").style.display = "flex";
 });
 
@@ -59,12 +62,28 @@ document.getElementById("closeButton").addEventListener("click", () => {
   document.getElementById("updateProfile").style.display = "none";
 });
 
+async function loadProfileForEdit() {
+  try {
+    const response = await fetchWithAuth('/api/user/myProfile');
+    if (!response.ok) {
+      throw new Error("Не вдалося отримати профіль");
+    }
+    const user = await response.json();
+
+    document.getElementById("edit-firstName").value = user.firstName || '';
+    document.getElementById("edit-lastName").value = user.lastName || '';
+    document.getElementById("edit-aboutMe").value = user.aboutMe || '';
+    document.getElementById("edit-dateOfBirth").value = user.dateOfBirth || '';
+    document.getElementById("edit-email").value = user.email || '';
+  } catch (error) {
+    console.error("Помилка при завантаженні профілю для редагування:", error);
+    toastr.error("Не вдалося завантажити дані профілю.");
+  }
+}
+
 document.getElementById("editProfileForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-
-  document.getElementById("editProfileForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
+ 
     const password = document.getElementById("edit-password").value.trim();
     const confirmPassword = document.getElementById("confirm-password").value.trim();
     const firstName = document.getElementById("edit-firstName").value.trim();
@@ -91,19 +110,14 @@ document.getElementById("editProfileForm").addEventListener("submit", async (e) 
     } catch (error) {
       toastr.error("Помилка при оновленні профілю. Спробуйте ще раз.");
     }
-  });
 
 });
 
 document.getElementById("create-class-form").addEventListener("submit", (e) => {
   e.preventDefault();
 
-  const schoolName = document.getElementById("class-school-name").value.trim();
   const className = document.getElementById("class-name").value.trim();
-  if (!schoolName) {
-    toastr.error("Будь ласка, введіть назву школи.");
-    return;
-  } if (!className) {
+  if (!className) {
     toastr.error("Будь ласка, введіть назву класу.");
     return;
   }
@@ -111,7 +125,7 @@ document.getElementById("create-class-form").addEventListener("submit", (e) => {
   fetchWithAuth("/api/school/create-class", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ schoolName, className })
+    body: JSON.stringify({ schoolId, className })
   })
     .then((res) => {
       if (!res.ok) throw new Error();
@@ -130,9 +144,10 @@ document.getElementById("create-user-form").addEventListener("submit", (e) => {
   const lastName = document.getElementById("user-last-name").value.trim();
   const email = document.getElementById("user-email").value.trim();
   const password = document.getElementById("user-password").value.trim();
-  const schoolName = document.getElementById("user-school").value.trim();
+  const className = document.getElementById("user-class").value.trim();
   const role = document.getElementById("user-role").value.trim();
   const dateOfBirth = document.getElementById("user-dateOfBirth").value.trim();
+  const schoolName = user.schoolName;
 
   if (!firstName) {
     toastr.error("Будь ласка, введіть ім'я.");
@@ -145,9 +160,6 @@ document.getElementById("create-user-form").addEventListener("submit", (e) => {
     return;
   } if (!password) {
     toastr.error("Будь ласка, введіть пароль.");
-    return;
-  } if (!schoolName) {
-    toastr.error("Будь ласка, введіть назву школи.");
     return;
   } if (!role) {
     toastr.error("Будь ласка, оберіть роль для користувача.");
@@ -166,13 +178,14 @@ document.getElementById("create-user-form").addEventListener("submit", (e) => {
       email,
       password,
       schoolName,
+      className,
       role,
       dateOfBirth
     })
   })
     .then((res) => {
       if (!res.ok) throw new Error();
-      toastr.success(`Користувача у школі ${schoolName} успішно створено.`);
+      toastr.success(`Користувача у вашій школі успішно створено.`);
       document.getElementById("create-user-form").reset();
     })
     .catch(() => toastr.error("Не вдалося створити користувача."));
@@ -210,6 +223,7 @@ function loadProfile() {
         document.getElementById('profile-lastName').textContent = user.lastName || '-';
         document.getElementById('profile-dateOfBirth').textContent = user.dateOfBirth || '-';
         document.getElementById('profile-aboutMe').textContent = user.aboutMe || '-';
+        document.getElementById('profile-school').textContent = user.schoolName || '-';
         document.getElementById('profile-email').textContent = user.email || '-';
         document.getElementById('profile-role').textContent = user.role || '-';
       })
@@ -223,7 +237,7 @@ function loadProfile() {
   }
 }
 
-function loadClasses(schoolName = '') {
+function loadClasses(schoolName = user.schoolName) {
   const classesList = document.getElementById('classes-list');
   try {
     const url = new URL('/api/school/classes', window.location.origin);
@@ -250,7 +264,7 @@ function loadClasses(schoolName = '') {
   }
 }
 
-function loadTeachers(schoolName = '', className = '') {
+function loadTeachers(schoolName = user.schoolName, className = '') {
   const teachersList = document.getElementById('teachers-list');
   try {
     const url = new URL('/api/user/admin/teachers', window.location.origin);

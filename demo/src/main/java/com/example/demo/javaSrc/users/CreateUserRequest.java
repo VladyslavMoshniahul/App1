@@ -9,6 +9,7 @@ public record CreateUserRequest(
     String password,
     User.Role role,
     String schoolName,
+    String className,
     Date birthDate
 ) {
     public CreateUserRequest {
@@ -23,6 +24,9 @@ public record CreateUserRequest(
         }
         if (password == null || password.isBlank()) {
             throw new IllegalArgumentException("Password cannot be null or blank");
+        }
+        if(role == null) {
+            throw new IllegalArgumentException("Role cannot be null");
         }
     }
 }

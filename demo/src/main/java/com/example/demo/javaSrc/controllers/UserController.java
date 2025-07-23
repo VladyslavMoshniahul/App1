@@ -198,8 +198,14 @@ public class UserController {
         newUser.setDateOfBirth(newUserRequest.birthDate());
         School school = schoolService.getSchoolByName(newUserRequest.schoolName());
         newUser.setSchoolId(school.getId());
-        
+        SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(school.getId(), newUserRequest.className());
+        newUser.setClassId(schoolClass.getId());
+
         if (newUser.getRole() != User.Role.ADMIN && newUser.getSchoolId() == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        if ((newUser.getRole() != User.Role.ADMIN || newUser.getRole()!= User.Role.TEACHER || newUser.getRole()!= User.Role.DIRECTOR)
+         && newUser.getClassId() == null) {
             return ResponseEntity.badRequest().body(null);
         }
 

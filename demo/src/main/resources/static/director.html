@@ -1,18 +1,17 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="uk">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Сторінка адміна</title>
+  <title>Сторінка директора</title>
   <link rel="stylesheet" href="styles/director.css" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
 </head>
 
 <body>
   <header>
-    <h1>Панель адміна</h1>
+    <h1>Панель директора</h1>
     <div class="header-buttons">
       <button id="logoutButton" class="auth-button">Вийти</button>
       <button id="themeToggle" class="theme-toggle-button">🌙</button>
@@ -37,6 +36,7 @@
         <p><strong>Прізвище:</strong> <span id="profile-lastName">-</span></p>
         <p><strong>Дата народження:</strong> <span id="profile-dateOfBirth">-</span></p>
         <p><strong>Про мене:</strong> <span id="profile-aboutMe">-</span></p>
+        <p><strong>Школа:</strong><span id="profile-schoolName">-</span></p>
         <p><strong>Email:</strong> <span id="profile-email">-</span></p>
         <p><strong>Роль:</strong> <span id="profile-role">-</span></p>
       </div>
@@ -72,6 +72,13 @@
           </form>
         </div>
       </div>
+      <div>
+        <h2>Персональна статистика</h2>
+        <p><strong>Кількість підтриманих петицій: <span id="accepted-petitions-count">-</span></strong></p>
+        <p><strong>Кількість відхилених петицій: <span id="rejected-petitions-count">-</span></strong></p>
+        <p><strong>Кількість створених мною голосувань: <span id="voting-count">-</span></strong></p>
+        <p><strong>Кількість створених подій: <span id="event-count"></span>-</strong></p>
+      </div>
     </section>
 
     <!-- === Статистика === -->
@@ -92,6 +99,12 @@
         <input type="text" id="students-class-input" placeholder="Назва класу" />
         <ul id="students-list"></ul>
       </div>
+      
+      <div id="parents-section">
+        <h2>Список батьків</h2>
+        <input type="text" id="parents-class-input" placeholder="Назва класу" />
+        <ul id="parents-list"></ul>
+      </div>
     </section>
 
     <!-- === Створення === -->
@@ -99,7 +112,6 @@
       <div id="create-class">
         <h2>Створити клас</h2>
         <form id="create-class-form">
-          <input type="text" id="class-school-name" placeholder="Назва школи" />
           <input type="text" id="class-name" placeholder="Назва класу" />
           <button type="submit" id="create-class-button">Створити клас</button>
         </form>
@@ -112,20 +124,27 @@
           <input type="text" id="user-last-name" placeholder="Прізвище" />
           <input  type="email"id="user-email" placeholder="Email" />
           <input  type="password"id="user-password" type="password" placeholder="Пароль" />
-          <input type="text" id="user-school" placeholder="Назва школи" />
           <input type="text" id="user-class" placeholder="Назва класу" />
           <input  type="date"id="user-dateOfBirth" type="date" placeholder="Дата народження" />
 
           <select id="user-role">
             <option value="">Оберіть роль</option>
             <option value="TEACHER">Вчитель</option>
-            <option value="DIRECTOR">Директор</option>
+            <option value="STUDENT">Учень</option>
+            <option value="PARENT">Батьки</option>
           </select>
 
           <button type="submit" id="create-user-button">Створити користувача</button>
         </form>
       </div>
     </section>
+
+    <!-- ===Петиції=== -->
+     <section id="petitions-section" class="page-section">
+        <h2>Петиції на розгляд</h2>
+          <input type="text" id="petition-class-input" placeholder="Назва класу" />
+          <ul id="petitions-list"></ul>
+     </section> 
   </main>
 
   <script type="module" src="scripts/director.js"></script>

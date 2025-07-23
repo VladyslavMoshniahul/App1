@@ -52,6 +52,7 @@ logoutButton.addEventListener("click", () => {
 });
 
 document.getElementById("openButton").addEventListener("click", () => {
+  loadProfileForEdit();
   document.getElementById("updateProfile").style.display = "flex";
 });
 
@@ -59,12 +60,28 @@ document.getElementById("closeButton").addEventListener("click", () => {
   document.getElementById("updateProfile").style.display = "none";
 });
 
+async function loadProfileForEdit() {
+  try {
+    const response = await fetchWithAuth('/api/user/myProfile');
+    if (!response.ok) {
+      throw new Error("Не вдалося отримати профіль");
+    }
+    const user = await response.json();
+
+    document.getElementById("edit-firstName").value = user.firstName || '';
+    document.getElementById("edit-lastName").value = user.lastName || '';
+    document.getElementById("edit-aboutMe").value = user.aboutMe || '';
+    document.getElementById("edit-dateOfBirth").value = user.dateOfBirth || '';
+    document.getElementById("edit-email").value = user.email || '';
+  } catch (error) {
+    console.error("Помилка при завантаженні профілю для редагування:", error);
+    toastr.error("Не вдалося завантажити дані профілю.");
+  }
+}
+
 document.getElementById("editProfileForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-
-  document.getElementById("editProfileForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
+ 
     const password = document.getElementById("edit-password").value.trim();
     const confirmPassword = document.getElementById("confirm-password").value.trim();
     const firstName = document.getElementById("edit-firstName").value.trim();
@@ -91,7 +108,6 @@ document.getElementById("editProfileForm").addEventListener("submit", async (e) 
     } catch (error) {
       toastr.error("Помилка при оновленні профілю. Спробуйте ще раз.");
     }
-  });
 
 });
 
