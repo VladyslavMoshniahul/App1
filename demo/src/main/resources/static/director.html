@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Сторінка адміна</title>
+  <link rel="stylesheet" href="styles/director.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+</head>
+
+<body>
+  <header>
+    <h1>Панель адміна</h1>
+    <div class="header-buttons">
+      <button id="logoutButton" class="auth-button">Вийти</button>
+      <button id="themeToggle" class="theme-toggle-button">🌙</button>
+    </div>
+  </header>
+
+  <div class="nav-tabs">
+    <button id="tab-profile" class="active" type="button">Профіль</button>
+    <button id="tab-statistic" type="button">Статистика</button>
+    <button id="tab-creating" type="button">Створення</button>
+    <button id="tab-petitions"type="button">Петиції</button>
+  </div>
+
+  <main>
+    <!-- === Профіль === -->
+    <section id="profile-section" class="page-section active">
+      <h1>Мій профіль</h1>
+
+      <div id="profile-info">
+        <h2>Інформація про мене</h2>
+        <p><strong>Ім'я:</strong> <span id="profile-firstName">-</span></p>
+        <p><strong>Прізвище:</strong> <span id="profile-lastName">-</span></p>
+        <p><strong>Дата народження:</strong> <span id="profile-dateOfBirth">-</span></p>
+        <p><strong>Про мене:</strong> <span id="profile-aboutMe">-</span></p>
+        <p><strong>Email:</strong> <span id="profile-email">-</span></p>
+        <p><strong>Роль:</strong> <span id="profile-role">-</span></p>
+      </div>
+
+      <button id="openButton">Оновлення профілю</button>
+      <div id="updateProfile" class="updateProfile-overlay">
+        <div class="updateProfile">
+          <h2>Оновити профіль</h2>
+          <form id="editProfileForm">
+            <label for="edit-firstName">Ім'я:</label>
+            <input type="text" id="edit-firstName" name="firstName" />
+
+            <label for="edit-lastName">Прізвище:</label>
+            <input type="text" id="edit-lastName" name="lastName" />
+
+            <label for="edit-aboutMe">Про мене:</label>
+            <textarea id="edit-aboutMe" name="aboutMe"></textarea>
+
+            <label for="edit-dateOfBirth">Дата народження:</label>
+            <input type="date" id="edit-dateOfBirth" name="dateOfBirth" />
+
+            <label for="edit-email">Email:</label>
+            <input type="email" id="edit-email" name="email" />
+
+            <label for="edit-password">Новий пароль:</label>
+            <input type="password" id="edit-password" name="password" />
+
+            <label for="confirm-password">Підтвердження пароля:</label>
+            <input type="password" id="confirm-password" name="confirmPassword" />
+
+            <button type="submit" id="saveButton">Зберегти</button>
+            <button id="closeButton" type="button">Скасувати</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- === Статистика === -->
+    <section id="statistics-section" class="page-section">
+      <div id="classes-section">
+        <h2>Список класів</h2>
+        <ul id="classes-list"></ul>
+      </div>
+
+      <div id="teachers-section">
+        <h2>Список вчителів</h2>
+        <input type="text" id="teachers-class-input" placeholder="Назва класу" />
+        <ul id="teachers-list"></ul>
+      </div>
+
+      <div id="students-section">
+        <h2>Список учнів</h2>
+        <input type="text" id="students-class-input" placeholder="Назва класу" />
+        <ul id="students-list"></ul>
+      </div>
+    </section>
+
+    <!-- === Створення === -->
+    <section id="creating-page" class="page-section">
+      <div id="create-class">
+        <h2>Створити клас</h2>
+        <form id="create-class-form">
+          <input type="text" id="class-school-name" placeholder="Назва школи" />
+          <input type="text" id="class-name" placeholder="Назва класу" />
+          <button type="submit" id="create-class-button">Створити клас</button>
+        </form>
+      </div>
+
+      <div id="create-user">
+        <h2>Створити користувача</h2>
+        <form id="create-user-form">
+          <input type="text" id="user-first-name" placeholder="Ім’я" />
+          <input type="text" id="user-last-name" placeholder="Прізвище" />
+          <input  type="email"id="user-email" placeholder="Email" />
+          <input  type="password"id="user-password" type="password" placeholder="Пароль" />
+          <input type="text" id="user-school" placeholder="Назва школи" />
+          <input type="text" id="user-class" placeholder="Назва класу" />
+          <input  type="date"id="user-dateOfBirth" type="date" placeholder="Дата народження" />
+
+          <select id="user-role">
+            <option value="">Оберіть роль</option>
+            <option value="TEACHER">Вчитель</option>
+            <option value="DIRECTOR">Директор</option>
+          </select>
+
+          <button type="submit" id="create-user-button">Створити користувача</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="scripts/director.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+</body>
+
+</html>
