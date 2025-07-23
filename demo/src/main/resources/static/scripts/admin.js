@@ -283,6 +283,34 @@ function renderList(listElement, items, emptyMessage = "Немає даних д
     listElement.appendChild(li);
   }
 }
+function loadProfile() {
+  const profile = document.getElementById('profile-section');
+
+  try {
+    fetchWithAuth('/api/user/myProfile')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Не вдалося отримати профіль');
+        }
+        return response.json();
+      })
+      .then(user => {
+        document.getElementById('profile-firstName').textContent = user.firstName || '-';
+        document.getElementById('profile-lastName').textContent = user.lastName || '-';
+        document.getElementById('profile-dateOfBirth').textContent = user.dateOfBirth || '-';
+        document.getElementById('profile-aboutMe').textContent = user.aboutMe || '-';
+        document.getElementById('profile-email').textContent = user.email || '-';
+        document.getElementById('profile-role').textContent = user.role || '-';
+      })
+      .catch(error => {
+        console.error("Помилка при завантаженні профілю:", error);
+        toastr.error("Не вдалося завантажити профіль.");
+      });
+  } catch (error) {
+    console.error("Несподівана помилка:", error);
+    toastr.error("Щось пішло не так.");
+  }
+}
 
 function loadAdmins() {
   const adminsList = document.getElementById('admins-list');
@@ -420,6 +448,7 @@ function loadTeachers(schoolName = '', className = '') {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  loadProfile();
   loadAdmins();
   loadSchools();
   loadClasses();

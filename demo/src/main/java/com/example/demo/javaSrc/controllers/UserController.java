@@ -209,7 +209,7 @@ public class UserController {
         return ResponseEntity.ok(userService.createUser(newUser));
     }
 
-    @GetMapping("/me")
+    @GetMapping("/myProfile")
     public ResponseEntity<User> getMyProfile(Authentication auth) {
         String email = auth.getName();
         User user = userService.findByEmail(email);
