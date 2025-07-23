@@ -40,9 +40,11 @@ public class SchoolController {
 
     @GetMapping("/classes")
     public List<SchoolClass> getClasses(
-            @RequestParam Long schoolId) {
+            @RequestParam String schoolName) {
+        School school = schoolService.getSchoolByName(schoolName);
+        Long schoolId = school != null ? school.getId() : null;
         if (schoolId == null) {
-            return List.of();
+           return List.of();
         }
         return classService.getBySchoolId(schoolId);
     }
@@ -57,13 +59,13 @@ public class SchoolController {
     @PreAuthorize("hasAnyRole('ADMIN','DIRECTOR')")
     @PostMapping("/create-class")
     public ResponseEntity<SchoolClass> createNewClass(@RequestBody CreateClassRequest request) {
-        String schoolName = request.getSchoolName();    
+        String schoolName = request.schoolName();    
         School school = schoolService.getSchoolByName(schoolName);
         if (school == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-        SchoolClass schoolClass = new SchoolClass(school.getId(), request.getClassName());
+        SchoolClass schoolClass = new SchoolClass(school.getId(), request.className());
         SchoolClass created = classService.createClass(schoolClass);
         return ResponseEntity.ok(created);
     }

@@ -16,6 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.javaSrc.school.ClassService;
+import com.example.demo.javaSrc.school.School;
+import com.example.demo.javaSrc.school.SchoolClass;
+import com.example.demo.javaSrc.school.SchoolService;
 import com.example.demo.javaSrc.users.User;
 import com.example.demo.javaSrc.users.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,14 +33,29 @@ public class UserController {
     @Autowired
     private final PasswordEncoder passwordEncoder;
 
-    public UserController(UserService userService, PasswordEncoder passwordEncoder) {
+    @Autowired
+    private final SchoolService schoolService;
+
+    @Autowired
+    private final ClassService classService;
+
+    public UserController(UserService userService, PasswordEncoder passwordEncoder, 
+                          SchoolService schoolService, ClassService classService) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
-
+        this.schoolService = schoolService;
+        this.classService = classService;
     }
 
     public User currentUser(Authentication auth) {
         return userService.findByEmail(auth.getName());
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admins")
+    public List<User> getAdmins(){
+        List<User> admins = userService.getUserByRole("ADMIN");
+        return admins;
     }
 
     @GetMapping("/teachers")
@@ -65,7 +84,67 @@ public class UserController {
         }
         return teachers;
     }
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("admin/teachers")
+    public List<User> getTeachersByAdmin(
+            @RequestParam(required = false) String schoolName,
+            @RequestParam(required = false) String className
+            ) {
+        School school = schoolService.getSchoolByName(schoolName);
+        Long schoolId = school != null ? school.getId() : null;
+        SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, className);
+        Long classId = schoolClass != null ? schoolClass.getId() : null;
 
+        List<User> teachers;
+        if (classId == null) {
+            teachers = userService.getBySchoolClassAndRole(schoolId, null, User.Role.TEACHER);
+        } else {
+            teachers = new ArrayList<>();
+            teachers.addAll(userService.getBySchoolClassAndRole(schoolId, null, User.Role.TEACHER));
+            teachers.addAll(userService.getBySchoolClassAndRole(schoolId, classId, User.Role.TEACHER));
+        }
+        return teachers;
+    }
+
+    @GetMapping("/directors")
+    public List<User> getDirectors( Authentication auth,
+            @RequestParam(required = false) Long schoolId,
+            @RequestParam(required = false) String name) {
+        User me = currentUser(auth);
+        Long sch = schoolId != null ? schoolId : me.getSchoolId();
+
+        List<User> directors;
+        if (sch == null) {
+            directors = userService.getBySchoolClassAndRole(sch, null, User.Role.TEACHER);
+        } else {
+            directors = new ArrayList<>();
+            directors.addAll(userService.getBySchoolClassAndRole(sch, null, User.Role.TEACHER));
+        }
+
+        if (name != null && !name.isBlank()) {
+            directors.removeIf(p -> !p.getFirstName().toLowerCase().contains(name.toLowerCase()) &&
+                    !p.getLastName().toLowerCase().contains(name.toLowerCase()));
+        }
+        return directors;
+    }
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("admin/directors")
+    public List<User> getDirectorsByAdmin( 
+            @RequestParam(required = false) String schoolName
+            ) {
+        School school = schoolService.getSchoolByName(schoolName);
+        Long sch = school != null ? school.getId() : null;
+
+        List<User> directors;
+        if (sch == null) {
+            directors = userService.getUserByRole("Director");
+        } else {
+            directors = new ArrayList<>();
+            directors.addAll(userService.getBySchoolClassAndRole(sch, null, User.Role.DIRECTOR));
+        }     
+        return directors;
+    }
+    
     @GetMapping("/users")
     public List<User> getAllUsers(
             @RequestParam(required = false) Long schoolId,
@@ -173,13 +252,13 @@ public class UserController {
         return email != null && email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
     }
 
-    @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR', 'ADMIN')")
     @GetMapping("/loadUsers")
     public List<User> getAllUsers() {
         return userService.getAllUsers();
     }
 
-    @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR', 'ADMIN')")
     @GetMapping("/users/role/{role}")
     public List<User> getUsersByRole(@PathVariable String role) {
         return userService.getUserByRole(role);

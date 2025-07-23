@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ClassRepository extends JpaRepository<SchoolClass, Long> {
     List<SchoolClass> findBySchoolId(Long schoolId);
-    List<SchoolClass> findBySchoolIdAndName(Long teacherId,String name);
+    SchoolClass findBySchoolIdAndName(Long teacherId,String name);
 }

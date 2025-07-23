@@ -135,7 +135,7 @@ document.getElementById("create-class-form").addEventListener("submit", (e) => {
   fetchWithAuth("/api/school/create-class", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ schoolName, name: className })
+    body: JSON.stringify({ schoolName, className })
   })
     .then((res) => {
       if (!res.ok) throw new Error();
@@ -145,6 +145,53 @@ document.getElementById("create-class-form").addEventListener("submit", (e) => {
     .catch((e) => toastr.error("Не вдалося створити клас." + e.message));
 
 });
+
+document.getElementById("create-admin-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const firstName = document.getElementById("admin-first-name").value.trim();
+  const lastName = document.getElementById("admin-last-name").value.trim();
+  const email = document.getElementById("admin-email").value.trim();
+  const password = document.getElementById("admin-password").value.trim();
+  const dateOfBirth = document.getElementById("admin-dateOfBirth").value.trim();
+
+  if (!firstName) {
+    toastr.error("Будь ласка, введіть ім'я.");
+    return;
+  } if (!lastName) {
+    toastr.error("Будь ласка, введіть прізвище.");
+    return;
+  } if (!email) {
+    toastr.error("Будь ласка, введіть email.");
+    return;
+  } if (!password) {
+    toastr.error("Будь ласка, введіть пароль.");
+    return;
+  } if (!dateOfBirth) {
+    toastr.error("Будь ласка, введіть дату народження.");
+    return;
+  }
+
+  fetchWithAuth("/api/user/create_users", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      firstName,
+      lastName,
+      email,
+      password,
+      role: "ADMIN",
+      dateOfBirth
+    })
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error();
+      toastr.success("Адміна успішно створено.");
+      document.getElementById("create-admin-form").reset();
+    })
+    .catch(() => toastr.error("Не вдалося створити адміна."));
+});
+
 
 document.getElementById("create-user-form").addEventListener("submit", (e) => {
   e.preventDefault();
@@ -199,57 +246,6 @@ document.getElementById("create-user-form").addEventListener("submit", (e) => {
       document.getElementById("create-user-form").reset();
     })
     .catch(() => toastr.error("Не вдалося створити користувача."));
-
-
-
-});
-
-document.getElementById("create-admin-form").addEventListener("submit", (e) => {
-  e.preventDefault();
-
-  const firstName = document.getElementById("admin-first-name").value.trim();
-  const lastName = document.getElementById("admin-last-name").value.trim();
-  const email = document.getElementById("admin-email").value.trim();
-  const password = document.getElementById("admin-password").value.trim();
-  const dateOfBirth = document.getElementById("admin-dateOfBirth").value.trim();
-
-  if (!firstName) {
-    toastr.error("Будь ласка, введіть ім'я.");
-    return;
-  } if (!lastName) {
-    toastr.error("Будь ласка, введіть прізвище.");
-    return;
-  } if (!email) {
-    toastr.error("Будь ласка, введіть email.");
-    return;
-  } if (!password) {
-    toastr.error("Будь ласка, введіть пароль.");
-    return;
-  } if (!dateOfBirth) {
-    toastr.error("Будь ласка, введіть дату народження.");
-    return;
-  }
-
-  fetchWithAuth("/api/user/create_users", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      firstName,
-      lastName,
-      email,
-      password,
-      role: "ADMIN",
-      dateOfBirth
-    })
-  })
-    .then((res) => {
-      if (!res.ok) throw new Error();
-      toastr.success("Адміна успішно створено.");
-      document.getElementById("create-admin-form").reset();
-    })
-    .catch(() => toastr.error("Не вдалося створити адміна."));
-
-
 });
 
 toastr.options = {
@@ -271,7 +267,7 @@ toastr.options = {
 };
 
 function renderList(listElement, items, emptyMessage = "Немає даних для відображення.") {
-  listElement.innerHTML = ''; // Очищаємо список перед додаванням нових елементів
+  listElement.innerHTML = ''; 
 
   if (items && items.length > 0) {
     items.forEach(item => {
@@ -314,13 +310,11 @@ function loadAdmins() {
     return;
   }
 }
-
-
 function loadSchools() {
   const schoolsList = document.getElementById('schools-list');
 
   try {
-    fetchWithAuth('/api/school/all')
+    fetchWithAuth('/api/school/schools')
       .then(response => {
         if (!response.ok) throw new Error('Network response was not ok');
         return response.json();
@@ -342,104 +336,39 @@ function loadSchools() {
     return;
   }
 }
-
 function loadClasses(schoolName = '') {
   const classesList = document.getElementById('classes-list');
   try {
-    fetchWithAuth('/api/school/classes')
+    const url = new URL('/api/school/classes', window.location.origin);
+    if (schoolName) {
+      url.searchParams.append('schoolName', schoolName);
+    }
+
+    fetchWithAuth(url.toString())
       .then(response => {
         if (!response.ok) throw new Error('Network response was not ok');
         return response.json();
       })
       .then(data => {
-        let filteredClasses = data;
-        if (schoolName) {
-          filteredClasses = data.filter(school => school.schoolName.toLowerCase() === schoolName.toLowerCase());
-        }
-
-        if (filteredClasses.length > 0) {
-          const classNames = filteredClasses.map(school => school.classes.map(cls => `${cls.name} (${school.schoolName})`)).flat();
+        if (data.length > 0) {
+          const classNames = data.map(cls => `${cls.name}`);
           renderList(classesList, classNames);
         } else {
           renderList(classesList, [], `Класи для школи "${schoolName}" не знайдено.`);
         }
-      })
+      });
   } catch (error) {
     console.error("Помилка при завантаженні класів:", error);
     toastr.error("Не вдалося завантажити список класів.");
-    return;
   }
-}
-
-
-function loadDirectors(schoolName = '') {
-  const directorsList = document.getElementById('directors-list');
-  
-  try{
-    fetchWithAuth('/api/school/directors')
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json();
-      })
-      .then(data => {
-        let filteredDirectors = data;
-        if (schoolName) {
-          filteredDirectors = data.filter(director => director.schoolName.toLowerCase() === schoolName.toLowerCase());
-        }
-
-        if (filteredDirectors.length > 0) {
-          const directorNames = filteredDirectors.map(director => `${director.firstName} ${director.lastName} (${director.schoolName})`);
-          renderList(directorsList, directorNames);
-        } else {
-          renderList(directorsList, [], `Директори для школи "${schoolName}" не знайдено.`);
-        }
-      });
-  }catch (error) {
-    console.error("Помилка при завантаженні директорів:", error);
-    toastr.error("Не вдалося завантажити список директорів.");
-    return;
-  }
-}
-
-function loadTeachers(schoolName = '', className = '') {
-  const teachersList = document.getElementById('teachers-list');
-  // Імітація API-запиту
-  setTimeout(() => {
-    let data = [];
-    if (schoolName.toLowerCase() === 'школа №1') {
-      if (className.toLowerCase() === '1-а клас') {
-        data = ["Вчитель 1А: Анна Сидоренко"];
-      } else if (!className) {
-        data = ["Вчитель А (Школа №1)", "Вчитель Б (Школа №1)"];
-      }
-    } else if (schoolName.toLowerCase() === 'гімназія "промінь"') {
-      if (className.toLowerCase() === '5-а клас') {
-        data = ["Вчитель 5А: Віктор Кравчук"];
-      } else if (!className) {
-        data = ["Вчитель В (Гімназія 'Промінь')", "Вчитель Г (Гімназія 'Промінь')"];
-      }
-    } else if (!schoolName && !className) {
-      data = ["Іван Іванов (Математика)", "Олена Смірна (Українська мова)"];
-    }
-
-    if (data.length === 0 && (schoolName || className)) {
-      let message = "Вчителі ";
-      if (schoolName) message += `для "${schoolName}" `;
-      if (className) message += `та класу "${className}" `;
-      message += "не знайдено.";
-      toastr.warning(message);
-    }
-
-    renderList(teachersList, data, "Немає вчителів для відображення.");
-  }, 900);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   loadAdmins();
   loadSchools();
   loadClasses();
-  loadDirectors();
-  loadTeachers();
+  //loadDirectors();
+  //loadTeachers();
 
   const classesSchoolInput = document.getElementById('classes-school-input');
   if (classesSchoolInput) {
