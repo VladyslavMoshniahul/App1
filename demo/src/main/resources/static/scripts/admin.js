@@ -363,12 +363,68 @@ function loadClasses(schoolName = '') {
   }
 }
 
+function loadDirectors(schoolName = ''){
+  const directorsList = document.getElementById('directors-list');
+  try {
+    const url = new URL('/api/user/admin/directors', window.location.origin);
+    if (schoolName) {
+      url.searchParams.append('schoolName', schoolName);
+    }
+
+    fetchWithAuth(url.toString())
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
+      .then(data => {
+        if (data.length > 0) {
+          const directorNames = data.map(director => `${director.firstName} ${director.lastName}`);
+          renderList(directorsList, directorNames);
+        } else {
+          renderList(directorsList, [], `Директори для школи "${schoolName}" не знайдені.`);
+        }
+      });
+  } catch (error) {
+    console.error("Помилка при завантаженні директорів:", error);
+    toastr.error("Не вдалося завантажити список директорів.");
+  }
+}
+function loadTeachers(schoolName = '', className = '') {
+  const teachersList = document.getElementById('teachers-list');
+  try {
+    const url = new URL('/api/user/admin/teachers', window.location.origin);
+    if (schoolName) {
+      url.searchParams.append('schoolName', schoolName);
+    }
+    if (className) {
+      url.searchParams.append('className', className);
+    }
+
+    fetchWithAuth(url.toString())
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
+      .then(data => {
+        if (data.length > 0) {
+          const teacherNames = data.map(teacher => `${teacher.firstName} ${teacher.lastName}`);
+          renderList(teachersList, teacherNames);
+        } else {
+          renderList(teachersList, [], `Вчителі для школи "${schoolName}" та класу "${className}" не знайдені.`);
+        }
+      });
+  } catch (error) {
+    console.error("Помилка при завантаженні вчителів:", error);
+    toastr.error("Не вдалося завантажити список вчителів.");
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   loadAdmins();
   loadSchools();
   loadClasses();
-  //loadDirectors();
-  //loadTeachers();
+  loadDirectors();
+  loadTeachers();
 
   const classesSchoolInput = document.getElementById('classes-school-input');
   if (classesSchoolInput) {

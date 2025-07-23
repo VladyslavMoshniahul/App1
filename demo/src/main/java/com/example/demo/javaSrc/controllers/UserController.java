@@ -84,6 +84,7 @@ public class UserController {
         }
         return teachers;
     }
+    
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("admin/teachers")
     public List<User> getTeachersByAdmin(
@@ -127,6 +128,7 @@ public class UserController {
         }
         return directors;
     }
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("admin/directors")
     public List<User> getDirectorsByAdmin( 
@@ -137,7 +139,7 @@ public class UserController {
 
         List<User> directors;
         if (sch == null) {
-            directors = userService.getUserByRole("Director");
+           return List.of();
         } else {
             directors = new ArrayList<>();
             directors.addAll(userService.getBySchoolClassAndRole(sch, null, User.Role.DIRECTOR));
