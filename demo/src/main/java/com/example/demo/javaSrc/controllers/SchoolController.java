@@ -57,7 +57,8 @@ public class SchoolController {
     @PreAuthorize("hasAnyRole('ADMIN','DIRECTOR')")
     @PostMapping("/create-class")
     public ResponseEntity<SchoolClass> createNewClass(@RequestBody CreateClassRequest request) {
-        School school = schoolService.getSchoolByName(request.getSchoolName());
+        String schoolName = request.getSchoolName();    
+        School school = schoolService.getSchoolByName(schoolName);
         if (school == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }

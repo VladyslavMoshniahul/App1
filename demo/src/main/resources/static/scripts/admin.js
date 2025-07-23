@@ -291,66 +291,114 @@ function renderList(listElement, items, emptyMessage = "Немає даних д
 function loadAdmins() {
   const adminsList = document.getElementById('admins-list');
 
-  setTimeout(() => {
-    const data = ["Адмін 1: Іван Іванов", "Адмін 2: Марія Петренко"];
-
-    renderList(adminsList, data);
-    if (data.length === 0) {
-      toastr.info("Список адмінів порожній.");
-    }
-  }, 500); // Імітація затримки мережі
+  try {
+    fetchWithAuth('/api/user/admins')
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
+      .then(data => {
+        if (data && data.length > 0) {
+          renderList(adminsList, data.map(admin => `${admin.firstName} ${admin.lastName} (${admin.email})`));
+        } else {
+          renderList(adminsList, [], "Немає адмінів для відображення.");
+        }
+      })
+      .catch(error => {
+        console.error("Помилка при завантаженні адмінів:", error);
+        toastr.error("Не вдалося завантажити список адмінів.");
+      });
+  } catch (error) {
+    console.error("Помилка при завантаженні адмінів:", error);
+    toastr.error("Не вдалося завантажити список адмінів.");
+    return;
+  }
 }
 
 
 function loadSchools() {
   const schoolsList = document.getElementById('schools-list');
-  // Імітація API-запиту
-  setTimeout(() => {
-    const data = ["Школа №1, м. Київ", "Гімназія 'Промінь', м. Львів", "Ліцей 'Ерудит', м. Одеса"];
 
-    renderList(schoolsList, data);
-    if (data.length === 0) {
-      toastr.info("Список шкіл порожній.");
-    }
-  }, 600);
+  try {
+    fetchWithAuth('/api/school/all')
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
+      .then(data => {
+        if (data && data.length > 0) {
+          renderList(schoolsList, data.map(school => school.name));
+        } else {
+          renderList(schoolsList, [], "Немає шкіл для відображення.");
+        }
+      })
+      .catch(error => {
+        console.error("Помилка при завантаженні шкіл:", error);
+        toastr.error("Не вдалося завантажити список шкіл.");
+      });
+  } catch (error) {
+    console.error("Помилка при завантаженні шкіл:", error);
+    toastr.error("Не вдалося завантажити список шкіл.");
+    return;
+  }
 }
 
 function loadClasses(schoolName = '') {
   const classesList = document.getElementById('classes-list');
-  // Імітація API-запиту
-  setTimeout(() => {
-    let data = [];
-    if (schoolName.toLowerCase() === 'школа №1') {
-      data = ["1-А клас", "2-Б клас", "10-В клас"];
-    } else if (schoolName.toLowerCase() === 'гімназія "промінь"') {
-      data = ["5-А клас", "6-Б клас"];
-    } else if (!schoolName) {
+  try {
+    fetchWithAuth('/api/school/classes')
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
+      .then(data => {
+        let filteredClasses = data;
+        if (schoolName) {
+          filteredClasses = data.filter(school => school.schoolName.toLowerCase() === schoolName.toLowerCase());
+        }
 
-      data = ["1-А (Школа №1)", "2-Б (Школа №1)", "5-А (Гімназія 'Промінь')", "6-Б (Гімназія 'Промінь')"];
-    } else {
-      toastr.warning(`Класи для школи "${schoolName}" не знайдено.`);
-    }
-    renderList(classesList, data, `Класи для "${schoolName}" не знайдено.`);
-  }, 700);
+        if (filteredClasses.length > 0) {
+          const classNames = filteredClasses.map(school => school.classes.map(cls => `${cls.name} (${school.schoolName})`)).flat();
+          renderList(classesList, classNames);
+        } else {
+          renderList(classesList, [], `Класи для школи "${schoolName}" не знайдено.`);
+        }
+      })
+  } catch (error) {
+    console.error("Помилка при завантаженні класів:", error);
+    toastr.error("Не вдалося завантажити список класів.");
+    return;
+  }
 }
 
 
 function loadDirectors(schoolName = '') {
   const directorsList = document.getElementById('directors-list');
-  // Імітація API-запиту
-  setTimeout(() => {
-    let data = [];
-    if (schoolName.toLowerCase() === 'школа №1') {
-      data = ["Директор Школи №1: Олег Верес"];
-    } else if (schoolName.toLowerCase() === 'гімназія "промінь"') {
-      data = ["Директор Гімназії 'Промінь': Світлана Коваленко"];
-    } else if (!schoolName) {
-      data = ["Олег Верес (Школа №1)", "Світлана Коваленко (Гімназія 'Промінь')"];
-    } else {
-      toastr.warning(`Директори для школи "${schoolName}" не знайдено.`);
-    }
-    renderList(directorsList, data, `Директори для "${schoolName}" не знайдено.`);
-  }, 800);
+  
+  try{
+    fetchWithAuth('/api/school/directors')
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
+      .then(data => {
+        let filteredDirectors = data;
+        if (schoolName) {
+          filteredDirectors = data.filter(director => director.schoolName.toLowerCase() === schoolName.toLowerCase());
+        }
+
+        if (filteredDirectors.length > 0) {
+          const directorNames = filteredDirectors.map(director => `${director.firstName} ${director.lastName} (${director.schoolName})`);
+          renderList(directorsList, directorNames);
+        } else {
+          renderList(directorsList, [], `Директори для школи "${schoolName}" не знайдено.`);
+        }
+      });
+  }catch (error) {
+    console.error("Помилка при завантаженні директорів:", error);
+    toastr.error("Не вдалося завантажити список директорів.");
+    return;
+  }
 }
 
 function loadTeachers(schoolName = '', className = '') {
