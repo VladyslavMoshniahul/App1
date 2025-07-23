@@ -20,6 +20,7 @@ import com.example.demo.javaSrc.school.ClassService;
 import com.example.demo.javaSrc.school.School;
 import com.example.demo.javaSrc.school.SchoolClass;
 import com.example.demo.javaSrc.school.SchoolService;
+import com.example.demo.javaSrc.users.CreateUserRequest;
 import com.example.demo.javaSrc.users.User;
 import com.example.demo.javaSrc.users.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -187,9 +188,17 @@ public class UserController {
     @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR', 'ADMIN')")
     @PostMapping("/create_users")
     public ResponseEntity<User> createUser(
-            @RequestBody User newUser,
-            Authentication auth) {
-
+            @RequestBody CreateUserRequest newUserRequest) {
+        User newUser = new User();
+        newUser.setFirstName(newUserRequest.firstName());
+        newUser.setLastName(newUserRequest.lastName());
+        newUser.setEmail(newUserRequest.email());
+        newUser.setPassword(newUserRequest.password());
+        newUser.setRole(newUserRequest.role());
+        newUser.setDateOfBirth(newUserRequest.birthDate());
+        School school = schoolService.getSchoolByName(newUserRequest.schoolName());
+        newUser.setSchoolId(school.getId());
+        
         if (newUser.getRole() != User.Role.ADMIN && newUser.getSchoolId() == null) {
             return ResponseEntity.badRequest().body(null);
         }
