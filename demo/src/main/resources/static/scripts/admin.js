@@ -383,7 +383,7 @@ function loadSchools() {
 function loadClasses(schoolName = '') {
   const classesList = document.getElementById('classes-list');
   try {
-    const url = new URL('/api/school/classes', window.location.origin);
+    const url = new URL('/api/school/admin/classes', window.location.origin);
     if (schoolName) {
       url.searchParams.append('schoolName', schoolName);
     }

@@ -1,11 +1,13 @@
 package com.example.demo.javaSrc.controllers;
 
+import java.net.Authenticator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +20,7 @@ import com.example.demo.javaSrc.school.CreateClassRequest;
 import com.example.demo.javaSrc.school.School;
 import com.example.demo.javaSrc.school.SchoolClass;
 import com.example.demo.javaSrc.school.SchoolService;
+import com.example.demo.javaSrc.users.User;
 
 @RestController
 @RequestMapping("/api/school")
@@ -26,10 +29,13 @@ public class SchoolController {
     private final SchoolService schoolService;
     @Autowired
     private final ClassService classService;
+    @Autowired
+    private final UserController userController;
 
-    public SchoolController(SchoolService schoolService, ClassService classService) {
+    public SchoolController(SchoolService schoolService, ClassService classService, UserController userController) {
         this.schoolService = schoolService;
         this.classService = classService;
+        this.userController = userController;
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -38,11 +44,23 @@ public class SchoolController {
         return schoolService.getAllSchools();
     }
 
-    @GetMapping("/classes")
-    public List<SchoolClass> getClasses(
+    @GetMapping("admin/classes")
+    public List<SchoolClass> getClassesForAdmin(
             @RequestParam String schoolName) {
         School school = schoolService.getSchoolByName(schoolName);
         Long schoolId = school != null ? school.getId() : null;
+        if (schoolId == null) {
+           return List.of();
+        }
+        return classService.getBySchoolId(schoolId);
+    
+    }
+    
+    @GetMapping("/classes")
+    public List<SchoolClass> getClasses(
+            Authentication auth) {
+        User me = userController.currentUser(auth);
+        Long schoolId = me.getSchoolId();
         if (schoolId == null) {
            return List.of();
         }

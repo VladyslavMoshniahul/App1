@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -40,8 +41,8 @@ public class UserController {
     @Autowired
     private final ClassService classService;
 
-    public UserController(UserService userService, PasswordEncoder passwordEncoder, 
-                          SchoolService schoolService, ClassService classService) {
+    public UserController(UserService userService, PasswordEncoder passwordEncoder,
+            SchoolService schoolService, ClassService classService) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.schoolService = schoolService;
@@ -54,7 +55,7 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admins")
-    public List<User> getAdmins(){
+    public List<User> getAdmins() {
         List<User> admins = userService.getUserByRole("ADMIN");
         return admins;
     }
@@ -62,36 +63,27 @@ public class UserController {
     @GetMapping("/teachers")
     public List<User> getTeachers(
             Authentication auth,
-            @RequestParam(required = false) Long schoolId,
-            @RequestParam(required = false) Long classId,
-            @RequestParam(required = false) String name) {
+            @RequestParam(required = false) Long classId) {
 
         User me = currentUser(auth);
-        Long sch = schoolId != null ? schoolId : me.getSchoolId();
+        Long sch = me.getSchoolId();
         Long cls = classId != null ? classId : me.getClassId();
 
         List<User> teachers;
         if (classId == null) {
             teachers = userService.getBySchoolClassAndRole(sch, null, User.Role.TEACHER);
         } else {
-            teachers = new ArrayList<>();
-            teachers.addAll(userService.getBySchoolClassAndRole(sch, null, User.Role.TEACHER));
-            teachers.addAll(userService.getBySchoolClassAndRole(sch, cls, User.Role.TEACHER));
+            teachers = userService.getBySchoolClassAndRole(sch, cls, User.Role.TEACHER);
         }
 
-        if (name != null && !name.isBlank()) {
-            teachers.removeIf(p -> !p.getFirstName().toLowerCase().contains(name.toLowerCase()) &&
-                    !p.getLastName().toLowerCase().contains(name.toLowerCase()));
-        }
         return teachers;
     }
-    
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("admin/teachers")
     public List<User> getTeachersByAdmin(
             @RequestParam(required = false) String schoolName,
-            @RequestParam(required = false) String className
-            ) {
+            @RequestParam(required = false) String className) {
         School school = schoolService.getSchoolByName(schoolName);
         Long schoolId = school != null ? school.getId() : null;
         SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, className);
@@ -108,46 +100,23 @@ public class UserController {
         return teachers;
     }
 
-    @GetMapping("/directors")
-    public List<User> getDirectors( Authentication auth,
-            @RequestParam(required = false) Long schoolId,
-            @RequestParam(required = false) String name) {
-        User me = currentUser(auth);
-        Long sch = schoolId != null ? schoolId : me.getSchoolId();
-
-        List<User> directors;
-        if (sch == null) {
-            directors = userService.getBySchoolClassAndRole(sch, null, User.Role.TEACHER);
-        } else {
-            directors = new ArrayList<>();
-            directors.addAll(userService.getBySchoolClassAndRole(sch, null, User.Role.TEACHER));
-        }
-
-        if (name != null && !name.isBlank()) {
-            directors.removeIf(p -> !p.getFirstName().toLowerCase().contains(name.toLowerCase()) &&
-                    !p.getLastName().toLowerCase().contains(name.toLowerCase()));
-        }
-        return directors;
-    }
-
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("admin/directors")
-    public List<User> getDirectorsByAdmin( 
-            @RequestParam(required = false) String schoolName
-            ) {
+    public List<User> getDirectorsByAdmin(
+            @RequestParam(required = false) String schoolName) {
         School school = schoolService.getSchoolByName(schoolName);
         Long sch = school != null ? school.getId() : null;
 
         List<User> directors;
         if (sch == null) {
-           return List.of();
+            return List.of();
         } else {
             directors = new ArrayList<>();
             directors.addAll(userService.getBySchoolClassAndRole(sch, null, User.Role.DIRECTOR));
-        }     
+        }
         return directors;
     }
-    
+
     @GetMapping("/users")
     public List<User> getAllUsers(
             @RequestParam(required = false) Long schoolId,
@@ -171,7 +140,8 @@ public class UserController {
 
         if (name != null && !name.isBlank()) {
             all = all.stream()
-                    .filter(p -> p.getFirstName() != null && p.getFirstName().toLowerCase().contains(name.toLowerCase()))
+                    .filter(p -> p.getFirstName() != null
+                            && p.getFirstName().toLowerCase().contains(name.toLowerCase()))
                     .toList();
         }
 
@@ -184,7 +154,6 @@ public class UserController {
         return all;
     }
 
-
     @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR', 'ADMIN')")
     @PostMapping("/create_users")
     public ResponseEntity<User> createUser(
@@ -196,16 +165,46 @@ public class UserController {
         newUser.setPassword(newUserRequest.password());
         newUser.setRole(newUserRequest.role());
         newUser.setDateOfBirth(newUserRequest.birthDate());
-        School school = schoolService.getSchoolByName(newUserRequest.schoolName());
-        newUser.setSchoolId(school.getId());
-        SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(school.getId(), newUserRequest.className());
-        newUser.setClassId(schoolClass.getId());
 
+        if (newUser.getRole() == User.Role.ADMIN) {
+            newUser.setSchoolId(null);
+            newUser.setClassId(null);
+        } else {
+
+            School school = schoolService.getSchoolByName(newUserRequest.schoolName());
+            SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(school.getId(),
+                    newUserRequest.className());
+            if (newUser.getRole() == User.Role.DIRECTOR) {
+                newUser.setSchoolId(school.getId());
+                newUser.setClassId(null);
+            }
+
+            if (newUser.getRole() == User.Role.TEACHER) {
+                newUser.setSchoolId(school.getId());
+                if (schoolClass == null) {
+                    newUser.setClassId(null);
+                } else {
+                    newUser.setClassId(schoolClass.getId());
+                }
+            }
+
+            if (newUser.getRole() == User.Role.PARENT || newUser.getRole() == User.Role.STUDENT) {
+                if (school == null || schoolClass == null) {
+                    return ResponseEntity.badRequest().body(null);
+                }
+                newUser.setSchoolId(school.getId());
+                newUser.setClassId(schoolClass.getId());
+            }
+        }
+
+        if (userService.findByEmail(newUser.getEmail()) != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        }
         if (newUser.getRole() != User.Role.ADMIN && newUser.getSchoolId() == null) {
             return ResponseEntity.badRequest().body(null);
         }
-        if ((newUser.getRole() != User.Role.ADMIN || newUser.getRole()!= User.Role.TEACHER || newUser.getRole()!= User.Role.DIRECTOR)
-         && newUser.getClassId() == null) {
+        if ((newUser.getRole() == User.Role.PARENT || newUser.getRole() == User.Role.STUDENT)
+                && (newUser.getClassId() == null || newUser.getSchoolId() == null)) {
             return ResponseEntity.badRequest().body(null);
         }
 
@@ -260,6 +259,7 @@ public class UserController {
         if (updatedData.getPassword() != null && !updatedData.getPassword().isEmpty()) {
             currentUser.setPassword(passwordEncoder.encode(updatedData.getPassword()));
         }
+
         Long userId = currentUser.getId();
         User updated = userService.updateUser(userId, currentUser);
         return ResponseEntity.ok(updated);
@@ -275,10 +275,19 @@ public class UserController {
         return userService.getAllUsers();
     }
 
-    @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR', 'ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users/role/{role}")
     public List<User> getUsersByRole(@PathVariable String role) {
         return userService.getUserByRole(role);
+    }
+
+    @GetMapping("/users/role/school/{role}")
+    public List<User> getUsersBySchoolClassAndRole(Authentication auth,
+            @RequestParam(required = false) String className,
+            @RequestParam(required = false) User.Role role) {
+        User me = currentUser(auth);
+        SchoolClass schoolclass = classService.getClassesBySchoolIdAndName(me.getSchoolId(), className);
+        return userService.getBySchoolClassAndRole(me.getSchoolId(), schoolclass.getId(), role);
     }
 
     @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR')")

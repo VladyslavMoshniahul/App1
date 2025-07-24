@@ -237,13 +237,10 @@ function loadProfile() {
   }
 }
 
-function loadClasses(schoolName = user.schoolName) {
+function loadClasses() {
   const classesList = document.getElementById('classes-list');
   try {
     const url = new URL('/api/school/classes', window.location.origin);
-    if (schoolName) {
-      url.searchParams.append('schoolName', schoolName);
-    }
 
     fetchWithAuth(url.toString())
       .then(response => {
@@ -264,13 +261,11 @@ function loadClasses(schoolName = user.schoolName) {
   }
 }
 
-function loadTeachers(schoolName = user.schoolName, className = '') {
+function loadTeachers(className = '') {
   const teachersList = document.getElementById('teachers-list');
   try {
-    const url = new URL('/api/user/admin/teachers', window.location.origin);
-    if (schoolName) {
-      url.searchParams.append('schoolName', schoolName);
-    }
+    const url = new URL('/api/user/teachers', window.location.origin);
+    
     if (className) {
       url.searchParams.append('className', className);
     }
@@ -282,7 +277,7 @@ function loadTeachers(schoolName = user.schoolName, className = '') {
       })
       .then(data => {
         if (data.length > 0) {
-          const teacherNames = data.map(teacher => `${teacher.firstName} ${teacher.lastName}`);
+          const teacherNames = data.map(teacher => `${teacher.firstName} ${teacher.lastName} ${teacher.email}`);
           renderList(teachersList, teacherNames);
         } else {
           renderList(teachersList, [], `Вчителі для школи "${schoolName}" та класу "${className}" не знайдені.`);
@@ -293,30 +288,96 @@ function loadTeachers(schoolName = user.schoolName, className = '') {
     toastr.error("Не вдалося завантажити список вчителів.");
   }
 }
+function loadStudents(className=''){
+  const studentsList = document.getElementById('students-list');
+  try {
+    const role = 'STUDENT';
+    const url = new URL(`/api/user/users/role/school/${role}`, window.location.origin);
 
+    if (className) {
+      url.searchParams.append('className', className);
+    }
+
+    fetchWithAuth(url.toString())
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
+      .then(data => {
+        if (data.length > 0) {
+          const studentNames = data.map(student => `${student.firstName} ${student.lastName} ${student.email}`);
+          renderList(studentsList, studentNames);
+        } else {
+          renderList(studentsList, [], `Учні для школи "${schoolName}" та класу "${className}" не знайдені.`);
+        }
+      });
+  } catch (error) {
+    console.error("Помилка при завантаженні учнів:", error);
+    toastr.error("Не вдалося завантажити список учнів.");
+  }
+}
+function loadParents(className=''){
+  const parentsList = document.getElementById('parents-list');
+  try {
+    const role = 'PARENT';
+    const url = new URL(`/api/user/users/role/school/${role}`, window.location.origin);
+
+    if (className) {
+      url.searchParams.append('className', className);
+    }
+
+    fetchWithAuth(url.toString())
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
+      .then(data => {
+        if (data.length > 0) {
+          const parentNames = data.map( parent => `${ parent.firstName} ${ parent.lastName} ${ parent.email}`);
+          renderList( parentsList,  parentNames);
+        } else {
+          renderList( parentsList, [], `Батьків для школи "${schoolName}" та класу "${className}" не знайдені.`);
+        }
+      });
+  } catch (error) {
+    console.error("Помилка при завантаженні батьків:", error);
+    toastr.error("Не вдалося завантажити список батьків.");
+  }
+}
 document.addEventListener('DOMContentLoaded', () => {
   loadProfile();
   loadClasses();
   loadTeachers();
+  loadStudents();
+  loadParents();
 
-  const classesSchoolInput = document.getElementById('classes-school-input');
-  if (classesSchoolInput) {
-    classesSchoolInput.addEventListener('input', (event) => {
-      loadClasses(event.target.value.trim());
-    });
-  }
-
-  const teachersSchoolInput = document.getElementById('teachers-school-input');
   const teachersClassInput = document.getElementById('teachers-class-input');
-  if (teachersSchoolInput && teachersClassInput) {
+  if ( teachersClassInput) {
     const updateTeachersList = () => {
-      const school = teachersSchoolInput.value.trim();
       const className = teachersClassInput.value.trim();
-      loadTeachers(school, className);
+      loadTeachers(className);
     };
-    teachersSchoolInput.addEventListener('input', updateTeachersList);
     teachersClassInput.addEventListener('input', updateTeachersList);
   }
+
+  const studentClassInput = document.getElementById('students-class-input');
+  if ( studentClassInput) {
+    const updateStudentsList = () => {
+      const className = studentClassInput.value.trim();
+      loadStudents(className);
+    };
+    teachersClassInput.addEventListener('input', studentClassInput);
+  }
+  const parentClassInput = document.getElementById('parents-class-input');
+  if (parentClassInput) {
+    const updateParentsList = () => {
+      const className = parentClassInput.value.trim();
+      loadTeachers(school, className);
+    };
+    parentClassInput.addEventListener('input', updateParentsList);
+  }
+
+
 });
 
 
