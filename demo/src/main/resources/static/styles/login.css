@@ -46,7 +46,7 @@ body::before {
 .login-container {
   position: relative;
   z-index: 1;
-  background: rgb(0, 255, 255);
+  background: rgb(43, 168, 12);
   padding: 40px;
   border-radius: 10px;
   width: 320px;
@@ -56,7 +56,7 @@ body::before {
 }
 
 .login-container h2 {
-  color: #1f0385;
+  color: #072cff;
   margin-bottom: 20px;
   font-weight: 600;
 }
@@ -84,7 +84,7 @@ body::before {
 }
 
 .login-container button:hover {
-  background: #4cff05;
+  background: #49ff01;
 }
 
 

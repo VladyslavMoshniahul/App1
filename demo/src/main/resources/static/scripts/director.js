@@ -15,7 +15,7 @@ tabButtons.forEach((btn) => {
       document.getElementById("statistics-section").classList.add("active");
     } else if (btn.id === "tab-creating") {
       document.getElementById("creating-page").classList.add("active");
-    } else if (btn.id === "tab-petitions"){
+    } else if (btn.id === "tab-petitions") {
       document.getElementById("petitions-section").classList.add("active");
     }
   });
@@ -83,40 +83,45 @@ async function loadProfileForEdit() {
 
 document.getElementById("editProfileForm").addEventListener("submit", async (e) => {
   e.preventDefault();
- 
-    const password = document.getElementById("edit-password").value.trim();
-    const confirmPassword = document.getElementById("confirm-password").value.trim();
-    const firstName = document.getElementById("edit-firstName").value.trim();
-    const lastName = document.getElementById("edit-lastName").value.trim();
-    const aboutMe = document.getElementById("edit-aboutMe").value.trim();
-    const dateOfBirth = document.getElementById("edit-dateOfBirth").value.trim();
-    const email = document.getElementById("edit-email").value.trim();
-    if (password && password !== confirmPassword) {
-      toastr.error("Паролі не співпадають.");
-      return;
-    }
 
-    try {
-      const res = await fetchWithAuth(`/api/user/me`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firstName, lastName, aboutMe, dateOfBirth, email, password })
-      });
+  const password = document.getElementById("edit-password").value.trim();
+  const confirmPassword = document.getElementById("confirm-password").value.trim();
+  const firstName = document.getElementById("edit-firstName").value.trim();
+  const lastName = document.getElementById("edit-lastName").value.trim();
+  const aboutMe = document.getElementById("edit-aboutMe").value.trim();
+  const dateOfBirth = document.getElementById("edit-dateOfBirth").value.trim();
+  const email = document.getElementById("edit-email").value.trim();
+  if (password && password !== confirmPassword) {
+    toastr.error("Паролі не співпадають.");
+    return;
+  }
 
-      if (!res.ok) throw new Error(res.status);
-      toastr.success("Профіль успішно оновлено.");
-      document.getElementById("updateProfile").style.display = "none";
-      document.getElementById("editProfileForm").reset();
-    } catch (error) {
-      toastr.error("Помилка при оновленні профілю. Спробуйте ще раз.");
-    }
+  try {
+    const res = await fetchWithAuth(`/api/user/me`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ firstName, lastName, aboutMe, dateOfBirth, email, password })
+    });
+
+    if (!res.ok) throw new Error(res.status);
+    toastr.success("Профіль успішно оновлено.");
+    document.getElementById("updateProfile").style.display = "none";
+    document.getElementById("editProfileForm").reset();
+  } catch (error) {
+    toastr.error("Помилка при оновленні профілю. Спробуйте ще раз.");
+  }
 
 });
 
-document.getElementById("create-class-form").addEventListener("submit", (e) => {
+document.getElementById("create-class-form").addEventListener("submit", async (e) => {
   e.preventDefault();
+  
+  const response =  await fetchWithAuth('/api/user/myProfile');
+  const user = await response.json();
+  const schoolName = user.schoolName || '';
 
   const className = document.getElementById("class-name").value.trim();
+
   if (!className) {
     toastr.error("Будь ласка, введіть назву класу.");
     return;
@@ -125,7 +130,7 @@ document.getElementById("create-class-form").addEventListener("submit", (e) => {
   fetchWithAuth("/api/school/create-class", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ schoolId, className })
+    body: JSON.stringify({ schoolName, className })
   })
     .then((res) => {
       if (!res.ok) throw new Error();
@@ -137,8 +142,12 @@ document.getElementById("create-class-form").addEventListener("submit", (e) => {
 });
 
 
-document.getElementById("create-user-form").addEventListener("submit", (e) => {
+document.getElementById("create-user-form").addEventListener("submit", async (e) => {
   e.preventDefault();
+  
+  const response =  await fetchWithAuth('/api/user/myProfile');
+  const user = await response.json();
+  const schoolName = user.schoolName || '';
 
   const firstName = document.getElementById("user-first-name").value.trim();
   const lastName = document.getElementById("user-last-name").value.trim();
@@ -147,7 +156,6 @@ document.getElementById("create-user-form").addEventListener("submit", (e) => {
   const className = document.getElementById("user-class").value.trim();
   const role = document.getElementById("user-role").value.trim();
   const dateOfBirth = document.getElementById("user-dateOfBirth").value.trim();
-  const schoolName = user.schoolName;
 
   if (!firstName) {
     toastr.error("Будь ласка, введіть ім'я.");
@@ -191,7 +199,7 @@ document.getElementById("create-user-form").addEventListener("submit", (e) => {
     .catch(() => toastr.error("Не вдалося створити користувача."));
 });
 function renderList(listElement, items, emptyMessage = "Немає даних для відображення.") {
-  listElement.innerHTML = ''; 
+  listElement.innerHTML = '';
 
   if (items && items.length > 0) {
     items.forEach(item => {
@@ -272,7 +280,7 @@ function loadTeachers(className = '') {
   const teachersList = document.getElementById('teachers-list');
   try {
     const url = new URL('/api/user/teachers', window.location.origin);
-    
+
     if (className) {
       url.searchParams.append('className', className);
     }
@@ -295,7 +303,7 @@ function loadTeachers(className = '') {
     toastr.error("Не вдалося завантажити список вчителів.");
   }
 }
-function loadStudents(className=''){
+function loadStudents(className = '') {
   const studentsList = document.getElementById('students-list');
   try {
     const role = 'STUDENT';
@@ -323,7 +331,7 @@ function loadStudents(className=''){
     toastr.error("Не вдалося завантажити список учнів.");
   }
 }
-function loadParents(className=''){
+function loadParents(className = '') {
   const parentsList = document.getElementById('parents-list');
   try {
     const role = 'PARENT';
@@ -340,10 +348,10 @@ function loadParents(className=''){
       })
       .then(data => {
         if (data.length > 0) {
-          const parentNames = data.map( parent => `${ parent.firstName} ${ parent.lastName} ${ parent.email}`);
-          renderList( parentsList,  parentNames);
+          const parentNames = data.map(parent => `${parent.firstName} ${parent.lastName} ${parent.email}`);
+          renderList(parentsList, parentNames);
         } else {
-          renderList( parentsList, [], `Батьків для школи "${schoolName}" та класу "${className}" не знайдені.`);
+          renderList(parentsList, [], `Батьків для школи "${schoolName}" та класу "${className}" не знайдені.`);
         }
       });
   } catch (error) {
@@ -352,7 +360,7 @@ function loadParents(className=''){
   }
 }
 
-function loadPetition(){
+function loadPetition() {
   const petitionList = document.getElementById('petition-list');
   try {
     const url = new URL('/api/petitions/petitionsForDirector', window.location.origin);
@@ -364,7 +372,7 @@ function loadPetition(){
       })
       .then(data => {
         if (data.length > 0) {
-          const petitionNames = data.map( petition => `${petition.title}`);
+          const petitionNames = data.map(petition => `${petition.title}`);
           renderList(petitionList, petitionNames);
         } else {
           renderList(petitionList, [], `Заявки для школи "${schoolName}" не знайдені.`);
@@ -385,7 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadPetition();
 
   const teachersClassInput = document.getElementById('teachers-class-input');
-  if ( teachersClassInput) {
+  if (teachersClassInput) {
     const updateTeachersList = () => {
       const className = teachersClassInput.value.trim();
       loadTeachers(className);
@@ -394,7 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const studentClassInput = document.getElementById('students-class-input');
-  if ( studentClassInput) {
+  if (studentClassInput) {
     const updateStudentsList = () => {
       const className = studentClassInput.value.trim();
       loadStudents(className);
