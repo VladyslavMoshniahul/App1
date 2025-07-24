@@ -23,6 +23,7 @@ import com.example.demo.javaSrc.school.SchoolClass;
 import com.example.demo.javaSrc.school.SchoolService;
 import com.example.demo.javaSrc.users.CreateUserRequest;
 import com.example.demo.javaSrc.users.User;
+import com.example.demo.javaSrc.users.UserProfileDto;
 import com.example.demo.javaSrc.users.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -215,13 +216,41 @@ public class UserController {
     }
 
     @GetMapping("/myProfile")
-    public ResponseEntity<User> getMyProfile(Authentication auth) {
+    public ResponseEntity<UserProfileDto> getMyProfile(Authentication auth) {
         String email = auth.getName();
         User user = userService.findByEmail(email);
         if (user == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(user);
+
+        String schoolName = null;
+        String className = null;
+
+        if (user.getSchoolId() != null) {
+            School school = schoolService.getSchoolById(user.getSchoolId());
+            if (school != null) {
+                schoolName = school.getName();
+            }
+        }
+
+        if (user.getClassId() != null) {
+            SchoolClass schoolClass = classService.getBySchoolIdAndId(user.getSchoolId(), user.getClassId());
+            if (schoolClass != null) {
+                className = schoolClass.getName();
+            }
+        }
+
+        UserProfileDto dto = new UserProfileDto(
+                user.getId(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getAboutMe(),
+                user.getEmail(),
+                user.getRole().toString(),
+                schoolName,
+                className);
+
+        return ResponseEntity.ok(dto);
     }
 
     @PutMapping("/me")

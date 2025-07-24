@@ -223,7 +223,7 @@ function loadProfile() {
         document.getElementById('profile-lastName').textContent = user.lastName || '-';
         document.getElementById('profile-dateOfBirth').textContent = user.dateOfBirth || '-';
         document.getElementById('profile-aboutMe').textContent = user.aboutMe || '-';
-        document.getElementById('profile-school').textContent = user.schoolName || '-';
+        document.getElementById('profile-schoolName').textContent = user.schoolName || '-';
         document.getElementById('profile-email').textContent = user.email || '-';
         document.getElementById('profile-role').textContent = user.role || '-';
       })

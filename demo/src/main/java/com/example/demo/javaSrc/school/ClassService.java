@@ -33,4 +33,8 @@ public class ClassService {
     public SchoolClass createClass(SchoolClass schoolClass) {
         return classRepository.save(schoolClass);
     }
+
+    public SchoolClass getBySchoolIdAndId(Long schoolId, Long classId) {
+        return classRepository.findBySchoolIdAndId(schoolId, classId);
+    }
 }

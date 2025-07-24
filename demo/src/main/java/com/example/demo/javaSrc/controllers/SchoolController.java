@@ -1,6 +1,5 @@
 package com.example.demo.javaSrc.controllers;
 
-import java.net.Authenticator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
