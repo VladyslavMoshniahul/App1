@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `password_hash`  VARCHAR(255) NOT NULL,
   `role`           ENUM('TEACHER','STUDENT','PARENT', 'DIRECTOR', 'ADMIN') NOT NULL,
   `about_me`       TEXT NULL,
-  `date_of_birth`  DATE NULL,
+  `date_of_birth`  DATE NOT NULL,
   FOREIGN KEY (`school_id`) REFERENCES `schools`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`class_id`)  REFERENCES `classes`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB;

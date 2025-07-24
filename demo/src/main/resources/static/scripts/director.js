@@ -221,7 +221,14 @@ function loadProfile() {
       .then(user => {
         document.getElementById('profile-firstName').textContent = user.firstName || '-';
         document.getElementById('profile-lastName').textContent = user.lastName || '-';
-        document.getElementById('profile-dateOfBirth').textContent = user.dateOfBirth || '-';
+        const rawDate = user.dateOfBirth;
+        if (rawDate) {
+          const date = new Date(rawDate);
+          const formatted = date.toLocaleDateString('uk-UA');
+          document.getElementById('profile-dateOfBirth').textContent = formatted;
+        } else {
+          document.getElementById('profile-dateOfBirth').textContent = '-';
+        }
         document.getElementById('profile-aboutMe').textContent = user.aboutMe || '-';
         document.getElementById('profile-schoolName').textContent = user.schoolName || '-';
         document.getElementById('profile-email').textContent = user.email || '-';
@@ -344,12 +351,38 @@ function loadParents(className=''){
     toastr.error("Не вдалося завантажити список батьків.");
   }
 }
+
+function loadPetition(){
+  const petitionList = document.getElementById('petition-list');
+  try {
+    const url = new URL('/api/petitions/petitionsForDirector', window.location.origin);
+
+    fetchWithAuth(url.toString())
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
+      .then(data => {
+        if (data.length > 0) {
+          const petitionNames = data.map( petition => `${petition.title}`);
+          renderList(petitionList, petitionNames);
+        } else {
+          renderList(petitionList, [], `Заявки для школи "${schoolName}" не знайдені.`);
+        }
+      });
+  } catch (error) {
+    console.error("Помилка при завантаженні заявок:", error);
+    toastr.error("Не вдалося завантажити список заявок.");
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   loadProfile();
   loadClasses();
   loadTeachers();
   loadStudents();
   loadParents();
+  loadPetition();
 
   const teachersClassInput = document.getElementById('teachers-class-input');
   if ( teachersClassInput) {
@@ -368,6 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     teachersClassInput.addEventListener('input', studentClassInput);
   }
+
   const parentClassInput = document.getElementById('parents-class-input');
   if (parentClassInput) {
     const updateParentsList = () => {
@@ -377,7 +411,14 @@ document.addEventListener('DOMContentLoaded', () => {
     parentClassInput.addEventListener('input', updateParentsList);
   }
 
-
+  const petitionClassInput = document.getElementById('petition-class-input');
+  if (petitionClassInput) {
+    const updatePetitionList = () => {
+      const className = petitionClassInput.value.trim();
+      loadPetition(school, className);
+    };
+    petitionClassInput.addEventListener('input', updatePetitionList);
+  }
 });
 
 

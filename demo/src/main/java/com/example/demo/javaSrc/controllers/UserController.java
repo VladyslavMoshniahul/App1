@@ -165,7 +165,7 @@ public class UserController {
         newUser.setEmail(newUserRequest.email());
         newUser.setPassword(newUserRequest.password());
         newUser.setRole(newUserRequest.role());
-        newUser.setDateOfBirth(newUserRequest.birthDate());
+        newUser.setDateOfBirth(newUserRequest.dateOfBirth());
 
         if (newUser.getRole() == User.Role.ADMIN) {
             newUser.setSchoolId(null);
@@ -244,6 +244,7 @@ public class UserController {
                 user.getId(),
                 user.getFirstName(),
                 user.getLastName(),
+                user.getDateOfBirth(),
                 user.getAboutMe(),
                 user.getEmail(),
                 user.getRole().toString(),

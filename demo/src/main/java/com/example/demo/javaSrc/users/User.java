@@ -1,6 +1,6 @@
 package com.example.demo.javaSrc.users;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonSetter;
@@ -42,7 +42,7 @@ public class User {
 
     @Column(name = "date_of_birth")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private Date dateOfBirth;
+    private LocalDate dateOfBirth;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
@@ -51,7 +51,7 @@ public class User {
     public User() {}
 
     public User(Long schoolId, Long classId, String firstName, String lastName,
-                String aboutMe, Date dateOfBirth, String email,
+                String aboutMe, LocalDate dateOfBirth, String email,
                 String password, Role role) {
         this.schoolId = schoolId;
         this.classId = classId;
@@ -88,8 +88,8 @@ public class User {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
-    public Date getDateOfBirth() { return dateOfBirth; }
-    public void setDateOfBirth(Date dateOfBirth) { this.dateOfBirth = dateOfBirth; }
+    public LocalDate getDateOfBirth() { return dateOfBirth; }
+    public void setDateOfBirth(LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
 
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }

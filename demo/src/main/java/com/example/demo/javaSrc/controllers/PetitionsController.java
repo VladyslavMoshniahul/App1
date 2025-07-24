@@ -28,6 +28,8 @@ import com.example.demo.javaSrc.petitions.PetitionCreateRequest;
 import com.example.demo.javaSrc.petitions.PetitionDto;
 import com.example.demo.javaSrc.petitions.PetitionService;
 import com.example.demo.javaSrc.petitions.PetitionVoteRequest;
+import com.example.demo.javaSrc.school.ClassService;
+import com.example.demo.javaSrc.school.SchoolClass;
 import com.example.demo.javaSrc.users.User;
 import com.example.demo.javaSrc.users.UserService;
 
@@ -42,13 +44,16 @@ public class PetitionsController {
     private final UserController userController;
     @Autowired
     private final PetitionsCommentService petitionsCommentService;
+    @Autowired
+    private final ClassService classService;
 
     public PetitionsController(PetitionService petitionService, UserService userService, UserController userController, 
-            PetitionsCommentService petitionsCommentService) {
+            PetitionsCommentService petitionsCommentService, ClassService classService) {
         this.petitionService = petitionService;
         this.userService = userService;
         this.userController = userController;
         this.petitionsCommentService = petitionsCommentService;
+        this.classService = classService;
     }
 
     @PreAuthorize("hasRole('STUDENT')")
@@ -151,7 +156,7 @@ public class PetitionsController {
     }
 
     @PreAuthorize("hasRole('DIRECTOR')")
-    @PostMapping("/petitions/{id}/director")
+    @PostMapping("/{id}/directorApprove")
     public ResponseEntity<Void> directorApprove(
             @PathVariable Long id) {
 
@@ -165,7 +170,7 @@ public class PetitionsController {
     }
 
     @PreAuthorize("hasRole('DIRECTOR')")
-    @PostMapping("/petitions/{id}/reject")
+    @PostMapping("/{id}/directorReject")
     public ResponseEntity<Void> directorReject(
             @PathVariable Long id) {
 
@@ -179,6 +184,20 @@ public class PetitionsController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasRole('DIRECTOR')")
+    @GetMapping("/petitionsForDirector")
+    public List<Petition> getPetitionsForDirector(Authentication auth,
+                                                        @RequestParam(required= false) String className) {
+        List<Petition> petitions;                                                   
+        User me = userController.currentUser(auth);
+        SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(me.getSchoolId(), className);
+        if (schoolClass == null) {
+            petitions = petitionService.getPetitionBySchool(me.getSchoolId());
+        }else{
+            petitions = petitionService.getPetitionByClassAndSchool(schoolClass.getId(), me.getSchoolId());
+        }
+        return petitions;
+    }
 
     @PostMapping("/comments")
     public ResponseEntity<PetitionsComment> addComment(@RequestBody PetitionsComment comment) {

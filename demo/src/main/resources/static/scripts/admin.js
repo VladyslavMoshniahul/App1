@@ -71,8 +71,14 @@ async function loadProfileForEdit() {
     document.getElementById("edit-firstName").value = user.firstName || '';
     document.getElementById("edit-lastName").value = user.lastName || '';
     document.getElementById("edit-aboutMe").value = user.aboutMe || '';
-    document.getElementById("edit-dateOfBirth").value = user.dateOfBirth || '';
-    document.getElementById("edit-email").value = user.email || '';
+    const rawDate = user.dateOfBirth;
+    if (rawDate) {
+      const date = new Date(rawDate);
+      const formatted = date.toLocaleDateString('uk-UA');
+      document.getElementById('profile-dateOfBirth').textContent = formatted;
+    } else {
+      document.getElementById('profile-dateOfBirth').textContent = '-';
+    } document.getElementById("edit-email").value = user.email || '';
   } catch (error) {
     console.error("Помилка при завантаженні профілю для редагування:", error);
     toastr.error("Не вдалося завантажити дані профілю.");
@@ -81,33 +87,33 @@ async function loadProfileForEdit() {
 
 document.getElementById("editProfileForm").addEventListener("submit", async (e) => {
   e.preventDefault();
- 
-    const password = document.getElementById("edit-password").value.trim();
-    const confirmPassword = document.getElementById("confirm-password").value.trim();
-    const firstName = document.getElementById("edit-firstName").value.trim();
-    const lastName = document.getElementById("edit-lastName").value.trim();
-    const aboutMe = document.getElementById("edit-aboutMe").value.trim();
-    const dateOfBirth = document.getElementById("edit-dateOfBirth").value.trim();
-    const email = document.getElementById("edit-email").value.trim();
-    if (password && password !== confirmPassword) {
-      toastr.error("Паролі не співпадають.");
-      return;
-    }
 
-    try {
-      const res = await fetchWithAuth(`/api/user/me`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firstName, lastName, aboutMe, dateOfBirth, email, password })
-      });
+  const password = document.getElementById("edit-password").value.trim();
+  const confirmPassword = document.getElementById("confirm-password").value.trim();
+  const firstName = document.getElementById("edit-firstName").value.trim();
+  const lastName = document.getElementById("edit-lastName").value.trim();
+  const aboutMe = document.getElementById("edit-aboutMe").value.trim();
+  const dateOfBirth = document.getElementById("edit-dateOfBirth").value.trim();
+  const email = document.getElementById("edit-email").value.trim();
+  if (password && password !== confirmPassword) {
+    toastr.error("Паролі не співпадають.");
+    return;
+  }
 
-      if (!res.ok) throw new Error(res.status);
-      toastr.success("Профіль успішно оновлено.");
-      document.getElementById("updateProfile").style.display = "none";
-      document.getElementById("editProfileForm").reset();
-    } catch (error) {
-      toastr.error("Помилка при оновленні профілю. Спробуйте ще раз.");
-    }
+  try {
+    const res = await fetchWithAuth(`/api/user/me`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ firstName, lastName, aboutMe, dateOfBirth, email, password })
+    });
+
+    if (!res.ok) throw new Error(res.status);
+    toastr.success("Профіль успішно оновлено.");
+    document.getElementById("updateProfile").style.display = "none";
+    document.getElementById("editProfileForm").reset();
+  } catch (error) {
+    toastr.error("Помилка при оновленні профілю. Спробуйте ще раз.");
+  }
 
 });
 
@@ -283,7 +289,7 @@ toastr.options = {
 };
 
 function renderList(listElement, items, emptyMessage = "Немає даних для відображення.") {
-  listElement.innerHTML = ''; 
+  listElement.innerHTML = '';
 
   if (items && items.length > 0) {
     items.forEach(item => {
@@ -407,7 +413,7 @@ function loadClasses(schoolName = '') {
   }
 }
 
-function loadDirectors(schoolName = ''){
+function loadDirectors(schoolName = '') {
   const directorsList = document.getElementById('directors-list');
   try {
     const url = new URL('/api/user/admin/directors', window.location.origin);
