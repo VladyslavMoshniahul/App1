@@ -80,6 +80,44 @@ public class UserController {
         return teachers;
     }
 
+    @GetMapping("/students")
+    public List<User> getStudents(
+            Authentication auth,
+            @RequestParam(required = false) Long classId) {
+
+        User me = currentUser(auth);
+        Long sch = me.getSchoolId();
+        Long cls = classId != null ? classId : me.getClassId();
+
+        List<User> students;
+        if (classId == null) {
+            students = userService.getBySchoolClassAndRole(sch, null, User.Role.STUDENT);
+        } else{
+            students = userService.getBySchoolClassAndRole(sch, cls, User.Role.STUDENT);
+        }
+
+        return students;
+    }
+    
+    @GetMapping("/parents")
+    public List<User> getParents(
+            Authentication auth,
+            @RequestParam(required = false) Long classId) {
+
+        User me = currentUser(auth);
+        Long sch = me.getSchoolId();
+        Long cls = classId != null ? classId : me.getClassId();
+
+        List<User> teachers;
+        if (classId == null) {
+            teachers = userService.getBySchoolClassAndRole(sch, null, User.Role.TEACHER);
+        } else {
+            teachers = userService.getBySchoolClassAndRole(sch, cls, User.Role.TEACHER);
+        }
+
+        return teachers;
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("admin/teachers")
     public List<User> getTeachersByAdmin(
@@ -317,6 +355,10 @@ public class UserController {
             @RequestParam(required = false) User.Role role) {
         User me = currentUser(auth);
         SchoolClass schoolclass = classService.getClassesBySchoolIdAndName(me.getSchoolId(), className);
+        if (schoolclass == null) {
+            schoolclass = new SchoolClass();
+            schoolclass.setId(null);
+        }
         return userService.getBySchoolClassAndRole(me.getSchoolId(), schoolclass.getId(), role);
     }
 

@@ -86,4 +86,13 @@ public class SchoolController {
         SchoolClass created = classService.createClass(schoolClass);
         return ResponseEntity.ok(created);
     }
+
+    @GetMapping("/getClassIdByName")
+    public ResponseEntity<Long> getClassIdByName(@RequestParam String name, Authentication auth) {
+        Long schoolId = userController.currentUser(auth).getSchoolId();
+        SchoolClass sc = classService.getClassesBySchoolIdAndName(schoolId, name);
+        if (sc == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(sc.getId());
+    }
+
 }
