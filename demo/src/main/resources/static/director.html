@@ -72,13 +72,6 @@
           </form>
         </div>
       </div>
-      <div>
-        <h2>Персональна статистика</h2>
-        <p><strong>Кількість підтриманих петицій: <span id="accepted-petitions-count">-</span></strong></p>
-        <p><strong>Кількість відхилених петицій: <span id="rejected-petitions-count">-</span></strong></p>
-        <p><strong>Кількість створених мною голосувань: <span id="voting-count">-</span></strong></p>
-        <p><strong>Кількість створених подій: <span id="event-count"></span>-</strong></p>
-      </div>
     </section>
 
     <!-- === Статистика === -->
@@ -138,7 +131,7 @@
         </form>
       </div>
 
-      <div id="create-event">
+      <div id="create-event"> <!-- TODO can also create invations-->
         <h2>Створити подію</h2>
         <form id="create-event-form">
           <input name="event-class-name" placeholder="Назва класу"><br>
@@ -180,6 +173,7 @@
             <input class="vote-option" name="option" placeholder="Варіант 2" required>
           </div>
           <button type="button" id="add-vote-option">Додати варіант</button><br>
+          <!--TODO Список учасників (хто може голосувати)-->
           <button type="submit" id="create-vote-button">Створити голосування</button>
         </form>
       </div>
@@ -192,6 +186,21 @@
       <input type="text" id="petition-class-input" placeholder="Назва класу" />
       <ul id="petitions-list"></ul>
     </section>
+
+    <!--  
+        TODO Календар подій з режимами перегляду:
+        TODO Основний - місячний
+        TODO Додатково - денний, тижневий, річний
+        TODO Перегляд календаря інших користувачів без доступу до деталей подій (видно лише факт існування події)
+        TODO Перевірка на конфлікти при запрошенні (сповіщення про перетин подій за часом)
+        TODO Позначення подій, що перетинаються у календарі користувача
+        TODO Відображення подій в календарі                 
+        TODO Можливість відфільтрувати:
+        TODO Голосування, в яких можна ще взяти участь
+        TODO Голосування, де користувач вже проголосував
+        TODO Завершені голосування
+        TODO Кількість відвіданих подій.
+      -->
   </main>
 
   <script type="module" src="scripts/director.js"></script>
