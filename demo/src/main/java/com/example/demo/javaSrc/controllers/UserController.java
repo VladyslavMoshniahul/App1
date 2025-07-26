@@ -64,17 +64,18 @@ public class UserController {
     @GetMapping("/teachers")
     public List<User> getTeachers(
             Authentication auth,
-            @RequestParam(required = false) Long classId) {
+            @RequestParam(required = false) String className) {
 
         User me = currentUser(auth);
-        Long sch = me.getSchoolId();
-        Long cls = classId != null ? classId : me.getClassId();
+        Long schoolId = me.getSchoolId();
+        SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, className);
+        Long classId = schoolClass != null ? schoolClass.getId() : null;
 
         List<User> teachers;
-        if (classId == null) {
-            teachers = userService.getBySchoolClassAndRole(sch, null, User.Role.TEACHER);
+        if (className == null) {
+            teachers = userService.getBySchoolClassAndRole(schoolId, null, User.Role.TEACHER);
         } else {
-            teachers = userService.getBySchoolClassAndRole(sch, cls, User.Role.TEACHER);
+            teachers = userService.getBySchoolClassAndRole(schoolId, classId, User.Role.TEACHER);
         }
 
         return teachers;
@@ -83,39 +84,40 @@ public class UserController {
     @GetMapping("/students")
     public List<User> getStudents(
             Authentication auth,
-            @RequestParam(required = false) Long classId) {
+            @RequestParam(required = false) String className) {
 
         User me = currentUser(auth);
-        Long sch = me.getSchoolId();
-        Long cls = classId != null ? classId : me.getClassId();
-
+        Long schoolId = me.getSchoolId();
+        SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, className);
+        Long classId = schoolClass != null ? schoolClass.getId() : null;
         List<User> students;
-        if (classId == null) {
-            students = userService.getBySchoolClassAndRole(sch, null, User.Role.STUDENT);
-        } else{
-            students = userService.getBySchoolClassAndRole(sch, cls, User.Role.STUDENT);
+        if (className == null) {
+            students = userService.getBySchoolClassAndRole(schoolId, null, User.Role.STUDENT);
+        } else {
+            students = userService.getBySchoolClassAndRole(schoolId, classId, User.Role.STUDENT);
         }
 
         return students;
     }
-    
+
     @GetMapping("/parents")
     public List<User> getParents(
             Authentication auth,
-            @RequestParam(required = false) Long classId) {
+            @RequestParam(required = false) String className) {
 
         User me = currentUser(auth);
-        Long sch = me.getSchoolId();
-        Long cls = classId != null ? classId : me.getClassId();
+        Long schoolId = me.getSchoolId();
+        SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, className);
+        Long classId = schoolClass != null ? schoolClass.getId() : null;
 
-        List<User> teachers;
-        if (classId == null) {
-            teachers = userService.getBySchoolClassAndRole(sch, null, User.Role.TEACHER);
+        List<User> parents;
+        if (className == null) {
+            parents = userService.getBySchoolClassAndRole(schoolId, null, User.Role.TEACHER);
         } else {
-            teachers = userService.getBySchoolClassAndRole(sch, cls, User.Role.TEACHER);
+            parents = userService.getBySchoolClassAndRole(schoolId, classId, User.Role.TEACHER);
         }
 
-        return teachers;
+        return parents;
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -144,14 +146,14 @@ public class UserController {
     public List<User> getDirectorsByAdmin(
             @RequestParam(required = false) String schoolName) {
         School school = schoolService.getSchoolByName(schoolName);
-        Long sch = school != null ? school.getId() : null;
+        Long schoolId = school != null ? school.getId() : null;
 
         List<User> directors;
-        if (sch == null) {
+        if (schoolId == null) {
             return List.of();
         } else {
             directors = new ArrayList<>();
-            directors.addAll(userService.getBySchoolClassAndRole(sch, null, User.Role.DIRECTOR));
+            directors.addAll(userService.getBySchoolClassAndRole(schoolId, null, User.Role.DIRECTOR));
         }
         return directors;
     }

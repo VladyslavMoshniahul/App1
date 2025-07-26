@@ -334,8 +334,7 @@ function loadStudents(className = '') {
 function loadParents(className = '') {
   const parentsList = document.getElementById('parents-list');
   try {
-    const role = 'PARENT';
-    const url = new URL(`/api/user/users/role/school/${role}`, window.location.origin);
+    const url = new URL(`/api/user/parents`, window.location.origin);
 
     if (className) {
       url.searchParams.append('className', className);
@@ -351,7 +350,7 @@ function loadParents(className = '') {
           const parentNames = data.map(parent => `${parent.firstName} ${parent.lastName} ${parent.email}`);
           renderList(parentsList, parentNames);
         } else {
-          renderList(parentsList, [], `Батьків для класу "${className}" не знайдені.`);
+          renderList(parentsList, [], `Батьки для класу "${className}" не знайдені.`);
         }
       });
   } catch (error) {
