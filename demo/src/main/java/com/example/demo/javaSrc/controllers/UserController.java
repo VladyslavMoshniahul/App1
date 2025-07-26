@@ -112,9 +112,9 @@ public class UserController {
 
         List<User> parents;
         if (className == null) {
-            parents = userService.getBySchoolClassAndRole(schoolId, null, User.Role.TEACHER);
+            parents = userService.getBySchoolClassAndRole(schoolId, null, User.Role.PARENT);
         } else {
-            parents = userService.getBySchoolClassAndRole(schoolId, classId, User.Role.TEACHER);
+            parents = userService.getBySchoolClassAndRole(schoolId, classId, User.Role.PARENT);
         }
 
         return parents;

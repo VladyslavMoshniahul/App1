@@ -296,7 +296,7 @@ function loadTeachers(className = '') {
           const teacherNames = data.map(teacher => `${teacher.firstName} ${teacher.lastName} ${teacher.email}`);
           renderList(teachersList, teacherNames);
         } else {
-          renderList(teachersList, [], `Вчителі для школи "${schoolName}" та класу "${className}" не знайдені.`);
+          renderList(teachersList, [], `Вчителі для класу "${className}" не знайдені.`);
         }
       });
   } catch (error) {
