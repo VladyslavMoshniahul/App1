@@ -23,11 +23,14 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.demo.javaSrc.comments.EventsCommentService;
 import com.example.demo.javaSrc.comments.EventsComment;
 import com.example.demo.javaSrc.events.Event;
+import com.example.demo.javaSrc.events.EventCreateRequest;
 import com.example.demo.javaSrc.events.EventFile;
 import com.example.demo.javaSrc.events.EventService;
 import com.example.demo.javaSrc.invitations.Invitation;
 import com.example.demo.javaSrc.invitations.InvitationsService;
 import com.example.demo.javaSrc.invitations.UserInvitationStatus;
+import com.example.demo.javaSrc.school.ClassService;
+import com.example.demo.javaSrc.school.SchoolClass;
 import com.example.demo.javaSrc.tasks.Task;
 import com.example.demo.javaSrc.tasks.TaskRepository;
 import com.example.demo.javaSrc.users.User;
@@ -48,15 +51,19 @@ public class EventController {
     private final TaskRepository taskRepository;
     @Autowired
     private final EventsCommentService eventsCommentService;
+    @Autowired
+    private final ClassService classService;
 
-    public EventController(UserController userController, EventService eventService, UserService userService,InvitationsService invitationsService,
-                                TaskRepository taskRepository, EventsCommentService eventsCommentService) {
+    public EventController(UserController userController, EventService eventService, UserService userService,
+            InvitationsService invitationsService,
+            TaskRepository taskRepository, EventsCommentService eventsCommentService, ClassService classService) {
         this.userController = userController;
         this.eventService = eventService;
         this.userService = userService;
         this.invitationsService = invitationsService;
         this.taskRepository = taskRepository;
         this.eventsCommentService = eventsCommentService;
+        this.classService = classService;
     }
 
     @GetMapping("/getEvents")
@@ -70,8 +77,8 @@ public class EventController {
 
         if (userId != null) {
             User target = userService.getAllUsers().stream()
-                .filter(u -> u.getId().equals(userId))
-                .findFirst().orElse(null);
+                    .filter(u -> u.getId().equals(userId))
+                    .findFirst().orElse(null);
             if (target == null) {
                 return List.of();
             }
@@ -79,53 +86,83 @@ public class EventController {
             Long cls = target.getClassId();
             List<Event> events = eventService.getEventsForSchool(sch);
             return events.stream()
-                .filter(event -> event.getClassId() == null || (cls != null && cls.equals(event.getClassId())))
-                .sorted(Comparator.comparing(Event::getStartEvent))
-                .collect(Collectors.toList());
+                    .filter(event -> event.getClassId() == null || (cls != null && cls.equals(event.getClassId())))
+                    .sorted(Comparator.comparing(Event::getStartEvent))
+                    .collect(Collectors.toList());
         }
 
         Long sch = schoolId != null ? schoolId : me.getSchoolId();
         Long cls = classId != null ? classId : me.getClassId();
         List<Event> events = eventService.getEventsForSchool(sch);
         return events.stream()
-            .filter(event -> event.getClassId() == null || (cls != null && cls.equals(event.getClassId())))
-            .sorted(Comparator.comparing(Event::getStartEvent))
-            .collect(Collectors.toList());
+                .filter(event -> event.getClassId() == null || (cls != null && cls.equals(event.getClassId())))
+                .sorted(Comparator.comparing(Event::getStartEvent))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Event> getEventById(@PathVariable Long id) {
         Event event = eventService.getEventById(id);
-        if (event == null) return ResponseEntity.notFound().build();
+        if (event == null)
+            return ResponseEntity.notFound().build();
         return ResponseEntity.ok(event);
     }
-
 
     @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR', 'STUDENT')")
     @PostMapping("/events")
     public ResponseEntity<?> createEvent(
-            @RequestBody Event req,
+            @RequestBody EventCreateRequest req,
             Authentication auth) {
 
         Event event = new Event();
-        event.setTitle(req.getTitle());
-        event.setContent(req.getContent());
-        event.setLocationOrLink(req.getLocationOrLink());
-        event.setStartEvent(req.getStartEvent());
-        event.setDuration(req.getDuration());
-        event.setEventType(req.getEventType());
+        event.setTitle(req.title());
+        event.setContent(req.content());
+        event.setLocationOrLink(req.locationORlink());
+        event.setStartEvent(req.startEvent());
+        event.setDuration(req.duration());
+        event.setEventType(req.eventType());
         event.setSchoolId(userController.currentUser(auth).getSchoolId());
-        Long classId = req.getClassId() != null ? 
-                                                        req.getClassId() : userController.currentUser(auth).getClassId();
-        if (userController.currentUser(auth).getRole() == User.Role.STUDENT 
-                            && !Objects.equals(req.getClassId(), userController.currentUser(auth).getClassId())) {
+
+        SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(
+                userController.currentUser(auth).getSchoolId(),
+                req.className());
+        Long classId = schoolClass != null ? schoolClass.getId() : null;
+        if (userController.currentUser(auth).getRole() == User.Role.STUDENT
+                && !Objects.equals(classId, userController.currentUser(auth).getClassId())) {
             return ResponseEntity.status(403).body("Учень може створювати події лише для свого класу");
         }
-        event.setClassId(classId);
+        if (schoolClass == null) {
+            event.setClassId(null);
+        } else {
+            event.setClassId(schoolClass.getId());
+        }
         event.setCreatedBy(userController.currentUser(auth).getId());
 
         Event saved = eventService.createEvent(event);
         return ResponseEntity.ok(saved);
+    }
+
+    @PostMapping("/{eventId}/upload")
+    public ResponseEntity<EventFile> uploadFileToEvent(
+            @PathVariable Long eventId,
+            @RequestParam("file") MultipartFile file) {
+
+        try {
+            Event event = eventService.getEventById(eventId);
+            if (event == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            EventFile eventFile = new EventFile(
+                    file.getOriginalFilename(),
+                    file.getContentType(),
+                    file.getBytes(),
+                    event);
+            EventFile saved = eventService.saveEventFile(eventFile);
+            return ResponseEntity.ok(saved);
+        } catch (Exception event) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @GetMapping("/future/{userId}")
@@ -151,8 +188,7 @@ public class EventController {
             Authentication auth) {
 
         return eventService.searchByTitle(
-            userId, keyword
-        );
+                userId, keyword);
     }
 
     @GetMapping("/search/date")
@@ -163,34 +199,9 @@ public class EventController {
             Authentication auth) {
 
         return eventService.searchByDateRange(
-            userId,
-            LocalDateTime.parse(from),
-            LocalDateTime.parse(to)
-        );
-    }
-
-    @PostMapping("/{eventId}/upload")
-    public ResponseEntity<EventFile> uploadFileToEvent(
-            @PathVariable Long eventId,
-            @RequestParam("file") MultipartFile file) {
-
-        try {
-            Event event = eventService.getEventById(eventId);
-            if (event == null) {
-                return ResponseEntity.notFound().build();
-            }
-
-            EventFile eventFile = new EventFile(
-                    file.getOriginalFilename(),
-                    file.getContentType(),
-                    file.getBytes(),
-                    event
-            );
-            EventFile saved = eventService.saveEventFile(eventFile);
-            return ResponseEntity.ok(saved);
-        } catch (Exception event) {
-            return ResponseEntity.badRequest().build();
-        }
+                userId,
+                LocalDateTime.parse(from),
+                LocalDateTime.parse(to));
     }
 
     @GetMapping("/{eventId}/files")
@@ -202,16 +213,17 @@ public class EventController {
     @GetMapping("/file/{fileId}")
     public ResponseEntity<byte[]> downloadFile(@PathVariable Long fileId) {
         EventFile file = eventService.getEventFileById(fileId);
-        if (file == null) return ResponseEntity.notFound().build();
+        if (file == null)
+            return ResponseEntity.notFound().build();
 
         return ResponseEntity.ok()
-            .header("Content-Disposition", "attachment; filename=\"" + file.getFileName() + "\"")
-            .contentType(org.springframework.http.MediaType.parseMediaType(file.getFileType()))
-            .body(file.getFileData());
+                .header("Content-Disposition", "attachment; filename=\"" + file.getFileName() + "\"")
+                .contentType(org.springframework.http.MediaType.parseMediaType(file.getFileType()))
+                .body(file.getFileData());
     }
 
     @GetMapping("/my-invitations")
-        public List<UserInvitationStatus> getMyInvitations(
+    public List<UserInvitationStatus> getMyInvitations(
             Authentication auth,
             @RequestParam(required = false) UserInvitationStatus.Status status) {
         Long userId = userController.currentUser(auth).getId();
@@ -255,7 +267,7 @@ public class EventController {
             }
         }
 
-        Invitation invitation = invitationsService.createGroupInvitation( eventId,  currentUser.getId(), userIds);
+        Invitation invitation = invitationsService.createGroupInvitation(eventId, currentUser.getId(), userIds);
         return ResponseEntity.ok(invitation);
     }
 

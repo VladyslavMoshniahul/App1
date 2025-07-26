@@ -115,8 +115,8 @@ document.getElementById("editProfileForm").addEventListener("submit", async (e) 
 
 document.getElementById("create-class-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  
-  const response =  await fetchWithAuth('/api/user/myProfile');
+
+  const response = await fetchWithAuth('/api/user/myProfile');
   const user = await response.json();
   const schoolName = user.schoolName || '';
 
@@ -144,8 +144,8 @@ document.getElementById("create-class-form").addEventListener("submit", async (e
 
 document.getElementById("create-user-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  
-  const response =  await fetchWithAuth('/api/user/myProfile');
+
+  const response = await fetchWithAuth('/api/user/myProfile');
   const user = await response.json();
   const schoolName = user.schoolName || '';
 
@@ -199,6 +199,161 @@ document.getElementById("create-user-form").addEventListener("submit", async (e)
     .catch(() => toastr.error("Не вдалося створити користувача."));
 });
 
+document.getElementById('vote-create-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const form = e.target;
+  const title = form['vote-title'].value.trim();
+  const description = form['vote-description'].value.trim();
+  const level = form['vote-level'].value;
+  const startDate = form['vote-startDate'].value;
+  const endDate = form['vote-endDate'].value;
+  const multipleChoice = form['vote-multipleChoice'].checked;
+
+  const optionInputs = document.querySelectorAll('.vote-option');
+  const options = Array.from(optionInputs)
+    .map(input => input.value.trim())
+    .filter(opt => opt.length > 0);
+
+  if (options.length < 2) {
+    toastr.error('Мінімум два варіанти голосування.');
+    return;
+  }
+
+  const payload = {
+    title,
+    description,
+    votingLevel: level === "SELECTED" ? "SELECTED_USERS" : level,
+    startDate,
+    endDate,
+    multipleChoice,
+    variants: options.map(text => ({ text }))
+  };
+
+  try {
+    const response = await fetch('/api/vote/createVoting', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (response.ok) {
+      await response.json();
+      toastr.success("Голосування створено успішно!");
+      form.reset();
+      document.getElementById('vote-options-list').innerHTML = `
+              <input class="vote-option" name="option" placeholder="Варіант 1" required>
+              <input class="vote-option" name="option" placeholder="Варіант 2" required>
+            `;
+    } else {
+      const errorText = await response.text();
+      toastr.error("Помилка: " + errorText);
+    }
+  } catch (error) {
+    console.error("Помилка при створенні голосування:", error);
+    toastr.error("Виникла помилка при надсиланні голосування.");
+  }
+});
+
+document.getElementById('add-vote-option').addEventListener('click', () => {
+  const list = document.getElementById('vote-options-list');
+  const input = document.createElement('input');
+  input.className = 'vote-option';
+  input.name = 'option';
+  input.placeholder = `Варіант ${list.children.length + 1}`;
+  input.required = true;
+  list.appendChild(input);
+});
+
+document.getElementById('create-event-form').addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  const form = e.target;
+
+  const className = form['event-class-name'].value.trim();
+  const title = form['event-title'].value.trim();
+  const content = form['event-content'].value.trim();
+  const locationOrLink = form['event-locationORlink'].value.trim();
+  const startDate = form['event-startDate'].value;
+  const duration = parseInt(form['event-duration'].value, 10);
+  const eventType = document.getElementById('event-type').value;
+
+  if (!eventType) {
+    toastr.error("Будь ласка, виберіть тип події.");
+    return;
+  }
+
+  let classId = null;
+  try {
+    const classResp = await fetch(`/api/school/getClassIdByName?name=${encodeURIComponent(className)}`);
+    if (classResp.ok) {
+      classId = await classResp.json();
+    } else {
+      toastr.error("Клас не знайдено");
+      return;
+    }
+  } catch (err) {
+    console.error("Помилка при отриманні класу:", err);
+    toastr.error("Не вдалося отримати ID класу");
+    return;
+  }
+
+  const eventData = {
+    title,
+    content,
+    locationOrLink,
+    startEvent: startDate,
+    duration,
+    eventType,
+    classId
+  };
+
+  try {
+    const response = await fetch('/api/event/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(eventData)
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || 'Помилка створення події');
+    }
+
+    const createdEvent = await response.json();
+
+    if (!createdEvent?.id) {
+      throw new Error("Невірна відповідь сервера при створенні події.");
+    }
+
+    const fileInput = document.getElementById('event-file');
+    const file = fileInput.files[0];
+
+    if (file) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const uploadResp = await fetch(`/api/event/${createdEvent.id}/upload`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!uploadResp.ok) {
+        toastr.warning("Подію створено, але файл не завантажено");
+      }
+    }
+
+    toastr.success("Подію створено успішно!");
+    form.reset();
+    document.getElementById('event-file').value = "";
+
+  } catch (err) {
+    console.error("Помилка при створенні події:", err);
+    toastr.error("Не вдалося створити подію: " + err.message);
+  }
+});
+
+
 function renderList(listElement, items, emptyMessage = "Немає даних для відображення.") {
   listElement.innerHTML = '';
 
@@ -216,6 +371,7 @@ function renderList(listElement, items, emptyMessage = "Немає даних д
     listElement.appendChild(li);
   }
 }
+
 function loadProfile() {
   const profile = document.getElementById('profile-section');
 
@@ -429,157 +585,6 @@ document.addEventListener('DOMContentLoaded', () => {
       loadPetition(className);
     };
     petitionClassInput.addEventListener('input', updatePetitionList);
-  }
-});
-
-document.getElementById('add-vote-option').addEventListener('click', () => {
-    const list = document.getElementById('vote-options-list');
-    const input = document.createElement('input');
-    input.className = 'vote-option';
-    input.name = 'option';
-    input.placeholder = `Варіант ${list.children.length + 1}`;
-    input.required = true;
-    list.appendChild(input);
-});
-
-document.getElementById('vote-create-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const form = e.target;
-    const title = form['vote-title'].value.trim();
-    const description = form['vote-description'].value.trim();
-    const level = form['vote-level'].value;
-    const startDate = form['vote-startDate'].value;
-    const endDate = form['vote-endDate'].value;
-    const multipleChoice = form['vote-multipleChoice'].checked;
-
-    const optionInputs = document.querySelectorAll('.vote-option');
-    const options = Array.from(optionInputs)
-        .map(input => input.value.trim())
-        .filter(opt => opt.length > 0);
-
-    if (options.length < 2) {
-        toastr.error('Мінімум два варіанти голосування.');
-        return;
-    }
-
-    const payload = {
-        title: title,
-        description: description,
-        votingLevel: level === "SELECTED" ? "SELECTED_USERS" : level,
-        startDate: startDate,
-        endDate: endDate,
-        multipleChoice: multipleChoice,
-        variants: options.map(text => ({ text })) 
-    };
-
-    try {
-        const response = await fetch('/api/vote/createVoting', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            toastr.success("Голосування створено успішно!");
-            form.reset();
-            document.getElementById('vote-options-list').innerHTML = `
-              <input class="vote-option" name="option" placeholder="Варіант 1" required>
-              <input class="vote-option" name="option" placeholder="Варіант 2" required>
-            `;
-        } else {
-            const errorText = await response.text();
-            toastr.error("Помилка: " + errorText);
-        }
-    } catch (error) {
-        console.error("Помилка при створенні голосування:", error);
-        toastr.error("Виникла помилка при надсиланні голосування.");
-    }
-});
-
-document.getElementById('create-event-form').addEventListener('submit', async function (e) {
-  e.preventDefault();
-
-  const form = e.target;
-
-  const className = form['event-class-name'].value.trim();
-  const title = form['event-title'].value.trim();
-  const content = form['event-content'].value.trim();
-  const locationOrLink = form['event-locationORlink'].value.trim();
-  const startDate = form['event-startDate'].value;
-  const duration = parseInt(form['event-duration'].value, 10);
-  const eventType = document.getElementById('event-type').value;
-
-  if (!eventType) {
-    toastr.error("Будь ласка, виберіть тип події.");
-    return;
-  }
-
-  let classId = null;
-  try {
-    const classResp = await fetch(`/api/school/getClassIdByName?name=${encodeURIComponent(className)}`);
-    if (classResp.ok) {
-      classId = await classResp.json();
-    } else {
-      toastr.error("Клас не знайдено");
-      return;
-    }
-  } catch (err) {
-    console.error("Помилка при отриманні класу:", err);
-    toastr.error("Не вдалося отримати ID класу");
-    return;
-  }
-
-  const eventData = {
-    title,
-    content,
-    locationOrLink,
-    startEvent: startDate,
-    duration,
-    eventType,
-    classId
-  };
-
-  try {
-    const response = await fetch('/api/event/events', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(eventData)
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(text || 'Помилка створення події');
-    }
-
-    const createdEvent = await response.json();
-    const fileInput = document.getElementById('event-file');
-    const file = fileInput.files[0];
-
-    if (file) {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const uploadResp = await fetch(`/api/event/${createdEvent.id}/upload`, {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!uploadResp.ok) {
-        toastr.success("Подію створено, але файл не завантажено");
-      }
-    }
-
-    toastr.success("Подію створено успішно!");
-    form.reset();
-    fileInput.value = "";
-
-  } catch (err) {
-    console.error("Помилка при створенні події:", err);
-    toastr.error("Не вдалося створити подію: " + err.message);
   }
 });
 

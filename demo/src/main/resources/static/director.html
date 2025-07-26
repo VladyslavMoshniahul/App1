@@ -138,24 +138,24 @@
         </form>
       </div>
 
-      <div id = "create-event">
+      <div id="create-event">
         <h2>Створити подію</h2>
         <form id="create-event-form">
-          <input name = "event-class-name" placeholder="Назва класу" required><br>
+          <input name="event-class-name" placeholder="Назва класу"><br>
           <input name="event-title" placeholder="Назва голосування" required><br>
           <textarea name="event-content" placeholder="Опис"></textarea><br>
           <input name="event-locationORlink" placeholder="Локація або посилання"><br>
-           <label>Початок: <input type="datetime-local" name="event-startDate" required></label><br>
-          <label>Триваліть(у хв): <input type="number" name="event-duration" required></label><br>
-           <select id="event-type">
+          <label>Початок: <input type="datetime-local" name="event-startDate" required></label><br>
+          <label>Триваліть(у хв): <input type="number" name="event-duration" required min="5"></label><br>
+          <select id="event-type" name="event-type" required>
             <option value="">Оберіть тип</option>
             <option value="PERSONAL">Особисте</option>
             <option value="SCHOOL_EVENT">Шкільна подія</option>
             <option value="PARENTS_MEETING">Батьківські збори</option>
           </select>
+          <button type="submit" id="create-event-button">Створити подію</button>
+          <input type="file" name="event-file" id="event-file"><br>
         </form>
-        <input type="file" name="event-file" id="event-file"><br>
-        <button type="submit">Створити подію</button>
       </div>
 
       <div id="vote-create">
@@ -164,7 +164,7 @@
           <input name="vote-title" placeholder="Назва голосування" required><br>
           <textarea name="vote-description" placeholder="Опис"></textarea><br>
           <label>Рівень:
-            <select name="vote-level" id="vote-level">
+            <select name="vote-level" id="vote-level" required>
               <option value="SCHOOL">Вся школа</option>
               <option value="CLASS">Клас</option>
               <option value="TEACHERS_GROUP">Група вчителів</option>
@@ -180,7 +180,7 @@
             <input class="vote-option" name="option" placeholder="Варіант 2" required>
           </div>
           <button type="button" id="add-vote-option">Додати варіант</button><br>
-          <button type="submit">Створити голосування</button>
+          <button type="submit" id="create-vote-button">Створити голосування</button>
         </form>
       </div>
 
