@@ -43,6 +43,8 @@ public class SecurityConfig {
               .requestMatchers("/login.html", "/api/login",
                                "/styles/**", "/scripts/**", "/images/**").permitAll()
 
+              .requestMatchers("/ws/**").permitAll()
+
               .requestMatchers("/api/**").authenticated()
 
               .anyRequest().authenticated()
@@ -100,4 +102,5 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
 }
