@@ -35,13 +35,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = null;
 
-        // 1) Спробуємо витягнути токен із заголовка Authorization
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
         }
 
-        // 2) Якщо в заголовку нічого не знайшли — спробуємо cookie
         if (token == null && request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("JWT".equals(cookie.getName())) {
@@ -51,7 +49,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        // 3) Якщо токен є і він валідний — аутентифікуємо користувача
         if (token != null && jwtUtils.validateToken(token)) {
             String username = jwtUtils.getUsername(token);
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);

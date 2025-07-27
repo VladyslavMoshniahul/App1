@@ -33,7 +33,7 @@ public class JwtUtils {
                    .setIssuer(jwtIssuer)
                    .setIssuedAt(now)
                    .setExpiration(exp)
-                   .claim("role", role.replace("ROLE_",""))  // без префикса
+                   .claim("role", role.replace("ROLE_",""))  
                    .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                    .compact();
     }

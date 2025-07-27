@@ -43,7 +43,7 @@ public class SecurityConfig {
               .requestMatchers("/login.html", "/api/login",
                                "/styles/**", "/scripts/**", "/images/**").permitAll()
 
-              .requestMatchers("/ws/**").permitAll()
+              .requestMatchers("/wss/**").permitAll()
 
               .requestMatchers("/api/**").authenticated()
 
