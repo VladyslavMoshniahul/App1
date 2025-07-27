@@ -14,7 +14,7 @@ import java.util.Date;
 public class JwtUtils {
 
     @Value("${app.jwt.secret}")      private String jwtSecret;
-    @Value("${app.jwt.expiration-ms}") private long jwtExpirationMs;
+    @Value("${app.jwt.expirationMs}") private long jwtExpirationMs;
     @Value("${app.jwt.issuer}")      private String jwtIssuer;
 
     private Key getSigningKey() {

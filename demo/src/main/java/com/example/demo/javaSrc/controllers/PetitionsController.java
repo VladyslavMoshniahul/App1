@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate; // Додано імпорт
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -46,14 +47,17 @@ public class PetitionsController {
     private final PetitionsCommentService petitionsCommentService;
     @Autowired
     private final ClassService classService;
+    @Autowired
+    private final SimpMessagingTemplate messagingTemplate; // Додано SimpMessagingTemplate
 
-    public PetitionsController(PetitionService petitionService, UserService userService, UserController userController, 
-            PetitionsCommentService petitionsCommentService, ClassService classService) {
+    public PetitionsController(PetitionService petitionService, UserService userService, UserController userController,
+                               PetitionsCommentService petitionsCommentService, ClassService classService, SimpMessagingTemplate messagingTemplate) {
         this.petitionService = petitionService;
         this.userService = userService;
         this.userController = userController;
         this.petitionsCommentService = petitionsCommentService;
         this.classService = classService;
+        this.messagingTemplate = messagingTemplate; // Ініціалізація
     }
 
     @PreAuthorize("hasRole('STUDENT')")
@@ -64,6 +68,8 @@ public class PetitionsController {
 
         User user = userController.currentUser(auth);
         if (user == null) {
+            // Закоментовано: Можливо, сповіщення про неавторизований доступ
+            // messagingTemplate.convertAndSendToUser(auth.getName(), "/queue/errors", "Unauthorized access for petition creation.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
@@ -95,6 +101,18 @@ public class PetitionsController {
 
         int totalStudents = petitionService.getTotalStudentsForPetition(saved);
         PetitionDto dto = PetitionDto.from(saved, totalStudents);
+
+        // --- WebSocket Integration ---
+        // Сповіщаємо про створення нової петиції
+        if (saved.getSchoolId() != null) {
+            messagingTemplate.convertAndSend("/topic/school/" + saved.getSchoolId() + "/petitions", dto);
+        }
+        if (saved.getClassId() != null) {
+            messagingTemplate.convertAndSend("/topic/class/" + saved.getClassId() + "/petitions", dto);
+        } else {
+            messagingTemplate.convertAndSend("/topic/petitions/general", dto); // Для петицій без прив'язки до класу
+        }
+        // --- End WebSocket Integration ---
 
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
@@ -131,10 +149,14 @@ public class PetitionsController {
                 })
                 .toList();
 
+        // --- WebSocket Integration (Optional for GET methods) ---
+        // Закоментовано: надсилання списку петицій при запиті
+        // messagingTemplate.convertAndSend("/topic/petitions/user/" + userId + "/accessible", dtos);
+        // --- End WebSocket Integration ---
+
         return ResponseEntity.ok(dtos);
     }
 
-    
     @PostMapping(value = "/petitions/{id}/vote", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> votePetition(
             @PathVariable Long id,
@@ -142,14 +164,33 @@ public class PetitionsController {
             Authentication auth) {
 
         try {
-            User user = userService.findByEmail(auth.getName()); 
+            User user = userService.findByEmail(auth.getName());
             petitionService.vote(id, user.getId(), req.getVote());
+
+            // --- WebSocket Integration ---
+            // Сповіщаємо про оновлення голосів за петицією
+            Petition updatedPetition = petitionService.getPetitionById(id); // Отримуємо оновлену петицію
+            if (updatedPetition != null) {
+                int totalStudents = petitionService.getTotalStudentsForPetition(updatedPetition);
+                PetitionDto updatedDto = PetitionDto.from(updatedPetition, totalStudents);
+                messagingTemplate.convertAndSend("/topic/petition/" + id + "/votes", updatedDto);
+            }
+            // --- End WebSocket Integration ---
+
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException ex) {
+            // --- WebSocket Integration ---
+            // Сповіщаємо про помилку голосування конкретному користувачу
+            messagingTemplate.convertAndSendToUser(auth.getName(), "/queue/errors", "Помилка голосування: " + ex.getMessage());
+            // --- End WebSocket Integration ---
             return ResponseEntity.badRequest()
-                    .body("Недопустимый тип голосування: " + req.getVote());
+                    .body("Недопустимый тип голосування: " + ex.getMessage());
         } catch (Exception ex) {
             ex.printStackTrace();
+            // --- WebSocket Integration ---
+            // Сповіщаємо про загальну помилку голосування конкретному користувачу
+            messagingTemplate.convertAndSendToUser(auth.getName(), "/queue/errors", "Помилка у голосуванні: " + ex.getMessage());
+            // --- End WebSocket Integration ---
             return ResponseEntity.badRequest()
                     .body("Помилка у голосуванні: " + ex.getMessage());
         }
@@ -162,10 +203,22 @@ public class PetitionsController {
 
         Petition petition = petitionService.getPetitionById(id);
         if (petition == null || petition.getDirectorsDecision() != Petition.DirectorsDecision.PENDING) {
+            // --- WebSocket Integration ---
+            // Сповіщення про невдалу спробу схвалення
+            // messagingTemplate.convertAndSend("/topic/petition/" + id + "/approvalFailed", "Petition not found or not pending for approval.");
+            // --- End WebSocket Integration ---
             return ResponseEntity.badRequest().build();
         }
         petition.setDirectorsDecision(Petition.DirectorsDecision.APPROVED);
-        petitionService.createPetition(petition);
+        petitionService.createPetition(petition); // Використовуйте `updatePetition` якщо такий метод є
+        // --- WebSocket Integration ---
+        // Сповіщаємо про схвалення петиції директором
+        PetitionDto updatedDto = PetitionDto.from(petition, petitionService.getTotalStudentsForPetition(petition));
+        messagingTemplate.convertAndSend("/topic/petition/" + id + "/statusUpdate", updatedDto);
+        messagingTemplate.convertAndSend("/topic/school/" + petition.getSchoolId() + "/petitionStatus", updatedDto);
+        // Також можна сповістити автора петиції
+        // messagingTemplate.convertAndSendToUser(petition.getCreatedBy().toString(), "/queue/myPetitionStatus", "Your petition " + id + " has been APPROVED by the director.");
+        // --- End WebSocket Integration ---
         return ResponseEntity.ok().build();
     }
 
@@ -176,19 +229,31 @@ public class PetitionsController {
 
         Petition petition = petitionService.getPetitionById(id);
         if (petition == null || petition.getDirectorsDecision() != Petition.DirectorsDecision.PENDING) {
+            // --- WebSocket Integration ---
+            // Сповіщення про невдалу спробу відхилення
+            // messagingTemplate.convertAndSend("/topic/petition/" + id + "/rejectionFailed", "Petition not found or not pending for rejection.");
+            // --- End WebSocket Integration ---
             return ResponseEntity.badRequest().build();
         }
 
         petition.setDirectorsDecision(Petition.DirectorsDecision.REJECTED);
-        petitionService.createPetition(petition);
+        petitionService.createPetition(petition); // Використовуйте `updatePetition` якщо такий метод є
+        // --- WebSocket Integration ---
+        // Сповіщаємо про відхилення петиції директором
+        PetitionDto updatedDto = PetitionDto.from(petition, petitionService.getTotalStudentsForPetition(petition));
+        messagingTemplate.convertAndSend("/topic/petition/" + id + "/statusUpdate", updatedDto);
+        messagingTemplate.convertAndSend("/topic/school/" + petition.getSchoolId() + "/petitionStatus", updatedDto);
+        // Також можна сповістити автора петиції
+        // messagingTemplate.convertAndSendToUser(petition.getCreatedBy().toString(), "/queue/myPetitionStatus", "Your petition " + id + " has been REJECTED by the director.");
+        // --- End WebSocket Integration ---
         return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("hasRole('DIRECTOR')")
     @GetMapping("/petitionsForDirector")
     public List<Petition> getPetitionsForDirector(Authentication auth,
-                                                        @RequestParam(required= false) String className) {
-        List<Petition> petitions;                                                   
+                                                  @RequestParam(required= false) String className) {
+        List<Petition> petitions;
         User me = userController.currentUser(auth);
         SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(me.getSchoolId(), className);
         if (schoolClass == null) {
@@ -196,48 +261,90 @@ public class PetitionsController {
         }else{
             petitions = petitionService.getPetitionByClassAndSchool(schoolClass.getId(), me.getSchoolId());
         }
+        // --- WebSocket Integration (Optional for GET methods) ---
+        // Закоментовано: надсилання списку петицій для директора
+        // messagingTemplate.convertAndSendToUser(me.getId().toString(), "/queue/directorPetitions", petitions);
+        // --- End WebSocket Integration ---
         return petitions;
     }
 
     @PostMapping("/comments")
     public ResponseEntity<PetitionsComment> addComment(@RequestBody PetitionsComment comment) {
         PetitionsComment saved = petitionsCommentService.addComment(comment);
+        // --- WebSocket Integration ---
+        // Сповіщаємо про новий коментар до петиції
+        if (saved.getPetitionId() != null) {
+            messagingTemplate.convertAndSend("/topic/petition/" + saved.getPetitionId() + "/comments", saved);
+        }
+        // --- End WebSocket Integration ---
         return ResponseEntity.ok(saved);
     }
 
     @GetMapping("/comments/{id}")
     public ResponseEntity<PetitionsComment> getComment(@PathVariable Long id) {
         PetitionsComment comment = petitionsCommentService.getComment(id);
-        if (comment == null)
+        if (comment == null) {
+            // --- WebSocket Integration (Optional for GET methods) ---
+            // messagingTemplate.convertAndSend("/topic/comment/" + id + "/notFound", "Comment with ID " + id + " not found.");
+            // --- End WebSocket Integration ---
             return ResponseEntity.notFound().build();
+        }
+        // --- WebSocket Integration (Optional for GET methods) ---
+        // messagingTemplate.convertAndSend("/topic/comment/" + id, comment);
+        // --- End WebSocket Integration ---
         return ResponseEntity.ok(comment);
     }
 
     @GetMapping("/comments/petition/{petitionId}")
     public List<PetitionsComment> getCommentsByPetition(@PathVariable Long petitionId) {
-        return petitionsCommentService.getCommentsByPetitionId(petitionId);
+        List<PetitionsComment> comments = petitionsCommentService.getCommentsByPetitionId(petitionId);
+        // --- WebSocket Integration (Optional for GET methods) ---
+        // messagingTemplate.convertAndSend("/topic/petition/" + petitionId + "/commentsList", comments);
+        // --- End WebSocket Integration ---
+        return comments;
     }
 
     @GetMapping("/comments/user/{userId}")
     public List<PetitionsComment> getCommentsByUser(@PathVariable Long userId) {
-        return petitionsCommentService.getCommentsByUserId(userId);
+        List<PetitionsComment> comments = petitionsCommentService.getCommentsByUserId(userId);
+        // --- WebSocket Integration (Optional for GET methods) ---
+        // messagingTemplate.convertAndSend("/topic/user/" + userId + "/petitionComments", comments);
+        // --- End WebSocket Integration ---
+        return comments;
     }
 
     @DeleteMapping("/comments/{id}")
     public ResponseEntity<Void> deleteComment(@PathVariable Long id) {
-        petitionsCommentService.deleteComment(id);
+        PetitionsComment commentToDelete = petitionsCommentService.getComment(id);
+        if (commentToDelete != null) {
+            petitionsCommentService.deleteComment(id);
+            // --- WebSocket Integration ---
+            // Сповіщаємо про видалення коментаря
+            if (commentToDelete.getPetitionId() != null) {
+                messagingTemplate.convertAndSend("/topic/petition/" + commentToDelete.getPetitionId() + "/comments/deleted", id);
+            }
+            // --- End WebSocket Integration ---
+        }
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/comments/petition/{petitionId}")
     public ResponseEntity<Void> deleteCommentsByPetition(@PathVariable Long petitionId) {
         petitionsCommentService.deleteCommentsByPetitionId(petitionId);
+        // --- WebSocket Integration ---
+        // Сповіщаємо про видалення всіх коментарів для петиції
+        messagingTemplate.convertAndSend("/topic/petition/" + petitionId + "/comments/allDeleted", petitionId);
+        // --- End WebSocket Integration ---
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/comments/user/{userId}")
     public ResponseEntity<Void> deleteCommentsByUser(@PathVariable Long userId) {
         petitionsCommentService.deleteCommentsByUserId(userId);
+        // --- WebSocket Integration ---
+        // Сповіщаємо про видалення всіх коментарів користувача
+        messagingTemplate.convertAndSend("/topic/user/" + userId + "/petitionComments/allDeleted", userId);
+        // --- End WebSocket Integration ---
         return ResponseEntity.noContent().build();
     }
 }

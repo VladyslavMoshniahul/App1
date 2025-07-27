@@ -18,7 +18,7 @@ import jakarta.servlet.http.Cookie;
 public class JwtTokenProvider {
     @Value("${app.jwt.secret}")
     private String secret;
-    @Value("${app.jwt.expiration-ms}")
+    @Value("${app.jwt.expirationMs}")
     private long validityMs;
 
     private Key key;
