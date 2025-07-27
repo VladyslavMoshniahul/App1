@@ -135,7 +135,6 @@ public class UserController {
             teachers = userService.getBySchoolClassAndRole(schoolId, null, User.Role.TEACHER);
         } else {
             teachers = new ArrayList<>();
-            teachers.addAll(userService.getBySchoolClassAndRole(schoolId, null, User.Role.TEACHER));
             teachers.addAll(userService.getBySchoolClassAndRole(schoolId, classId, User.Role.TEACHER));
         }
         return teachers;
