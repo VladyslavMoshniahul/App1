@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,13 +42,16 @@ public class UserController {
 
     @Autowired
     private final ClassService classService;
+    @Autowired
+    private final SimpMessagingTemplate messagingTemplate;
 
     public UserController(UserService userService, PasswordEncoder passwordEncoder,
-            SchoolService schoolService, ClassService classService) {
+            SchoolService schoolService, ClassService classService, SimpMessagingTemplate messagingTemplate) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.schoolService = schoolService;
         this.classService = classService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     public User currentUser(Authentication auth) {
@@ -58,6 +62,7 @@ public class UserController {
     @GetMapping("/admins")
     public List<User> getAdmins() {
         List<User> admins = userService.getUserByRole("ADMIN");
+        messagingTemplate.convertAndSend("/topic/users/admins/list", admins);
         return admins;
     }
 
@@ -74,8 +79,11 @@ public class UserController {
         List<User> teachers;
         if (className == null) {
             teachers = userService.getBySchoolClassAndRole(schoolId, null, User.Role.TEACHER);
+            messagingTemplate.convertAndSend("/topic/users/teachers/list", teachers);
+
         } else {
             teachers = userService.getBySchoolClassAndRole(schoolId, classId, User.Role.TEACHER);
+            messagingTemplate.convertAndSend("/topic/users/teachers/list/class/" + classId, teachers);
         }
 
         return teachers;
@@ -92,9 +100,14 @@ public class UserController {
         Long classId = schoolClass != null ? schoolClass.getId() : null;
         List<User> students;
         if (className == null) {
+
             students = userService.getBySchoolClassAndRole(schoolId, null, User.Role.STUDENT);
+            messagingTemplate.convertAndSend("/topic/users/students/list", students);
+
         } else {
             students = userService.getBySchoolClassAndRole(schoolId, classId, User.Role.STUDENT);
+            messagingTemplate.convertAndSend("/topic/users/students/list/class/" + classId, students);
+
         }
 
         return students;
@@ -113,8 +126,10 @@ public class UserController {
         List<User> parents;
         if (className == null) {
             parents = userService.getBySchoolClassAndRole(schoolId, null, User.Role.PARENT);
+            messagingTemplate.convertAndSend("/topic/users/parents/list", parents);
         } else {
             parents = userService.getBySchoolClassAndRole(schoolId, classId, User.Role.PARENT);
+            messagingTemplate.convertAndSend("/topic/users/parents/list/class/" + classId, parents);
         }
 
         return parents;
@@ -133,9 +148,12 @@ public class UserController {
         List<User> teachers;
         if (classId == null) {
             teachers = userService.getBySchoolClassAndRole(schoolId, null, User.Role.TEACHER);
+            messagingTemplate.convertAndSend("/topic/admin/teachers/list/school/" + schoolId, teachers);
         } else {
             teachers = new ArrayList<>();
             teachers.addAll(userService.getBySchoolClassAndRole(schoolId, classId, User.Role.TEACHER));
+            messagingTemplate.convertAndSend("/topic/admin/teachers/list/school/" + schoolId + "/class/" + classId,
+                    teachers);
         }
         return teachers;
     }
@@ -149,10 +167,13 @@ public class UserController {
 
         List<User> directors;
         if (schoolId == null) {
+            messagingTemplate.convertAndSend("/topic/admin/directors/error",
+                    "Школу '" + schoolName + "' не знайдено для отримання директорів.");
             return List.of();
         } else {
             directors = new ArrayList<>();
             directors.addAll(userService.getBySchoolClassAndRole(schoolId, null, User.Role.DIRECTOR));
+            messagingTemplate.convertAndSend("/topic/admin/directors/list/school/" + schoolId, directors);
         }
         return directors;
     }
@@ -190,7 +211,7 @@ public class UserController {
                     .filter(p -> p.getEmail() != null && p.getEmail().equalsIgnoreCase(email))
                     .toList();
         }
-
+        messagingTemplate.convertAndSend("/topic/users/list/filtered", all);
         return all;
     }
 
@@ -238,18 +259,28 @@ public class UserController {
         }
 
         if (userService.findByEmail(newUser.getEmail()) != null) {
+            messagingTemplate.convertAndSend("/topic/users/create/error",
+                    "Помилка створення користувача: користувач з таким email вже існує.");
+
             return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         }
         if (newUser.getRole() != User.Role.ADMIN && newUser.getSchoolId() == null) {
+            messagingTemplate.convertAndSend("/topic/users/create/error",
+                    "Помилка створення користувача: для ролі '" + newUser.getRole() + "' обов'язково вказати школу.");
+
             return ResponseEntity.badRequest().body(null);
         }
         if ((newUser.getRole() == User.Role.PARENT || newUser.getRole() == User.Role.STUDENT)
                 && (newUser.getClassId() == null || newUser.getSchoolId() == null)) {
+
+            messagingTemplate.convertAndSend("/topic/users/create/error",
+                    "Помилка створення користувача: для учня/батька обов'язково вказати школу та клас.");
             return ResponseEntity.badRequest().body(null);
         }
 
         String rawPass = newUser.getPassword();
         newUser.setPassword(passwordEncoder.encode(rawPass));
+        messagingTemplate.convertAndSend("/topic/users/created", newUser);
 
         return ResponseEntity.ok(userService.createUser(newUser));
     }
@@ -259,6 +290,9 @@ public class UserController {
         String email = auth.getName();
         User user = userService.findByEmail(email);
         if (user == null) {
+            messagingTemplate.convertAndSend("/topic/users/profile/error",
+                    "Профіль для користувача '" + email + "' не знайдено.");
+
             return ResponseEntity.status(401).build();
         }
 
@@ -289,6 +323,7 @@ public class UserController {
                 user.getRole().toString(),
                 schoolName,
                 className);
+        messagingTemplate.convertAndSend("/topic/users/profile", dto);
 
         return ResponseEntity.ok(dto);
     }
@@ -303,9 +338,13 @@ public class UserController {
 
         if (updatedData.getEmail() != null && !updatedData.getEmail().equals(email)) {
             if (!isValidEmail(updatedData.getEmail())) {
+                messagingTemplate.convertAndSend("/topic/users/update/error",
+                        "Не вдалося оновити профіль: недійсний формат email '" + updatedData.getEmail() + "'.");
                 return ResponseEntity.badRequest().body(null);
             }
             if (userService.findByEmail(updatedData.getEmail()) != null) {
+                messagingTemplate.convertAndSend("/topic/users/update/error",
+                        "Не вдалося оновити профіль: email '" + updatedData.getEmail() + "' вже зайнятий.");
                 return ResponseEntity.badRequest().body(null);
             }
         }
@@ -331,6 +370,7 @@ public class UserController {
 
         Long userId = currentUser.getId();
         User updated = userService.updateUser(userId, currentUser);
+        messagingTemplate.convertAndSend("/topic/users/updated/id/" + userId, updated);
         return ResponseEntity.ok(updated);
     }
 
@@ -341,12 +381,14 @@ public class UserController {
     @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR', 'ADMIN')")
     @GetMapping("/loadUsers")
     public List<User> getAllUsers() {
+        messagingTemplate.convertAndSend("/topic/users/all/list", userService.getAllUsers());
         return userService.getAllUsers();
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users/role/{role}")
     public List<User> getUsersByRole(@PathVariable String role) {
+        messagingTemplate.convertAndSend("/topic/users/list/role/" + role, userService.getUserByRole(role));
         return userService.getUserByRole(role);
     }
 
@@ -360,6 +402,10 @@ public class UserController {
             schoolclass = new SchoolClass();
             schoolclass.setId(null);
         }
+        String topic = "/topic/users/list/school/" + me.getSchoolId() + "/class/"
+                + (schoolclass.getId() != null ? schoolclass.getId() : "null") + "/role/" + role;
+        messagingTemplate.convertAndSend(topic,
+                userService.getBySchoolClassAndRole(me.getSchoolId(), schoolclass.getId(), role));
         return userService.getBySchoolClassAndRole(me.getSchoolId(), schoolclass.getId(), role);
     }
 
@@ -368,8 +414,11 @@ public class UserController {
     public ResponseEntity<User> updateUserByTeacherOrDirector(@PathVariable Long id, @RequestBody User updatedData) {
         User updated = userService.updateProfile(id, updatedData);
         if (updated != null) {
+            messagingTemplate.convertAndSend("/topic/users/updated/id/" + id, updated);
             return ResponseEntity.ok(updated);
         } else {
+            messagingTemplate.convertAndSend("/topic/users/update/error/id/" + id,
+                    "Не вдалося оновити користувача з ID " + id + ".");
             return ResponseEntity.notFound().build();
         }
     }
@@ -377,7 +426,13 @@ public class UserController {
     @GetMapping("/users/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         User user = userService.getUserById(id);
-        return user != null ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
+        if (user != null) {
+            messagingTemplate.convertAndSend("/topic/users/details/id/" + id, user);
+            return ResponseEntity.ok(user);
+        } else {
+            messagingTemplate.convertAndSend("/topic/users/details/error/id/" + id,
+                    "Користувача з ID " + id + " не знайдено.");
+            return ResponseEntity.notFound().build();
+        }
     }
-
 }

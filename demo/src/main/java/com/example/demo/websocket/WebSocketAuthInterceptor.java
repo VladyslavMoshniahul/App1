@@ -2,15 +2,21 @@ package com.example.demo.websocket;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
+import com.example.demo.javaSrc.security.JwtUtils;
+
 import java.util.Map;
 
 public class WebSocketAuthInterceptor implements HandshakeInterceptor {
+    @Autowired
+    private final JwtUtils jwtUtils = new JwtUtils();
 
     @Override
     public boolean beforeHandshake(@SuppressWarnings("null") ServerHttpRequest request,
@@ -22,10 +28,12 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
             Cookie[] cookies = httpRequest.getCookies();
             if (cookies != null) {
                 for (Cookie cookie : cookies) {
-                    if ("token".equals(cookie.getName())) {
+                    if ("JWT".equals(cookie.getName())) {
                         String token = cookie.getValue();
-                        attributes.put("jwt", token);
-                        return true;
+                        if (jwtUtils.validateToken(token)) {
+                            attributes.put("jwt", token);
+                            return true;
+                        }
                     }
                 }
             }

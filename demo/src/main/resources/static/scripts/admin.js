@@ -1,4 +1,5 @@
-import { fetchWithAuth } from "./api.js";
+import { fetchWithAuth } from "./api.js"; 
+
 const tabButtons = document.querySelectorAll(".nav-tabs button");
 const sections = document.querySelectorAll(".page-section");
 
@@ -74,11 +75,14 @@ async function loadProfileForEdit() {
     const rawDate = user.dateOfBirth;
     if (rawDate) {
       const date = new Date(rawDate);
-      const formatted = date.toLocaleDateString('uk-UA');
-      document.getElementById('profile-dateOfBirth').textContent = formatted;
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0'); 
+      const day = String(date.getDate()).padStart(2, '0');
+      document.getElementById('edit-dateOfBirth').value = `${year}-${month}-${day}`;
     } else {
-      document.getElementById('profile-dateOfBirth').textContent = '-';
-    } document.getElementById("edit-email").value = user.email || '';
+      document.getElementById('edit-dateOfBirth').value = ''; 
+    }
+    document.getElementById("edit-email").value = user.email || '';
   } catch (error) {
     console.error("Помилка при завантаженні профілю для редагування:", error);
     toastr.error("Не вдалося завантажити дані профілю.");
@@ -111,10 +115,10 @@ document.getElementById("editProfileForm").addEventListener("submit", async (e) 
     toastr.success("Профіль успішно оновлено.");
     document.getElementById("updateProfile").style.display = "none";
     document.getElementById("editProfileForm").reset();
+    loadProfile(); 
   } catch (error) {
     toastr.error("Помилка при оновленні профілю. Спробуйте ще раз.");
   }
-
 });
 
 document.getElementById("create-school-form").addEventListener("submit", (e) => {
@@ -138,7 +142,6 @@ document.getElementById("create-school-form").addEventListener("submit", (e) => 
       document.getElementById("create-school-form").reset();
     })
     .catch(() => toastr.error("Не вдалося створити школу."));
-
 });
 
 document.getElementById("create-class-form").addEventListener("submit", (e) => {
@@ -149,7 +152,8 @@ document.getElementById("create-class-form").addEventListener("submit", (e) => {
   if (!schoolName) {
     toastr.error("Будь ласка, введіть назву школи.");
     return;
-  } if (!className) {
+  }
+  if (!className) {
     toastr.error("Будь ласка, введіть назву класу.");
     return;
   }
@@ -165,7 +169,6 @@ document.getElementById("create-class-form").addEventListener("submit", (e) => {
       document.getElementById("create-class-form").reset();
     })
     .catch((e) => toastr.error("Не вдалося створити клас." + e.message));
-
 });
 
 document.getElementById("create-admin-form").addEventListener("submit", (e) => {
@@ -180,16 +183,20 @@ document.getElementById("create-admin-form").addEventListener("submit", (e) => {
   if (!firstName) {
     toastr.error("Будь ласка, введіть ім'я.");
     return;
-  } if (!lastName) {
+  }
+  if (!lastName) {
     toastr.error("Будь ласка, введіть прізвище.");
     return;
-  } if (!email) {
+  }
+  if (!email) {
     toastr.error("Будь ласка, введіть email.");
     return;
-  } if (!password) {
+  }
+  if (!password) {
     toastr.error("Будь ласка, введіть пароль.");
     return;
-  } if (!dateOfBirth) {
+  }
+  if (!dateOfBirth) {
     toastr.error("Будь ласка, введіть дату народження.");
     return;
   }
@@ -229,22 +236,28 @@ document.getElementById("create-user-form").addEventListener("submit", (e) => {
   if (!firstName) {
     toastr.error("Будь ласка, введіть ім'я.");
     return;
-  } if (!lastName) {
+  }
+  if (!lastName) {
     toastr.error("Будь ласка, введіть прізвище.");
     return;
-  } if (!email) {
+  }
+  if (!email) {
     toastr.error("Будь ласка, введіть email.");
     return;
-  } if (!password) {
+  }
+  if (!password) {
     toastr.error("Будь ласка, введіть пароль.");
     return;
-  } if (!schoolName) {
+  }
+  if (!schoolName) {
     toastr.error("Будь ласка, введіть назву школи.");
     return;
-  } if (!role) {
+  }
+  if (!role) {
     toastr.error("Будь ласка, оберіть роль для користувача.");
     return;
-  } if (!dateOfBirth) {
+  }
+  if (!dateOfBirth) {
     toastr.error("Будь ласка, введіть дату народження.");
     return;
   }
@@ -288,13 +301,13 @@ toastr.options = {
   "hideMethod": "fadeOut"
 };
 
-function renderList(listElement, items, emptyMessage = "Немає даних для відображення.") {
-  listElement.innerHTML = '';
+function renderList(listElement, items, renderItemFn, emptyMessage = "Немає даних для відображення.") {
+  listElement.innerHTML = ''; 
 
   if (items && items.length > 0) {
     items.forEach(item => {
       const li = document.createElement('li');
-      li.textContent = item;
+      li.textContent = renderItemFn(item); 
       listElement.appendChild(li);
     });
   } else {
@@ -305,6 +318,7 @@ function renderList(listElement, items, emptyMessage = "Немає даних д
     listElement.appendChild(li);
   }
 }
+
 function loadProfile() {
   const profile = document.getElementById('profile-section');
 
@@ -319,7 +333,14 @@ function loadProfile() {
       .then(user => {
         document.getElementById('profile-firstName').textContent = user.firstName || '-';
         document.getElementById('profile-lastName').textContent = user.lastName || '-';
-        document.getElementById('profile-dateOfBirth').textContent = user.dateOfBirth || '-';
+        const rawDate = user.dateOfBirth;
+        if (rawDate) {
+          const date = new Date(rawDate);
+          const formatted = date.toLocaleDateString('uk-UA'); 
+          document.getElementById('profile-dateOfBirth').textContent = formatted;
+        } else {
+          document.getElementById('profile-dateOfBirth').textContent = '-';
+        }
         document.getElementById('profile-aboutMe').textContent = user.aboutMe || '-';
         document.getElementById('profile-email').textContent = user.email || '-';
         document.getElementById('profile-role').textContent = user.role || '-';
@@ -336,146 +357,246 @@ function loadProfile() {
 
 function loadAdmins() {
   const adminsList = document.getElementById('admins-list');
-
-  try {
-    fetchWithAuth('/api/user/admins')
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json();
-      })
-      .then(data => {
-        if (data && data.length > 0) {
-          renderList(adminsList, data.map(admin => `${admin.firstName} ${admin.lastName} (${admin.email})`));
-        } else {
-          renderList(adminsList, [], "Немає адмінів для відображення.");
-        }
-      })
-      .catch(error => {
-        console.error("Помилка при завантаженні адмінів:", error);
-        toastr.error("Не вдалося завантажити список адмінів.");
-      });
-  } catch (error) {
-    console.error("Помилка при завантаженні адмінів:", error);
-    toastr.error("Не вдалося завантажити список адмінів.");
-    return;
-  }
+  fetchWithAuth('/api/user/admins')
+    .then(response => response.json())
+    .then(data => {
+      renderList(adminsList, data, admin => `${admin.firstName} ${admin.lastName} (${admin.email})`, "Немає адмінів для відображення.");
+    })
+    .catch(error => {
+      console.error("Помилка при завантаженні адмінів:", error);
+      toastr.error("Не вдалося завантажити список адмінів.");
+    });
 }
+
 function loadSchools() {
   const schoolsList = document.getElementById('schools-list');
-
-  try {
-    fetchWithAuth('/api/school/schools')
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json();
-      })
-      .then(data => {
-        if (data && data.length > 0) {
-          renderList(schoolsList, data.map(school => school.name));
-        } else {
-          renderList(schoolsList, [], "Немає шкіл для відображення.");
-        }
-      })
-      .catch(error => {
-        console.error("Помилка при завантаженні шкіл:", error);
-        toastr.error("Не вдалося завантажити список шкіл.");
-      });
-  } catch (error) {
-    console.error("Помилка при завантаженні шкіл:", error);
-    toastr.error("Не вдалося завантажити список шкіл.");
-    return;
-  }
+  fetchWithAuth('/api/school/schools')
+    .then(response => response.json())
+    .then(data => {
+      renderList(schoolsList, data, school => school.name, "Немає шкіл для відображення.");
+    })
+    .catch(error => {
+      console.error("Помилка при завантаженні шкіл:", error);
+      toastr.error("Не вдалося завантажити список шкіл.");
+    });
 }
+
 function loadClasses(schoolName = '') {
   const classesList = document.getElementById('classes-list');
-  try {
-    const url = new URL('/api/school/admin/classes', window.location.origin);
-    if (schoolName) {
-      url.searchParams.append('schoolName', schoolName);
-    }
-
-    fetchWithAuth(url.toString())
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json();
-      })
-      .then(data => {
-        if (data.length > 0) {
-          const classNames = data.map(cls => `${cls.name}`);
-          renderList(classesList, classNames);
-        } else {
-          renderList(classesList, [], `Класи для школи "${schoolName}" не знайдено.`);
-        }
-      });
-  } catch (error) {
-    console.error("Помилка при завантаженні класів:", error);
-    toastr.error("Не вдалося завантажити список класів.");
+  const url = new URL('/api/school/admin/classes', window.location.origin);
+  if (schoolName) {
+    url.searchParams.append('schoolName', schoolName);
   }
+  fetchWithAuth(url.toString())
+    .then(response => response.json())
+    .then(data => {
+      renderList(classesList, data, cls => cls.name, `Класи для школи "${schoolName}" не знайдено.`);
+    })
+    .catch(error => {
+      console.error("Помилка при завантаженні класів:", error);
+      toastr.error("Не вдалося завантажити список класів.");
+    });
 }
 
 function loadDirectors(schoolName = '') {
   const directorsList = document.getElementById('directors-list');
-  try {
-    const url = new URL('/api/user/admin/directors', window.location.origin);
-    if (schoolName) {
-      url.searchParams.append('schoolName', schoolName);
-    }
-
-    fetchWithAuth(url.toString())
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json();
-      })
-      .then(data => {
-        if (data.length > 0) {
-          const directorNames = data.map(director => `${director.firstName} ${director.lastName} ${director.email}`);
-          renderList(directorsList, directorNames);
-        } else {
-          renderList(directorsList, [], `Директори для школи "${schoolName}" не знайдені.`);
-        }
-      });
-  } catch (error) {
-    console.error("Помилка при завантаженні директорів:", error);
-    toastr.error("Не вдалося завантажити список директорів.");
+  const url = new URL('/api/user/admin/directors', window.location.origin);
+  if (schoolName) {
+    url.searchParams.append('schoolName', schoolName);
   }
+  fetchWithAuth(url.toString())
+    .then(response => response.json())
+    .then(data => {
+      renderList(directorsList, data, director => `${director.firstName} ${director.lastName} (${director.email})`, `Директори для школи "${schoolName}" не знайдені.`);
+    })
+    .catch(error => {
+      console.error("Помилка при завантаженні директорів:", error);
+      toastr.error("Не вдалося завантажити список директорів.");
+    });
 }
+
 function loadTeachers(schoolName = '', className = '') {
   const teachersList = document.getElementById('teachers-list');
-  try {
-    const url = new URL('/api/user/admin/teachers', window.location.origin);
-    if (schoolName) {
-      url.searchParams.append('schoolName', schoolName);
-    }
-    if (className) {
-      url.searchParams.append('className', className);
-    }
+  const url = new URL('/api/user/admin/teachers', window.location.origin);
+  if (schoolName) {
+    url.searchParams.append('schoolName', schoolName);
+  }
+  if (className) {
+    url.searchParams.append('className', className);
+  }
+  fetchWithAuth(url.toString())
+    .then(response => response.json())
+    .then(data => {
+      renderList(teachersList, data, teacher => `${teacher.firstName} ${teacher.lastName} (${teacher.email})`, 
+        `Вчителі для школи "${schoolName}" та класу "${className}" не знайдені.`);
+    })
+    .catch(error => {
+      console.error("Помилка при завантаженні вчителів:", error);
+      toastr.error("Не вдалося завантажити список вчителів.");
+    });
+}
 
-    fetchWithAuth(url.toString())
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json();
-      })
-      .then(data => {
-        if (data.length > 0) {
-          const teacherNames = data.map(teacher => `${teacher.firstName} ${teacher.lastName} ${teacher.email}`);
-          renderList(teachersList, teacherNames);
-        } else {
-          renderList(teachersList, [], `Вчителі для школи "${schoolName}" та класу "${className}" не знайдені.`);
-        }
-      });
-  } catch (error) {
-    console.error("Помилка при завантаженні вчителів:", error);
-    toastr.error("Не вдалося завантажити список вчителів.");
+// --- WebSocket Integration ---
+const WEBSOCKET_ENDPOINT = '/ws-stomp'; 
+
+let stompClient = null;
+
+function connectStompWebSocket() {
+  const socket = new SockJS(WEBSOCKET_ENDPOINT);
+  stompClient = Stomp.over(socket);
+
+  stompClient.connect({}, function (frame) {
+    console.log('Connected: ' + frame);
+
+    stompClient.subscribe('/topic/users/admins/list', function (message) {
+      const admins = JSON.parse(message.body);
+      console.log('WebSocket: Оновлений список адмінів:', admins);
+      const adminsList = document.getElementById('admins-list');
+      renderList(adminsList, admins, admin => `${admin.firstName} ${admin.lastName} (${admin.email})`);
+      toastr.info("Оновлено список адмінів.");
+    });
+
+    stompClient.subscribe('/topic/users/teachers/list', function (message) {
+      const teachers = JSON.parse(message.body);
+      console.log('WebSocket: Оновлений список вчителів:', teachers);
+      const teachersList = document.getElementById('teachers-list');
+      renderList(teachersList, teachers, teacher => `${teacher.firstName} ${teacher.lastName} (${teacher.email})`);
+      toastr.info("Оновлено список вчителів.");
+    });
+
+    stompClient.subscribe('/topic/users/students/list', function (message) {
+      const students = JSON.parse(message.body);
+      console.log('WebSocket: Оновлений список студентів:', students);
+      const studentsList = document.getElementById('students-list');
+      renderList(studentsList, students, student => `${student.firstName} ${student.lastName} (${student.email})`);
+      toastr.info("Оновлено список студентів.");
+    });
+
+    stompClient.subscribe('/topic/users/parents/list', function (message) {
+      const parents = JSON.parse(message.body);
+      console.log('WebSocket: Оновлений список батьків:', parents);
+      const parentsList = document.getElementById('parents-list');
+      renderList(parentsList, parents, parent => `${parent.firstName} ${parent.lastName} (${parent.email})`);
+      toastr.info("Оновлено список батьків.");
+    });
+
+    stompClient.subscribe('/topic/users/created', function (message) {
+      const newUser = JSON.parse(message.body);
+      console.log('WebSocket: Створено нового користувача:', newUser);
+      toastr.success(`Створено нового користувача: ${newUser.firstName} ${newUser.lastName} (${newUser.role}).`);
+      loadAdmins();
+      loadDirectors();
+      loadTeachers();
+    });
+
+    stompClient.subscribe('/topic/users/updated/id/{id}', function (message) {
+      const updatedUser = JSON.parse(message.body);
+      console.log('WebSocket: Оновлено користувача:', updatedUser);
+      toastr.info(`Профіль користувача ${updatedUser.firstName} ${updatedUser.lastName} оновлено.`);
+
+    });
+
+    stompClient.subscribe('/topic/users/profile', function (message) {
+      const userProfile = JSON.parse(message.body);
+      console.log('WebSocket: Оновлення профілю поточного користувача:', userProfile);
+      document.getElementById('profile-firstName').textContent = userProfile.firstName || '-';
+      document.getElementById('profile-lastName').textContent = userProfile.lastName || '-';
+      const rawDate = userProfile.dateOfBirth;
+      if (rawDate) {
+        const date = new Date(rawDate);
+        const formatted = date.toLocaleDateString('uk-UA');
+        document.getElementById('profile-dateOfBirth').textContent = formatted;
+      } else {
+        document.getElementById('profile-dateOfBirth').textContent = '-';
+      }
+      document.getElementById('profile-aboutMe').textContent = userProfile.aboutMe || '-';
+      document.getElementById('profile-email').textContent = userProfile.email || '-';
+      document.getElementById('profile-role').textContent = userProfile.role || '-';
+      toastr.info("Ваш профіль оновлено.");
+    });
+
+
+    stompClient.subscribe('/topic/schools/list', function (message) {
+      const schools = JSON.parse(message.body);
+      console.log('WebSocket: Оновлений список шкіл:', schools);
+      const schoolsList = document.getElementById('schools-list');
+      renderList(schoolsList, schools, school => school.name);
+      toastr.info("Оновлено список шкіл.");
+    });
+
+    stompClient.subscribe('/topic/schools/created', function (message) {
+      const newSchool = JSON.parse(message.body);
+      console.log('WebSocket: Створено нову школу:', newSchool);
+      toastr.success(`Створено нову школу: ${newSchool.name}.`);
+      loadSchools();
+    });
+
+    stompClient.subscribe('/topic/admin/classes/list', function (message) {
+      const classes = JSON.parse(message.body);
+      console.log('WebSocket: Оновлений список класів (адмін):', classes);
+      const classesList = document.getElementById('classes-list');
+      renderList(classesList, classes, cls => cls.name);
+      toastr.info("Оновлено список класів.");
+    });
+
+    stompClient.subscribe('/topic/classes/created', function (message) {
+      const newClass = JSON.parse(message.body);
+      console.log('WebSocket: Створено новий клас:', newClass);
+      toastr.success(`Створено новий клас: ${newClass.name}.`);
+      loadClasses(document.getElementById('classes-school-input').value.trim());
+    });
+
+    stompClient.subscribe('/topic/users/create/error', function (message) {
+      const errorMessage = message.body;
+      console.error('WebSocket Error: Помилка створення користувача:', errorMessage);
+      toastr.error(errorMessage);
+    });
+
+    stompClient.subscribe('/topic/users/update/error', function (message) {
+      const errorMessage = message.body;
+      console.error('WebSocket Error: Помилка оновлення користувача:', errorMessage);
+      toastr.error(errorMessage);
+    });
+
+    stompClient.subscribe('/topic/users/profile/error', function (message) {
+      const errorMessage = message.body;
+      console.error('WebSocket Error: Помилка профілю:', errorMessage);
+      toastr.error(errorMessage);
+    });
+
+    stompClient.subscribe('/topic/schools/error', function (message) {
+      const errorMessage = message.body;
+      console.error('WebSocket Error: Помилка шкіл:', errorMessage);
+      toastr.error(errorMessage);
+    });
+
+    stompClient.subscribe('/topic/classes/create/error', function (message) {
+      const errorMessage = message.body;
+      console.error('WebSocket Error: Помилка створення класу:', errorMessage);
+      toastr.error(errorMessage);
+    });
+
+  }, function (error) {
+    console.error('WebSocket connection error:', error);
+    toastr.error("Помилка з'єднання з сервером реального часу. Спробуйте пізніше.");
+  });
+}
+
+function disconnectStompWebSocket() {
+  if (stompClient !== null) {
+    stompClient.disconnect();
+    console.log("Disconnected from WebSocket");
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded',() => {
   loadProfile();
   loadAdmins();
   loadSchools();
-  loadClasses();
-  loadDirectors();
-  loadTeachers();
+
+  connectStompWebSocket();
+
+  window.addEventListener('beforeunload', disconnectStompWebSocket);
 
   const classesSchoolInput = document.getElementById('classes-school-input');
   if (classesSchoolInput) {
@@ -503,4 +624,3 @@ document.addEventListener('DOMContentLoaded', () => {
     teachersClassInput.addEventListener('input', updateTeachersList);
   }
 });
-
