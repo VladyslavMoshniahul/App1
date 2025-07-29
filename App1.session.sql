@@ -1,6 +1,6 @@
 USE `App1`;
 
-INSERT INTO `users`
+INSERT INTO `people`
   (`school_id`, `class_id`, `first_name`, `last_name`, `email`, `password_hash`, `role`, `about_me`, `date_of_birth`)
 VALUES
    (NULL, NULL, 

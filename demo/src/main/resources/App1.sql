@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS `voting_vote` (
     `vote_date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`voting_id`) REFERENCES `voting`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`variant_id`) REFERENCES `voting_variant`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`user_id`) REFERENCES `people`(`id`) ON DELETE CASCADE,
     UNIQUE KEY `unique_vote_per_variant` (`voting_id`, `user_id`, `variant_id`)
 ) ENGINE=InnoDB;
 
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS `voting_participant` (
     `voting_id` BIGINT NOT NULL,
     `user_id` BIGINT NOT NULL,
     FOREIGN KEY (`voting_id`) REFERENCES `voting`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`user_id`) REFERENCES `people`(`id`) ON DELETE CASCADE,
     UNIQUE KEY `unique_participant` (`voting_id`, `user_id`)
 ) ENGINE=InnoDB;
 
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS `petition_votes` (
   `voted_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (`petition_id`, `student_id`),
   FOREIGN KEY (`petition_id`) REFERENCES `petitions`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`student_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+  FOREIGN KEY (`student_id`) REFERENCES `people`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `petitions_comments`(
@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS `petitions_comments`(
   `petition_id` BIGINT NOT NULL,
   `text` TEXT NOT NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`user_id`) REFERENCES `people`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`petition_id`) REFERENCES `petitions`(`id`) ON DELETE CASCADE
 )ENGINE=InnoDB;
 
@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS `events` (
   `created_by`       BIGINT NOT NULL,
   FOREIGN KEY (`school_id`)   REFERENCES `schools`(`id`)   ON DELETE CASCADE,
   FOREIGN KEY (`class_id`)    REFERENCES `classes`(`id`)   ON DELETE SET NULL,
-  FOREIGN KEY (`created_by`)  REFERENCES `users`(`id`)     ON DELETE CASCADE
+  FOREIGN KEY (`created_by`)  REFERENCES `people`(`id`)     ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `event_files` (
@@ -151,7 +151,7 @@ CREATE TABLE IF NOT EXISTS `events_comments` (
   `content`    TEXT NOT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`event_id`)   REFERENCES `events`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`user_id`)    REFERENCES `users`(`id`) ON DELETE CASCADE
+  FOREIGN KEY (`user_id`)    REFERENCES `people`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `invitations` (
@@ -160,7 +160,7 @@ CREATE TABLE IF NOT EXISTS `invitations` (
   `user_id`    BIGINT NOT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`event_id`)   REFERENCES `events`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`user_id`)    REFERENCES `users`(`id`) ON DELETE CASCADE
+  FOREIGN KEY (`user_id`)    REFERENCES `people`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `user_invitations_status` (
@@ -171,7 +171,7 @@ CREATE TABLE IF NOT EXISTS `user_invitations_status` (
   `updated_at`     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY `uq_invitation_user` (`invitation_id`,`user_id`),
   FOREIGN KEY (`invitation_id`) REFERENCES `invitations`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`user_id`)       REFERENCES `users`(`id`) ON DELETE CASCADE
+  FOREIGN KEY (`user_id`)       REFERENCES `people`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 /* TASKS */
@@ -195,7 +195,7 @@ CREATE TABLE IF NOT EXISTS `user_task_status` (
   `is_completed` BOOLEAN NOT NULL DEFAULT FALSE,
   `completed_at` TIMESTAMP NULL,
   UNIQUE KEY `uq_user_task` (`user_id`,`task_id`),
-  FOREIGN KEY (`user_id`)   REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`user_id`)   REFERENCES `people`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`task_id`)   REFERENCES `tasks`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
