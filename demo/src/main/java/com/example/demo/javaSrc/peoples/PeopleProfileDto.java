@@ -1,8 +1,8 @@
-package com.example.demo.javaSrc.users;
+package com.example.demo.javaSrc.peoples;
 
 import java.time.LocalDate;
 
-public record UserProfileDto(
+public record PeopleProfileDto(
     Long id,
     String firstName,
     String lastName,

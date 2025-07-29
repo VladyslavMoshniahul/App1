@@ -16,7 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.example.demo.javaSrc.users.*;
+import com.example.demo.javaSrc.peoples.*;
+
 import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
@@ -89,7 +90,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService(UserRepository repo) {
+    public UserDetailsService userDetailsService(PeopleRepository repo) {
         return username -> repo.findByEmail(username)
             .map(person -> User.withUsername(person.getEmail())
                     .password(person.getPassword())

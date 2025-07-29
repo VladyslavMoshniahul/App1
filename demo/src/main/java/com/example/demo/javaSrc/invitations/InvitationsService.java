@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 
 import com.example.demo.javaSrc.events.Event;
 import com.example.demo.javaSrc.events.EventRepository;
-import com.example.demo.javaSrc.users.User;
-import com.example.demo.javaSrc.users.UserRepository;
+import com.example.demo.javaSrc.peoples.People;
+import com.example.demo.javaSrc.peoples.PeopleRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -19,12 +19,12 @@ public class InvitationsService {
 
     @Autowired private final InvitationsRepository invitationsRepository;
     @Autowired private final UserInvitationStatusRepository userInvitationStatusRepository;
-    @Autowired private final UserRepository userRepository;
+    @Autowired private final PeopleRepository userRepository;
     @Autowired private final EventRepository eventRepository;
     public InvitationsService(
             InvitationsRepository invitationsRepository,
             UserInvitationStatusRepository userInvitationStatusRepository,
-            UserRepository userRepository,
+            PeopleRepository userRepository,
             EventRepository eventRepository
     ) {
         this.invitationsRepository = invitationsRepository;
@@ -35,13 +35,13 @@ public class InvitationsService {
 
     @Transactional
     public void createInvitations(Long inviterId, Long eventId, List<Long> targetUserIds) {
-        User inviter = userRepository.findById(inviterId).orElseThrow(() ->
+        People inviter = userRepository.findById(inviterId).orElseThrow(() ->
                 new IllegalArgumentException("Ініціатор запрошення не знайдений"));
 
-        if (inviter.getRole() == User.Role.STUDENT) {
-            List<User> targets = userRepository.findAllById(targetUserIds);
+        if (inviter.getRole() == People.Role.STUDENT) {
+            List<People> targets = userRepository.findAllById(targetUserIds);
             boolean hasInvalidTargets = targets.stream()
-                    .anyMatch(user -> user.getRole() != User.Role.STUDENT);
+                    .anyMatch(user -> user.getRole() != People.Role.STUDENT);
             if (hasInvalidTargets) {
                 throw new SecurityException("Учень може запрошувати лише інших учнів.");
             }
@@ -79,7 +79,7 @@ public class InvitationsService {
         return statuses.stream().map(status -> {
             Invitation invitation = invitationsRepository.findById(status.getInvitationId()).orElse(null);
             Event event = eventRepository.findById(invitation.getEventId()).orElse(null);
-            User creator = userRepository.findById(invitation.getUserId()).orElse(null);
+            People creator = userRepository.findById(invitation.getUserId()).orElse(null);
             return new InvitationDTO(
                 invitation.getId(),
                 invitation.getEventId(),
@@ -121,7 +121,7 @@ public class InvitationsService {
         userInvitationStatusRepository.save(status);
     }
 
-    public List<User> getRespondedUsers(Long eventId, UserInvitationStatus.Status status) {
+    public List<People> getRespondedUsers(Long eventId, UserInvitationStatus.Status status) {
         if (status == null) {
             throw new IllegalArgumentException("Status must not be null");
         }

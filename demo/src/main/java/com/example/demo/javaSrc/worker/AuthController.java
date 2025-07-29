@@ -1,8 +1,8 @@
 package com.example.demo.javaSrc.worker;
 
-import com.example.demo.javaSrc.users.UserService;
+import com.example.demo.javaSrc.peoples.People;
+import com.example.demo.javaSrc.peoples.PeopleService;
 import com.example.demo.javaSrc.security.JwtUtils;
-import com.example.demo.javaSrc.users.User;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,15 +25,15 @@ public class AuthController {
     @Autowired
     private final JwtUtils jwtUtils;
     @Autowired
-    private final UserService UserService;
+    private final PeopleService peopleService;
 
     
     public AuthController(AuthenticationManager authManager,
                           JwtUtils jwtUtils,
-                          UserService UserService) {
+                          PeopleService peopleService) {
         this.authManager   = authManager;
         this.jwtUtils      = jwtUtils;
-        this.UserService = UserService;
+        this.peopleService = peopleService;
     }
 
     @PostMapping("/login")
@@ -48,16 +48,12 @@ public class AuthController {
 
             String token = jwtUtils.generateToken(authentication);
 
-            Cookie jwtCookie = new Cookie("JWT", token);
-            jwtCookie.setHttpOnly(true);
-            jwtCookie.setSecure(true);  // Включати лише якщо працюєш з HTTPS
-            jwtCookie.setPath("/");
-            jwtCookie.setMaxAge((int)(jwtUtils.getJwtExpirationMs() / 1000)); 
+            Cookie jwtCookie = jwtUtils.createJwtCookie(token);
 
             response.addCookie(jwtCookie);
 
 
-            User u = UserService.findByEmail(authRequest.getEmail());
+            People u = peopleService.findByEmail(authRequest.getEmail());
             if (u == null) {
                 throw new UsernameNotFoundException("User not found");
             }

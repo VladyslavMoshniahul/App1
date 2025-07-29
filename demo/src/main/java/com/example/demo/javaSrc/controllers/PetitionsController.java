@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.javaSrc.comments.PetitionsComment;
 import com.example.demo.javaSrc.comments.PetitionsCommentService;
+import com.example.demo.javaSrc.peoples.People;
+import com.example.demo.javaSrc.peoples.PeopleService;
 import com.example.demo.javaSrc.petitions.Petition;
 import com.example.demo.javaSrc.petitions.PetitionCreateRequest;
 import com.example.demo.javaSrc.petitions.PetitionDto;
@@ -30,8 +32,6 @@ import com.example.demo.javaSrc.petitions.PetitionService;
 import com.example.demo.javaSrc.petitions.PetitionVoteRequest;
 import com.example.demo.javaSrc.school.ClassService;
 import com.example.demo.javaSrc.school.SchoolClass;
-import com.example.demo.javaSrc.users.User;
-import com.example.demo.javaSrc.users.UserService;
 
 @RestController
 @RequestMapping("/api/petitions")
@@ -39,15 +39,15 @@ public class PetitionsController {
     @Autowired
     private final PetitionService petitionService;
     @Autowired
-    private final UserService userService;
+    private final PeopleService userService;
     @Autowired
-    private final UserController userController;
+    private final PeopleController userController;
     @Autowired
     private final PetitionsCommentService petitionsCommentService;
     @Autowired
     private final ClassService classService;
 
-    public PetitionsController(PetitionService petitionService, UserService userService, UserController userController, 
+    public PetitionsController(PetitionService petitionService, PeopleService userService, PeopleController userController, 
             PetitionsCommentService petitionsCommentService, ClassService classService) {
         this.petitionService = petitionService;
         this.userService = userService;
@@ -62,7 +62,7 @@ public class PetitionsController {
             @RequestBody PetitionCreateRequest req,
             Authentication auth) {
 
-        User user = userController.currentUser(auth);
+        People user = userController.currentUser(auth);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -120,11 +120,11 @@ public class PetitionsController {
                     int totalStudents;
                     if (petition.getClassId() != null) {
                         totalStudents = userService
-                                .getBySchoolClassAndRole(petition.getSchoolId(), petition.getClassId(), User.Role.STUDENT)
+                                .getBySchoolClassAndRole(petition.getSchoolId(), petition.getClassId(), People.Role.STUDENT)
                                 .size();
                     } else {
                         totalStudents = userService
-                                .getBySchoolClassAndRole(petition.getSchoolId(), null, User.Role.STUDENT)
+                                .getBySchoolClassAndRole(petition.getSchoolId(), null, People.Role.STUDENT)
                                 .size();
                     }
                     return PetitionDto.from(petition, totalStudents);
@@ -142,7 +142,7 @@ public class PetitionsController {
             Authentication auth) {
 
         try {
-            User user = userService.findByEmail(auth.getName()); 
+            People user = userService.findByEmail(auth.getName()); 
             petitionService.vote(id, user.getId(), req.getVote());
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException ex) {
@@ -189,7 +189,7 @@ public class PetitionsController {
     public List<Petition> getPetitionsForDirector(Authentication auth,
                                                         @RequestParam(required= false) String className) {
         List<Petition> petitions;                                                   
-        User me = userController.currentUser(auth);
+        People me = userController.currentUser(auth);
         SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(me.getSchoolId(), className);
         if (schoolClass == null) {
             petitions = petitionService.getPetitionBySchool(me.getSchoolId());

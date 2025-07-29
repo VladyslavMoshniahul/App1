@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.javaSrc.peoples.People;
 import com.example.demo.javaSrc.tasks.Task;
 import com.example.demo.javaSrc.tasks.TaskService;
-import com.example.demo.javaSrc.users.User;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -31,9 +31,9 @@ public class TaskController {
     private final TaskService taskService;
 
     @Autowired
-    private final UserController userController;
+    private final PeopleController userController;
 
-    public TaskController(TaskService taskService, UserController userController) {
+    public TaskController(TaskService taskService, PeopleController userController) {
         this.taskService = taskService;
           this.userController = userController;
     }
@@ -56,7 +56,7 @@ public class TaskController {
             @RequestBody Task newTask,
             Authentication auth) {
 
-        User teacher = userController.currentUser(auth);
+        People teacher = userController.currentUser(auth);
         if (teacher == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -73,7 +73,7 @@ public class TaskController {
             @RequestParam(required = false) Long eventId,
             @RequestParam(required = false) Boolean onlyFuture
     ) {
-        User me = userController.currentUser(auth);
+        People me = userController.currentUser(auth);
         if (me == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         Long schoolId = me.getSchoolId();

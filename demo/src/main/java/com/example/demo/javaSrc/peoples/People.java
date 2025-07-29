@@ -1,4 +1,4 @@
-package com.example.demo.javaSrc.users;
+package com.example.demo.javaSrc.peoples;
 
 import java.time.LocalDate;
 
@@ -8,8 +8,8 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "users")
-public class User {
+@Table(name = "people")
+public class People {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,9 +48,9 @@ public class User {
     @Column(name = "role", nullable = false)
     private Role role;
 
-    public User() {}
+    public People() {}
 
-    public User(Long schoolId, Long classId, String firstName, String lastName,
+    public People(Long schoolId, Long classId, String firstName, String lastName,
                 String aboutMe, LocalDate dateOfBirth, String email,
                 String password, Role role) {
         this.schoolId = schoolId;

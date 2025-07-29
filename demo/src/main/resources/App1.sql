@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS `classes` (
   FOREIGN KEY (`school_id`) REFERENCES `schools`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
-/*USERS*/
-CREATE TABLE IF NOT EXISTS `users` (
+/*people*/
+CREATE TABLE IF NOT EXISTS `people` (
   `id`             BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `school_id`      BIGINT NULL,
   `class_id`       BIGINT NULL,

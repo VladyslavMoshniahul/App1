@@ -9,21 +9,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.example.demo.javaSrc.users.User;
-import com.example.demo.javaSrc.users.UserRepository;
+import com.example.demo.javaSrc.peoples.People;
+import com.example.demo.javaSrc.peoples.PeopleRepository;
 
 import jakarta.transaction.Transactional;
 
 @Service
 public class PetitionService {
     @Autowired
-    private final UserRepository userRepository;
+    private final PeopleRepository userRepository;
     @Autowired
     private final PetitionRepository petitionRepository;
     @Autowired
     private final PetitionVoteRepository petitionVoteRepository;
 
-    public PetitionService(PetitionRepository petitionRepository, UserRepository userRepository,
+    public PetitionService(PetitionRepository petitionRepository, PeopleRepository userRepository,
             PetitionVoteRepository petitionVoteRepository) {
         this.petitionRepository = petitionRepository;
         this.userRepository = userRepository;
@@ -98,14 +98,14 @@ public class PetitionService {
         if (petition.getClassId() != null) {
             return userRepository
                     .findByRoleAndSchoolIdAndClassId(
-                            User.Role.STUDENT,
+                            People.Role.STUDENT,
                             petition.getSchoolId(),
                             petition.getClassId())
                     .size();
         } else {
             return userRepository
                     .findByRoleAndSchoolId(
-                            User.Role.STUDENT,
+                            People.Role.STUDENT,
                             petition.getSchoolId())
                     .size();
         }

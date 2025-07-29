@@ -1,18 +1,18 @@
-package com.example.demo.javaSrc.users;
+package com.example.demo.javaSrc.peoples;
 
 import java.time.LocalDate;
 
-public record CreateUserRequest(
+public record CreatePeopleRequest(
     String firstName,
     String lastName,
     String email,
     String password,
-    User.Role role,
+    People.Role role,
     String schoolName,
     String className,
     LocalDate dateOfBirth
 ) {
-    public CreateUserRequest {
+    public CreatePeopleRequest {
         if (firstName == null || firstName.isBlank()) {
             throw new IllegalArgumentException("First name cannot be null or blank");
         }

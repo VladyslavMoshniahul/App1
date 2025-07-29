@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.demo.javaSrc.users.*;
+import com.example.demo.javaSrc.peoples.*;
 
 @Service
 public class VoteService {
@@ -23,13 +23,13 @@ public class VoteService {
     @Autowired
     private final VotingVoteRepository votingVoteRepository;
     @Autowired
-    private final UserRepository userRepository;
+    private final PeopleRepository userRepository;
 
     public VoteService(VoteRepository voteRepository,
             VotingVariantRepository votingVariantRepository,
             VotingParticipantRepository votingParticipantRepository,
             VotingVoteRepository votingVoteRepository,
-            UserRepository userRepository) {
+            PeopleRepository userRepository) {
         this.voteRepository = voteRepository;
         this.votingVariantRepository = votingVariantRepository;
         this.votingParticipantRepository = votingParticipantRepository;
@@ -145,8 +145,8 @@ public class VoteService {
                             return vote.getClassId() != null && vote.getClassId().equals(classId)
                                     && vote.getSchoolId().equals(schoolId);
                         case TEACHERS_GROUP:
-                            User user = userRepository.findById(userId).orElseThrow();
-                            if (user.getRole() == User.Role.TEACHER) {
+                            People user = userRepository.findById(userId).orElseThrow();
+                            if (user.getRole() == People.Role.TEACHER) {
                                 return vote.getSchoolId().equals(schoolId);
                             } else {
                                 return false;

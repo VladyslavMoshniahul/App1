@@ -18,21 +18,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.javaSrc.peoples.CreatePeopleRequest;
+import com.example.demo.javaSrc.peoples.PeopleService;
+import com.example.demo.javaSrc.peoples.People;
+import com.example.demo.javaSrc.peoples.PeopleProfileDto;
 import com.example.demo.javaSrc.school.ClassService;
 import com.example.demo.javaSrc.school.School;
 import com.example.demo.javaSrc.school.SchoolClass;
 import com.example.demo.javaSrc.school.SchoolService;
-import com.example.demo.javaSrc.users.CreateUserRequest;
-import com.example.demo.javaSrc.users.User;
-import com.example.demo.javaSrc.users.UserProfileDto;
-import com.example.demo.javaSrc.users.UserService;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @RestController
 @RequestMapping("/api/user")
-public class UserController {
+public class PeopleController {
     @Autowired
-    private final UserService userService;
+    private final PeopleService userService;
 
     @Autowired
     private final PasswordEncoder passwordEncoder;
@@ -45,7 +46,7 @@ public class UserController {
     @Autowired
     private final SimpMessagingTemplate messagingTemplate;
 
-    public UserController(UserService userService, PasswordEncoder passwordEncoder,
+    public PeopleController(PeopleService userService, PasswordEncoder passwordEncoder,
             SchoolService schoolService, ClassService classService, SimpMessagingTemplate messagingTemplate) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
@@ -54,35 +55,35 @@ public class UserController {
         this.messagingTemplate = messagingTemplate;
     }
 
-    public User currentUser(Authentication auth) {
+    public People currentUser(Authentication auth) {
         return userService.findByEmail(auth.getName());
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admins")
-    public List<User> getAdmins() {
-        List<User> admins = userService.getUserByRole("ADMIN");
+    public List<People> getAdmins() {
+        List<People> admins = userService.getPeopleByRole("ADMIN");
         messagingTemplate.convertAndSend("/topic/users/admins/list", admins);
         return admins;
     }
 
     @GetMapping("/teachers")
-    public List<User> getTeachers(
+    public List<People> getTeachers(
             Authentication auth,
             @RequestParam(required = false) String className) {
 
-        User me = currentUser(auth);
+        People me = currentUser(auth);
         Long schoolId = me.getSchoolId();
         SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, className);
         Long classId = schoolClass != null ? schoolClass.getId() : null;
 
-        List<User> teachers;
+        List<People> teachers;
         if (className == null) {
-            teachers = userService.getBySchoolClassAndRole(schoolId, null, User.Role.TEACHER);
+            teachers = userService.getBySchoolClassAndRole(schoolId, null, People.Role.TEACHER);
             messagingTemplate.convertAndSend("/topic/users/teachers/list", teachers);
 
         } else {
-            teachers = userService.getBySchoolClassAndRole(schoolId, classId, User.Role.TEACHER);
+            teachers = userService.getBySchoolClassAndRole(schoolId, classId, People.Role.TEACHER);
             messagingTemplate.convertAndSend("/topic/users/teachers/list/class/" + classId, teachers);
         }
 
@@ -90,22 +91,22 @@ public class UserController {
     }
 
     @GetMapping("/students")
-    public List<User> getStudents(
+    public List<People> getStudents(
             Authentication auth,
             @RequestParam(required = false) String className) {
 
-        User me = currentUser(auth);
+        People me = currentUser(auth);
         Long schoolId = me.getSchoolId();
         SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, className);
         Long classId = schoolClass != null ? schoolClass.getId() : null;
-        List<User> students;
+        List<People> students;
         if (className == null) {
 
-            students = userService.getBySchoolClassAndRole(schoolId, null, User.Role.STUDENT);
+            students = userService.getBySchoolClassAndRole(schoolId, null, People.Role.STUDENT);
             messagingTemplate.convertAndSend("/topic/users/students/list", students);
 
         } else {
-            students = userService.getBySchoolClassAndRole(schoolId, classId, User.Role.STUDENT);
+            students = userService.getBySchoolClassAndRole(schoolId, classId, People.Role.STUDENT);
             messagingTemplate.convertAndSend("/topic/users/students/list/class/" + classId, students);
 
         }
@@ -114,21 +115,21 @@ public class UserController {
     }
 
     @GetMapping("/parents")
-    public List<User> getParents(
+    public List<People> getParents(
             Authentication auth,
             @RequestParam(required = false) String className) {
 
-        User me = currentUser(auth);
+        People me = currentUser(auth);
         Long schoolId = me.getSchoolId();
         SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, className);
         Long classId = schoolClass != null ? schoolClass.getId() : null;
 
-        List<User> parents;
+        List<People> parents;
         if (className == null) {
-            parents = userService.getBySchoolClassAndRole(schoolId, null, User.Role.PARENT);
+            parents = userService.getBySchoolClassAndRole(schoolId, null, People.Role.PARENT);
             messagingTemplate.convertAndSend("/topic/users/parents/list", parents);
         } else {
-            parents = userService.getBySchoolClassAndRole(schoolId, classId, User.Role.PARENT);
+            parents = userService.getBySchoolClassAndRole(schoolId, classId, People.Role.PARENT);
             messagingTemplate.convertAndSend("/topic/users/parents/list/class/" + classId, parents);
         }
 
@@ -137,7 +138,7 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("admin/teachers")
-    public List<User> getTeachersByAdmin(
+    public List<People> getTeachersByAdmin(
             @RequestParam(required = false) String schoolName,
             @RequestParam(required = false) String className) {
         School school = schoolService.getSchoolByName(schoolName);
@@ -145,13 +146,13 @@ public class UserController {
         SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, className);
         Long classId = schoolClass != null ? schoolClass.getId() : null;
 
-        List<User> teachers;
+        List<People> teachers;
         if (classId == null) {
-            teachers = userService.getBySchoolClassAndRole(schoolId, null, User.Role.TEACHER);
+            teachers = userService.getBySchoolClassAndRole(schoolId, null, People.Role.TEACHER);
             messagingTemplate.convertAndSend("/topic/admin/teachers/list/school/" + schoolId, teachers);
         } else {
             teachers = new ArrayList<>();
-            teachers.addAll(userService.getBySchoolClassAndRole(schoolId, classId, User.Role.TEACHER));
+            teachers.addAll(userService.getBySchoolClassAndRole(schoolId, classId, People.Role.TEACHER));
             messagingTemplate.convertAndSend("/topic/admin/teachers/list/school/" + schoolId + "/class/" + classId,
                     teachers);
         }
@@ -160,32 +161,32 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("admin/directors")
-    public List<User> getDirectorsByAdmin(
+    public List<People> getDirectorsByAdmin(
             @RequestParam(required = false) String schoolName) {
         School school = schoolService.getSchoolByName(schoolName);
         Long schoolId = school != null ? school.getId() : null;
 
-        List<User> directors;
+        List<People> directors;
         if (schoolId == null) {
             messagingTemplate.convertAndSend("/topic/admin/directors/error",
                     "Школу '" + schoolName + "' не знайдено для отримання директорів.");
             return List.of();
         } else {
             directors = new ArrayList<>();
-            directors.addAll(userService.getBySchoolClassAndRole(schoolId, null, User.Role.DIRECTOR));
+            directors.addAll(userService.getBySchoolClassAndRole(schoolId, null, People.Role.DIRECTOR));
             messagingTemplate.convertAndSend("/topic/admin/directors/list/school/" + schoolId, directors);
         }
         return directors;
     }
 
     @GetMapping("/users")
-    public List<User> getAllUsers(
+    public List<People> getAllUsers(
             @RequestParam(required = false) Long schoolId,
             @RequestParam(required = false) Long classId,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String email) {
 
-        List<User> all = userService.getAllUsers();
+        List<People> all = userService.getAllPeoples();
 
         if (schoolId != null) {
             all = all.stream()
@@ -217,9 +218,9 @@ public class UserController {
 
     @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR', 'ADMIN')")
     @PostMapping("/create_users")
-    public ResponseEntity<User> createUser(
-            @RequestBody CreateUserRequest newUserRequest) {
-        User newUser = new User();
+    public ResponseEntity<People> createUser(
+            @RequestBody CreatePeopleRequest newUserRequest) {
+        People newUser = new People();
         newUser.setFirstName(newUserRequest.firstName());
         newUser.setLastName(newUserRequest.lastName());
         newUser.setEmail(newUserRequest.email());
@@ -227,7 +228,7 @@ public class UserController {
         newUser.setRole(newUserRequest.role());
         newUser.setDateOfBirth(newUserRequest.dateOfBirth());
 
-        if (newUser.getRole() == User.Role.ADMIN) {
+        if (newUser.getRole() == People.Role.ADMIN) {
             newUser.setSchoolId(null);
             newUser.setClassId(null);
         } else {
@@ -235,12 +236,12 @@ public class UserController {
             School school = schoolService.getSchoolByName(newUserRequest.schoolName());
             SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(school.getId(),
                     newUserRequest.className());
-            if (newUser.getRole() == User.Role.DIRECTOR) {
+            if (newUser.getRole() == People.Role.DIRECTOR) {
                 newUser.setSchoolId(school.getId());
                 newUser.setClassId(null);
             }
 
-            if (newUser.getRole() == User.Role.TEACHER) {
+            if (newUser.getRole() == People.Role.TEACHER) {
                 newUser.setSchoolId(school.getId());
                 if (schoolClass == null) {
                     newUser.setClassId(null);
@@ -249,7 +250,7 @@ public class UserController {
                 }
             }
 
-            if (newUser.getRole() == User.Role.PARENT || newUser.getRole() == User.Role.STUDENT) {
+            if (newUser.getRole() == People.Role.PARENT || newUser.getRole() == People.Role.STUDENT) {
                 if (school == null || schoolClass == null) {
                     return ResponseEntity.badRequest().body(null);
                 }
@@ -264,13 +265,13 @@ public class UserController {
 
             return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         }
-        if (newUser.getRole() != User.Role.ADMIN && newUser.getSchoolId() == null) {
+        if (newUser.getRole() != People.Role.ADMIN && newUser.getSchoolId() == null) {
             messagingTemplate.convertAndSend("/topic/users/create/error",
                     "Помилка створення користувача: для ролі '" + newUser.getRole() + "' обов'язково вказати школу.");
 
             return ResponseEntity.badRequest().body(null);
         }
-        if ((newUser.getRole() == User.Role.PARENT || newUser.getRole() == User.Role.STUDENT)
+        if ((newUser.getRole() == People.Role.PARENT || newUser.getRole() == People.Role.STUDENT)
                 && (newUser.getClassId() == null || newUser.getSchoolId() == null)) {
 
             messagingTemplate.convertAndSend("/topic/users/create/error",
@@ -282,13 +283,13 @@ public class UserController {
         newUser.setPassword(passwordEncoder.encode(rawPass));
         messagingTemplate.convertAndSend("/topic/users/created", newUser);
 
-        return ResponseEntity.ok(userService.createUser(newUser));
+        return ResponseEntity.ok(userService.createPeople(newUser));
     }
 
     @GetMapping("/myProfile")
-    public ResponseEntity<UserProfileDto> getMyProfile(Authentication auth) {
+    public ResponseEntity<PeopleProfileDto> getMyProfile(Authentication auth) {
         String email = auth.getName();
-        User user = userService.findByEmail(email);
+        People user = userService.findByEmail(email);
         if (user == null) {
             messagingTemplate.convertAndSend("/topic/users/profile/error",
                     "Профіль для користувача '" + email + "' не знайдено.");
@@ -313,7 +314,7 @@ public class UserController {
             }
         }
 
-        UserProfileDto dto = new UserProfileDto(
+        PeopleProfileDto dto = new PeopleProfileDto(
                 user.getId(),
                 user.getFirstName(),
                 user.getLastName(),
@@ -329,9 +330,9 @@ public class UserController {
     }
 
     @PutMapping("/me")
-    public ResponseEntity<User> updateMyProfile(@RequestBody User updatedData, Authentication auth) {
+    public ResponseEntity<People> updateMyProfile(@RequestBody People updatedData, Authentication auth) {
         String email = auth.getName();
-        User currentUser = userService.findByEmail(email);
+        People currentUser = userService.findByEmail(email);
         if (currentUser == null) {
             return ResponseEntity.notFound().build();
         }
@@ -369,7 +370,7 @@ public class UserController {
         }
 
         Long userId = currentUser.getId();
-        User updated = userService.updateUser(userId, currentUser);
+        People updated = userService.updatePeople(userId, currentUser);
         messagingTemplate.convertAndSend("/topic/users/updated/id/" + userId, updated);
         return ResponseEntity.ok(updated);
     }
@@ -380,23 +381,23 @@ public class UserController {
 
     @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR', 'ADMIN')")
     @GetMapping("/loadUsers")
-    public List<User> getAllUsers() {
-        messagingTemplate.convertAndSend("/topic/users/all/list", userService.getAllUsers());
-        return userService.getAllUsers();
+    public List<People> getAllUsers() {
+        messagingTemplate.convertAndSend("/topic/users/all/list", userService.getAllPeoples());
+        return userService.getAllPeoples();
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users/role/{role}")
-    public List<User> getUsersByRole(@PathVariable String role) {
-        messagingTemplate.convertAndSend("/topic/users/list/role/" + role, userService.getUserByRole(role));
-        return userService.getUserByRole(role);
+    public List<People> getUsersByRole(@PathVariable String role) {
+        messagingTemplate.convertAndSend("/topic/users/list/role/" + role, userService.getPeopleByRole(role));
+        return userService.getPeopleByRole(role);
     }
 
     @GetMapping("/users/role/school/{role}")
-    public List<User> getUsersBySchoolClassAndRole(Authentication auth,
+    public List<People> getUsersBySchoolClassAndRole(Authentication auth,
             @RequestParam(required = false) String className,
-            @RequestParam(required = false) User.Role role) {
-        User me = currentUser(auth);
+            @RequestParam(required = false) People.Role role) {
+        People me = currentUser(auth);
         SchoolClass schoolclass = classService.getClassesBySchoolIdAndName(me.getSchoolId(), className);
         if (schoolclass == null) {
             schoolclass = new SchoolClass();
@@ -411,8 +412,8 @@ public class UserController {
 
     @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR')")
     @PutMapping("/users/{id}")
-    public ResponseEntity<User> updateUserByTeacherOrDirector(@PathVariable Long id, @RequestBody User updatedData) {
-        User updated = userService.updateProfile(id, updatedData);
+    public ResponseEntity<People> updateUserByTeacherOrDirector(@PathVariable Long id, @RequestBody People updatedData) {
+        People updated = userService.updateProfile(id, updatedData);
         if (updated != null) {
             messagingTemplate.convertAndSend("/topic/users/updated/id/" + id, updated);
             return ResponseEntity.ok(updated);
@@ -424,8 +425,8 @@ public class UserController {
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        User user = userService.getUserById(id);
+    public ResponseEntity<People> getUserById(@PathVariable Long id) {
+        People user = userService.getPeopleById(id);
         if (user != null) {
             messagingTemplate.convertAndSend("/topic/users/details/id/" + id, user);
             return ResponseEntity.ok(user);

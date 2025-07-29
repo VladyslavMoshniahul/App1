@@ -1,5 +1,6 @@
 package com.example.demo.websocket;
 
+import com.example.demo.javaSrc.security.JwtUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -9,11 +10,10 @@ import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
-import com.example.demo.javaSrc.security.JwtUtils;
-
 import java.util.Map;
 
 public class WebSocketAuthInterceptor implements HandshakeInterceptor {
+
     private final JwtUtils jwtUtils;
 
     public WebSocketAuthInterceptor(JwtUtils jwtUtils) {
@@ -21,17 +21,33 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
     }
 
     @Override
-    public boolean beforeHandshake(@SuppressWarnings("null") ServerHttpRequest request,
+    public boolean beforeHandshake(
+            @SuppressWarnings("null") ServerHttpRequest request,
             @SuppressWarnings("null") ServerHttpResponse response,
             @SuppressWarnings("null") WebSocketHandler wsHandler,
             @SuppressWarnings("null") Map<String, Object> attributes) {
-        
-        return false;
+        if (request instanceof ServletServerHttpRequest servletRequest) {
+            HttpServletRequest httpRequest = servletRequest.getServletRequest();
+            Cookie[] cookies = httpRequest.getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if ("token".equals(cookie.getName())) {
+                        String token = cookie.getValue();
+                        attributes.put("jwt", token);
+                        return true;
+                    }
+                }
+            }
+        }
+        return true; // Allow connections without JWT for testing
     }
 
     @Override
-    public void afterHandshake(@SuppressWarnings("null") ServerHttpRequest request,
+    public void afterHandshake(
+            @SuppressWarnings("null") ServerHttpRequest request,
             @SuppressWarnings("null") ServerHttpResponse response,
-            @SuppressWarnings("null") WebSocketHandler wsHandler, @SuppressWarnings("null") Exception exception) {
+            @SuppressWarnings("null") WebSocketHandler wsHandler,
+            @SuppressWarnings("null") Exception exception) {
     }
+
 }

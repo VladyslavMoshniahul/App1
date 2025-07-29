@@ -29,22 +29,22 @@ import com.example.demo.javaSrc.events.EventService;
 import com.example.demo.javaSrc.invitations.Invitation;
 import com.example.demo.javaSrc.invitations.InvitationsService;
 import com.example.demo.javaSrc.invitations.UserInvitationStatus;
+import com.example.demo.javaSrc.peoples.People;
+import com.example.demo.javaSrc.peoples.PeopleService;
 import com.example.demo.javaSrc.school.ClassService;
 import com.example.demo.javaSrc.school.SchoolClass;
 import com.example.demo.javaSrc.tasks.Task;
 import com.example.demo.javaSrc.tasks.TaskRepository;
-import com.example.demo.javaSrc.users.User;
-import com.example.demo.javaSrc.users.UserService;
 
 @RestController
 @RequestMapping("/api/event")
 public class EventController {
     @Autowired
-    private final UserController userController;
+    private final PeopleController userController;
     @Autowired
     private final EventService eventService;
     @Autowired
-    private final UserService userService;
+    private final PeopleService userService;
     @Autowired
     private final InvitationsService invitationsService;
     @Autowired
@@ -54,7 +54,7 @@ public class EventController {
     @Autowired
     private final ClassService classService;
 
-    public EventController(UserController userController, EventService eventService, UserService userService,
+    public EventController(PeopleController userController, EventService eventService, PeopleService userService,
             InvitationsService invitationsService,
             TaskRepository taskRepository, EventsCommentService eventsCommentService, ClassService classService) {
         this.userController = userController;
@@ -73,10 +73,10 @@ public class EventController {
             @RequestParam(required = false) Long classId,
             @RequestParam(required = false) Long userId) {
 
-        User me = userController.currentUser(auth);
+        People me = userController.currentUser(auth);
 
         if (userId != null) {
-            User target = userService.getAllUsers().stream()
+            People target = userService.getAllPeoples().stream()
                     .filter(u -> u.getId().equals(userId))
                     .findFirst().orElse(null);
             if (target == null) {
@@ -127,7 +127,7 @@ public class EventController {
                 userController.currentUser(auth).getSchoolId(),
                 req.className());
         Long classId = schoolClass != null ? schoolClass.getId() : null;
-        if (userController.currentUser(auth).getRole() == User.Role.STUDENT
+        if (userController.currentUser(auth).getRole() == People.Role.STUDENT
                 && !Objects.equals(classId, userController.currentUser(auth).getClassId())) {
             return ResponseEntity.status(403).body("Учень може створювати події лише для свого класу");
         }
@@ -239,7 +239,7 @@ public class EventController {
             @RequestParam Long eventId,
             Authentication auth) {
 
-        User currentUser = userController.currentUser(auth);
+        People currentUser = userController.currentUser(auth);
         Event event = eventService.getEventById(eventId);
         if (event == null) {
             return ResponseEntity.badRequest().body("Подія не знайдена");
@@ -248,8 +248,8 @@ public class EventController {
         switch (currentUser.getRole()) {
             case STUDENT -> {
                 for (Long id : userIds) {
-                    User invited = userService.getUserById(id);
-                    if (invited.getRole() != User.Role.STUDENT) {
+                    People invited = userService.getPeopleById(id);
+                    if (invited.getRole() != People.Role.STUDENT) {
                         return ResponseEntity.status(403).body("Учень може запросити лише інших учнів");
                     }
                 }

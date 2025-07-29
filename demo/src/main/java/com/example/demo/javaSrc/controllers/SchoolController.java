@@ -15,12 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.javaSrc.peoples.People;
 import com.example.demo.javaSrc.school.ClassService;
 import com.example.demo.javaSrc.school.CreateClassRequest;
 import com.example.demo.javaSrc.school.School;
 import com.example.demo.javaSrc.school.SchoolClass;
 import com.example.demo.javaSrc.school.SchoolService;
-import com.example.demo.javaSrc.users.User;
 
 @RestController
 @RequestMapping("/api/school")
@@ -30,11 +30,11 @@ public class SchoolController {
     @Autowired
     private final ClassService classService;
     @Autowired
-    private final UserController userController;
+    private final PeopleController userController;
     @Autowired
     private final SimpMessagingTemplate messagingTemplate;
 
-    public SchoolController(SchoolService schoolService, ClassService classService, UserController userController,
+    public SchoolController(SchoolService schoolService, ClassService classService, PeopleController userController,
             SimpMessagingTemplate messagingTemplate) {
         this.schoolService = schoolService;
         this.classService = classService;
@@ -68,7 +68,7 @@ public class SchoolController {
     @GetMapping("/classes")
     public List<SchoolClass> getClasses(
             Authentication auth) {
-        User me = userController.currentUser(auth);
+        People me = userController.currentUser(auth);
         Long schoolId = me.getSchoolId();
         if (schoolId == null) {
             messagingTemplate.convertAndSend("/topic/classes/error", "Користувач не прив'язаний до школи.");

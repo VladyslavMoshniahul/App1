@@ -32,9 +32,9 @@ public class VoteController {
     @Autowired
     private final ObjectMapper objectMapper;
     @Autowired
-    private final UserController userController;
+    private final PeopleController userController;
 
-    public VoteController(VoteService voteService, ObjectMapper objectMapper,UserController userController) {
+    public VoteController(VoteService voteService, ObjectMapper objectMapper,PeopleController userController) {
         this.voteService = voteService;
         this.objectMapper = new ObjectMapper();
         this.userController = userController;
