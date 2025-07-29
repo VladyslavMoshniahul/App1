@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,17 +34,40 @@ public class TaskController {
     @Autowired
     private final PeopleController userController;
 
-    public TaskController(TaskService taskService, PeopleController userController) {
+    private final SimpMessagingTemplate messagingTemplate;
+
+    public TaskController(TaskService taskService, PeopleController userController,
+            SimpMessagingTemplate messagingTemplate) {
         this.taskService = taskService;
-          this.userController = userController;
+        this.userController = userController;
+        this.messagingTemplate = messagingTemplate;
     }
 
-
-   @PostMapping("/tasks/{id}/toggle-complete")
-    public ResponseEntity<Void> toggleTask(@PathVariable Long taskId,
-                                            Authentication auth) {
+    @PostMapping("/tasks/{id}/toggle-complete")
+    public ResponseEntity<Void> toggleTask(@PathVariable("id") Long taskId,
+            Authentication auth) {
         try {
-            taskService.toggleComplete(taskId, userController.currentUser(auth).getId());
+            Long userId = userController.currentUser(auth).getId();
+            taskService.toggleComplete(taskId, userId);
+
+            Task updatedTask = taskService.getTaskById(taskId);
+            if (updatedTask != null) {
+
+                messagingTemplate.convertAndSend("/topic/tasks/updated", updatedTask);
+                messagingTemplate.convertAndSend("/topic/tasks/" + taskId + "/status", updatedTask);
+
+                if (updatedTask.getSchoolId() != null) {
+                    messagingTemplate.convertAndSend("/topic/tasks/school/" + updatedTask.getSchoolId() + "/updated",
+                            updatedTask);
+                }
+                if (updatedTask.getClassId() != null) {
+                    messagingTemplate.convertAndSend("/topic/tasks/class/" + updatedTask.getClassId() + "/updated",
+                            updatedTask);
+                }
+                messagingTemplate.convertAndSendToUser(userId.toString(), "/queue/my-tasks/status-changed",
+                        updatedTask);
+            }
+
             return ResponseEntity.ok().build();
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
@@ -63,7 +87,17 @@ public class TaskController {
 
         newTask.setSchoolId(teacher.getSchoolId());
 
-        return ResponseEntity.ok(taskService.createTask(newTask));
+        Task createdTask = taskService.createTask(newTask);
+
+        messagingTemplate.convertAndSend("/topic/tasks/new", createdTask);
+        if (createdTask.getSchoolId() != null) {
+            messagingTemplate.convertAndSend("/topic/tasks/school/" + createdTask.getSchoolId() + "/new", createdTask);
+        }
+        if (createdTask.getClassId() != null) {
+            messagingTemplate.convertAndSend("/topic/tasks/class/" + createdTask.getClassId() + "/new", createdTask);
+        }
+
+        return ResponseEntity.ok(createdTask);
     }
 
     @GetMapping("/tasks")
@@ -71,10 +105,10 @@ public class TaskController {
             Authentication auth,
             @RequestParam(required = false) Long classId,
             @RequestParam(required = false) Long eventId,
-            @RequestParam(required = false) Boolean onlyFuture
-    ) {
+            @RequestParam(required = false) Boolean onlyFuture) {
         People me = userController.currentUser(auth);
-        if (me == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (me == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         Long schoolId = me.getSchoolId();
         Long userClassId = me.getClassId();
@@ -92,16 +126,17 @@ public class TaskController {
         }
 
         if (eventId != null) {
-            result.removeIf(task -> !eventId.equals(task.getEvent().getId()));
+            result.removeIf(task -> task.getEvent() == null || !eventId.equals(task.getEvent().getId()));
         }
 
         if (Boolean.TRUE.equals(onlyFuture)) {
-            result.removeIf(task -> task.getDeadline().before(new java.util.Date()));
+            result.removeIf(task -> task.getDeadline() != null && task.getDeadline().before(new java.util.Date()));
         }
 
         result.sort(Comparator.comparing(Task::getDeadline));
 
         return ResponseEntity.ok(result);
+
     }
 
 }

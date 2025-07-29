@@ -47,25 +47,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
 const logoutButton = document.getElementById("logoutButton");
 logoutButton.addEventListener("click", async () => {
-    try {
-        const response = await fetch('/api/logout', { 
-            method: 'POST',
-            credentials: 'include'
-        });
+  try {
+    const response = await fetch('/api/logout', {
+      method: 'POST',
+      credentials: 'include'
+    });
 
-        if (response.ok) {
-            localStorage.clear();
-            toastr.success("Ви успішно вийшли з акаунту.");
-            window.location.href = "/login.html";
-        } else {
-            const errorData = await response.json().catch(() => ({ error: 'Невідома помилка виходу' }));
-            toastr.error(`Помилка виходу: ${errorData.error}`);
-            toastr.error('Logout failed:', response.status, errorData);
-        }
-    } catch (error) {
-        toastr.error("Не вдалося відправити запит на вихід:", error);
-        toastr.error("Помилка мережі при виході. Спробуйте ще раз.");
+    if (response.ok) {
+      localStorage.clear();
+      toastr.success("Ви успішно вийшли з акаунту.");
+      window.location.href = "/login.html";
+    } else {
+      const errorData = await response.json().catch(() => ({ error: 'Невідома помилка виходу' }));
+      toastr.error(`Помилка виходу: ${errorData.error}`);
+      toastr.error('Logout failed:', response.status, errorData);
     }
+  } catch (error) {
+    toastr.error("Не вдалося відправити запит на вихід:", error);
+    toastr.error("Помилка мережі при виході. Спробуйте ще раз.");
+  }
 });
 
 document.getElementById("openButton").addEventListener("click", () => {
@@ -477,19 +477,12 @@ function connectStompWebSocket() {
       const teachersList = document.getElementById('teachers-list');
       renderList(teachersList, teachers, teacher => `${teacher.firstName} ${teacher.lastName} (${teacher.email})`);
     });
-
-    stompClient.subscribe('/topic/users/students/list', function (message) {
-      const students = JSON.parse(message.body);
-      console.log('WebSocket: Оновлений список студентів:', students);
-      const studentsList = document.getElementById('students-list');
-      renderList(studentsList, students, student => `${student.firstName} ${student.lastName} (${student.email})`);
-    });
-
-    stompClient.subscribe('/topic/users/parents/list', function (message) {
-      const parents = JSON.parse(message.body);
-      console.log('WebSocket: Оновлений список батьків:', parents);
-      const parentsList = document.getElementById('parents-list');
-      renderList(parentsList, parents, parent => `${parent.firstName} ${parent.lastName} (${parent.email})`);
+    
+    stompClient.subscribe('/topic/users/directors/list', function (message) {
+      const directors = JSON.parse(message.body);
+      console.log('WebSocket: Оновлений список директорів:', directors);
+      const directorsList = document.getElementById('directors-list');
+      renderList(directorsList, directors, director => `${director.firstName} ${director.lastName} (${director.email})`);
     });
 
     stompClient.subscribe('/topic/users/created', function (message) {
@@ -498,12 +491,6 @@ function connectStompWebSocket() {
       loadAdmins();
       loadDirectors();
       loadTeachers();
-    });
-
-    stompClient.subscribe('/topic/users/updated/id/{id}', function (message) {
-      const updatedUser = JSON.parse(message.body);
-      console.log('WebSocket: Оновлено користувача:', updatedUser);
-
     });
 
     stompClient.subscribe('/topic/users/profile', function (message) {
@@ -554,11 +541,6 @@ function connectStompWebSocket() {
     stompClient.subscribe('/topic/users/create/error', function (message) {
       const errorMessage = message.body;
       console.error('WebSocket Error: Помилка створення користувача:', errorMessage);
-    });
-
-    stompClient.subscribe('/topic/users/update/error', function (message) {
-      const errorMessage = message.body;
-      console.error('WebSocket Error: Помилка оновлення користувача:', errorMessage);
     });
 
     stompClient.subscribe('/topic/users/profile/error', function (message) {

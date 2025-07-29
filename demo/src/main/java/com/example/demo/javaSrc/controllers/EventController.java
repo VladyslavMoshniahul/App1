@@ -7,7 +7,9 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -54,9 +56,13 @@ public class EventController {
     @Autowired
     private final ClassService classService;
 
+    private final SimpMessagingTemplate messagingTemplate;
+
     public EventController(PeopleController userController, EventService eventService, PeopleService userService,
             InvitationsService invitationsService,
-            TaskRepository taskRepository, EventsCommentService eventsCommentService, ClassService classService) {
+            TaskRepository taskRepository, EventsCommentService eventsCommentService,
+            ClassService classService,
+            SimpMessagingTemplate messagingTemplate) {
         this.userController = userController;
         this.eventService = eventService;
         this.userService = userService;
@@ -64,6 +70,7 @@ public class EventController {
         this.taskRepository = taskRepository;
         this.eventsCommentService = eventsCommentService;
         this.classService = classService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @GetMapping("/getEvents")
@@ -139,6 +146,14 @@ public class EventController {
         event.setCreatedBy(userController.currentUser(auth).getId());
 
         Event saved = eventService.createEvent(event);
+
+        messagingTemplate.convertAndSend("/topic/events/new", saved);
+        if (saved.getSchoolId() != null) {
+            messagingTemplate.convertAndSend("/topic/events/school/" + saved.getSchoolId(), saved);
+        }
+        if (saved.getClassId() != null) {
+            messagingTemplate.convertAndSend("/topic/events/class/" + saved.getClassId(), saved);
+        }
         return ResponseEntity.ok(saved);
     }
 
@@ -159,8 +174,9 @@ public class EventController {
                     file.getBytes(),
                     event);
             EventFile saved = eventService.saveEventFile(eventFile);
+            messagingTemplate.convertAndSend("/topic/events/" + eventId + "/files", saved);
             return ResponseEntity.ok(saved);
-        } catch (Exception event) {
+        } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
     }
@@ -218,7 +234,7 @@ public class EventController {
 
         return ResponseEntity.ok()
                 .header("Content-Disposition", "attachment; filename=\"" + file.getFileName() + "\"")
-                .contentType(org.springframework.http.MediaType.parseMediaType(file.getFileType()))
+                .contentType(MediaType.parseMediaType(file.getFileType()))
                 .body(file.getFileData());
     }
 
@@ -268,6 +284,14 @@ public class EventController {
         }
 
         Invitation invitation = invitationsService.createGroupInvitation(eventId, currentUser.getId(), userIds);
+        userIds.forEach(userId -> {
+            messagingTemplate.convertAndSendToUser(
+                    userId.toString(),
+                    "/queue/invitations/new",
+                    invitation);
+        });
+        messagingTemplate.convertAndSend("/topic/invitations/new", "Нові запрошення створено для події: " + eventId);
+
         return ResponseEntity.ok(invitation);
     }
 
@@ -283,6 +307,13 @@ public class EventController {
         if (!updated) {
             return ResponseEntity.status(403).body("Немає доступу до цього запрошення або вже відповіли");
         }
+        messagingTemplate.convertAndSend("/topic/invitations/status/update",
+                "Запрошення ID " + invitationId + " оновлено для користувача " + userId + " на статус "
+                        + status.name());
+        messagingTemplate.convertAndSendToUser(
+                userId.toString(),
+                "/queue/invitations/status",
+                "Запрошення ID " + invitationId + " оновлено на статус " + status.name());
         return ResponseEntity.ok("Відповідь прийнята");
     }
 
@@ -302,6 +333,7 @@ public class EventController {
         task.setEvent(event);
 
         Task saved = taskRepository.save(task);
+        messagingTemplate.convertAndSend("/topic/events/" + eventId + "/tasks/new", saved);
         return ResponseEntity.ok(saved);
     }
 
@@ -314,6 +346,7 @@ public class EventController {
     @PostMapping("/comments")
     public ResponseEntity<EventsComment> addComment(@RequestBody EventsComment comment) {
         EventsComment saved = eventsCommentService.createComment(comment);
+        messagingTemplate.convertAndSend("/topic/events/" + saved.getEventId() + "/comments/new", saved);
         return ResponseEntity.ok(saved);
     }
 
@@ -337,20 +370,37 @@ public class EventController {
 
     @DeleteMapping("/comments/{id}")
     public ResponseEntity<Void> deleteComment(@PathVariable Long id) {
+        Long eventId = null;
+        EventsComment comment = eventsCommentService.getCommentById(id);
+        if (comment != null && comment.getEventId() != null) {
+            eventId = comment.getEventId();
+        }
         eventsCommentService.deleteComment(id);
+        if (eventId != null) {
+            messagingTemplate.convertAndSend("/topic/events/" + eventId + "/comments/deleted",
+                    "Коментар ID " + id + " видалено.");
+        }
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/comments/event/{eventId}")
     public ResponseEntity<Void> deleteCommentsByEvent(@PathVariable Long eventId) {
         eventsCommentService.deleteCommentsByEventId(eventId);
+        messagingTemplate.convertAndSend("/topic/events/" + eventId + "/comments/allDeleted",
+                "Усі коментарі для події ID " + eventId + " видалено.");
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/comments/user/{userId}")
     public ResponseEntity<Void> deleteCommentsByUser(@PathVariable Long userId) {
+        List<EventsComment> commentsToDelete = eventsCommentService.getCommentsByUserId(userId);
         eventsCommentService.deleteCommentsByUserId(userId);
+        commentsToDelete.forEach(comment -> {
+            if (comment.getEventId() != null) {
+                messagingTemplate.convertAndSend("/topic/events/" + comment.getEventId() + "/comments/deleted",
+                        "Коментар ID " + comment.getId() + " користувача " + userId + " видалено.");
+            }
+        });
         return ResponseEntity.noContent().build();
     }
-
 }

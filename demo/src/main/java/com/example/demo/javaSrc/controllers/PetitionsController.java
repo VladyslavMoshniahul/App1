@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -46,14 +47,19 @@ public class PetitionsController {
     private final PetitionsCommentService petitionsCommentService;
     @Autowired
     private final ClassService classService;
+    @Autowired
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public PetitionsController(PetitionService petitionService, PeopleService userService, PeopleController userController, 
-            PetitionsCommentService petitionsCommentService, ClassService classService) {
+    public PetitionsController(PetitionService petitionService, PeopleService userService,
+            PeopleController userController,
+            PetitionsCommentService petitionsCommentService, ClassService classService,
+            SimpMessagingTemplate messagingTemplate) {
         this.petitionService = petitionService;
         this.userService = userService;
         this.userController = userController;
         this.petitionsCommentService = petitionsCommentService;
         this.classService = classService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @PreAuthorize("hasRole('STUDENT')")
@@ -96,6 +102,14 @@ public class PetitionsController {
         int totalStudents = petitionService.getTotalStudentsForPetition(saved);
         PetitionDto dto = PetitionDto.from(saved, totalStudents);
 
+        messagingTemplate.convertAndSend("/topic/petitions/new", dto);
+        if (saved.getSchoolId() != null) {
+            messagingTemplate.convertAndSend("/topic/petitions/school/" + saved.getSchoolId(), dto);
+        }
+        if (saved.getClassId() != null) {
+            messagingTemplate.convertAndSend("/topic/petitions/class/" + saved.getClassId(), dto);
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
@@ -120,7 +134,8 @@ public class PetitionsController {
                     int totalStudents;
                     if (petition.getClassId() != null) {
                         totalStudents = userService
-                                .getBySchoolClassAndRole(petition.getSchoolId(), petition.getClassId(), People.Role.STUDENT)
+                                .getBySchoolClassAndRole(petition.getSchoolId(), petition.getClassId(),
+                                        People.Role.STUDENT)
                                 .size();
                     } else {
                         totalStudents = userService
@@ -134,7 +149,6 @@ public class PetitionsController {
         return ResponseEntity.ok(dtos);
     }
 
-    
     @PostMapping(value = "/petitions/{id}/vote", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> votePetition(
             @PathVariable Long id,
@@ -142,8 +156,26 @@ public class PetitionsController {
             Authentication auth) {
 
         try {
-            People user = userService.findByEmail(auth.getName()); 
+            People user = userService.findByEmail(auth.getName());
             petitionService.vote(id, user.getId(), req.getVote());
+
+            Petition updatedPetition = petitionService.getPetitionById(id);
+            if (updatedPetition != null) {
+                int totalStudents = petitionService.getTotalStudentsForPetition(updatedPetition);
+                PetitionDto updatedDto = PetitionDto.from(updatedPetition, totalStudents);
+                messagingTemplate.convertAndSend("/topic/petitions/vote/" + id, updatedDto);
+                if (updatedPetition.getSchoolId() != null) {
+                    messagingTemplate.convertAndSend("/topic/petitions/school/" + updatedPetition.getSchoolId(),
+                            updatedDto);
+                }
+                if (updatedPetition.getClassId() != null) {
+                    messagingTemplate.convertAndSend("/topic/petitions/class/" + updatedPetition.getClassId(),
+                            updatedDto);
+                }
+                messagingTemplate.convertAndSendToUser(user.getId().toString(), "/queue/petitions/vote/status",
+                        "Ваш голос за петицію " + id + " (" + req.getVote() + ") зараховано.");
+            }
+
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest()
@@ -165,7 +197,23 @@ public class PetitionsController {
             return ResponseEntity.badRequest().build();
         }
         petition.setDirectorsDecision(Petition.DirectorsDecision.APPROVED);
-        petitionService.createPetition(petition);
+        Petition updated = petitionService.createPetition(petition); 
+
+        int totalStudents = petitionService.getTotalStudentsForPetition(updated);
+        PetitionDto dto = PetitionDto.from(updated, totalStudents);
+
+        messagingTemplate.convertAndSend("/topic/petitions/decision/" + id, dto);
+        if (updated.getSchoolId() != null) {
+            messagingTemplate.convertAndSend("/topic/petitions/school/" + updated.getSchoolId(), dto);
+        }
+        if (updated.getClassId() != null) {
+            messagingTemplate.convertAndSend("/topic/petitions/class/" + updated.getClassId(), dto);
+        }
+        if (updated.getCreatedBy() != null) {
+            messagingTemplate.convertAndSendToUser(updated.getCreatedBy().toString(),
+                    "/queue/petitions/my-petition/decision",
+                    "Ваша петиція '" + updated.getTitle() + "' схвалена директором.");
+        }
         return ResponseEntity.ok().build();
     }
 
@@ -180,20 +228,36 @@ public class PetitionsController {
         }
 
         petition.setDirectorsDecision(Petition.DirectorsDecision.REJECTED);
-        petitionService.createPetition(petition);
+        Petition updated = petitionService.createPetition(petition);
+
+        int totalStudents = petitionService.getTotalStudentsForPetition(updated);
+        PetitionDto dto = PetitionDto.from(updated, totalStudents);
+
+        messagingTemplate.convertAndSend("/topic/petitions/decision/" + id, dto);
+        if (updated.getSchoolId() != null) {
+            messagingTemplate.convertAndSend("/topic/petitions/school/" + updated.getSchoolId(), dto);
+        }
+        if (updated.getClassId() != null) {
+            messagingTemplate.convertAndSend("/topic/petitions/class/" + updated.getClassId(), dto);
+        }
+        if (updated.getCreatedBy() != null) {
+            messagingTemplate.convertAndSendToUser(updated.getCreatedBy().toString(),
+                    "/queue/petitions/my-petition/decision",
+                    "Ваша петиція '" + updated.getTitle() + "' відхилена директором.");
+        }
         return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("hasRole('DIRECTOR')")
     @GetMapping("/petitionsForDirector")
     public List<Petition> getPetitionsForDirector(Authentication auth,
-                                                        @RequestParam(required= false) String className) {
-        List<Petition> petitions;                                                   
+            @RequestParam(required = false) String className) {
+        List<Petition> petitions;
         People me = userController.currentUser(auth);
         SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(me.getSchoolId(), className);
         if (schoolClass == null) {
             petitions = petitionService.getPetitionBySchool(me.getSchoolId());
-        }else{
+        } else {
             petitions = petitionService.getPetitionByClassAndSchool(schoolClass.getId(), me.getSchoolId());
         }
         return petitions;
@@ -202,6 +266,7 @@ public class PetitionsController {
     @PostMapping("/comments")
     public ResponseEntity<PetitionsComment> addComment(@RequestBody PetitionsComment comment) {
         PetitionsComment saved = petitionsCommentService.addComment(comment);
+        messagingTemplate.convertAndSend("/topic/petitions/" + saved.getPetitionId() + "/comments/new", saved);
         return ResponseEntity.ok(saved);
     }
 
@@ -225,19 +290,41 @@ public class PetitionsController {
 
     @DeleteMapping("/comments/{id}")
     public ResponseEntity<Void> deleteComment(@PathVariable Long id) {
+        Long petitionId = null;
+        PetitionsComment comment = petitionsCommentService.getComment(id);
+        if (comment != null && comment.getPetitionId() != null) {
+            petitionId = comment.getPetitionId();
+        }
+
         petitionsCommentService.deleteComment(id);
+        if (petitionId != null) {
+            messagingTemplate.convertAndSend("/topic/petitions/" + petitionId + "/comments/deleted",
+                    "Коментар ID " + id + " видалено.");
+        }
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/comments/petition/{petitionId}")
     public ResponseEntity<Void> deleteCommentsByPetition(@PathVariable Long petitionId) {
         petitionsCommentService.deleteCommentsByPetitionId(petitionId);
+        messagingTemplate.convertAndSend("/topic/petitions/" + petitionId + "/comments/allDeleted",
+                "Усі коментарі для петиції ID " + petitionId + " видалено.");
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/comments/user/{userId}")
     public ResponseEntity<Void> deleteCommentsByUser(@PathVariable Long userId) {
+
+        List<PetitionsComment> commentsToDelete = petitionsCommentService.getCommentsByUserId(userId);
         petitionsCommentService.deleteCommentsByUserId(userId);
+        commentsToDelete.forEach(comment -> {
+            if (comment.getPetitionId() != null) {
+                messagingTemplate.convertAndSend("/topic/petitions/" + comment.getPetitionId() + "/comments/deleted",
+                        "Коментар ID " + comment.getId() + " користувача " + userId + " видалено.");
+            }
+        });
+        messagingTemplate.convertAndSendToUser(userId.toString(), "/queue/my-comments/deleted",
+                "Ваші коментарі були видалені.");
         return ResponseEntity.noContent().build();
     }
 }
