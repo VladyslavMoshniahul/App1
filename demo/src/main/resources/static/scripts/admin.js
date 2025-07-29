@@ -1,4 +1,4 @@
-import { fetchWithAuth } from "./api.js"; 
+import { fetchWithAuth } from "./api.js";
 
 const tabButtons = document.querySelectorAll(".nav-tabs button");
 const sections = document.querySelectorAll(".page-section");
@@ -76,11 +76,11 @@ async function loadProfileForEdit() {
     if (rawDate) {
       const date = new Date(rawDate);
       const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0'); 
+      const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
       document.getElementById('edit-dateOfBirth').value = `${year}-${month}-${day}`;
     } else {
-      document.getElementById('edit-dateOfBirth').value = ''; 
+      document.getElementById('edit-dateOfBirth').value = '';
     }
     document.getElementById("edit-email").value = user.email || '';
   } catch (error) {
@@ -115,7 +115,7 @@ document.getElementById("editProfileForm").addEventListener("submit", async (e) 
     toastr.success("Профіль успішно оновлено.");
     document.getElementById("updateProfile").style.display = "none";
     document.getElementById("editProfileForm").reset();
-    loadProfile(); 
+    loadProfile();
   } catch (error) {
     toastr.error("Помилка при оновленні профілю. Спробуйте ще раз.");
   }
@@ -302,12 +302,12 @@ toastr.options = {
 };
 
 function renderList(listElement, items, renderItemFn, emptyMessage = "Немає даних для відображення.") {
-  listElement.innerHTML = ''; 
+  listElement.innerHTML = '';
 
   if (items && items.length > 0) {
     items.forEach(item => {
       const li = document.createElement('li');
-      li.textContent = renderItemFn(item); 
+      li.textContent = renderItemFn(item);
       listElement.appendChild(li);
     });
   } else {
@@ -336,7 +336,7 @@ function loadProfile() {
         const rawDate = user.dateOfBirth;
         if (rawDate) {
           const date = new Date(rawDate);
-          const formatted = date.toLocaleDateString('uk-UA'); 
+          const formatted = date.toLocaleDateString('uk-UA');
           document.getElementById('profile-dateOfBirth').textContent = formatted;
         } else {
           document.getElementById('profile-dateOfBirth').textContent = '-';
@@ -427,7 +427,7 @@ function loadTeachers(schoolName = '', className = '') {
   fetchWithAuth(url.toString())
     .then(response => response.json())
     .then(data => {
-      renderList(teachersList, data, teacher => `${teacher.firstName} ${teacher.lastName} (${teacher.email})`, 
+      renderList(teachersList, data, teacher => `${teacher.firstName} ${teacher.lastName} (${teacher.email})`,
         `Вчителі для школи "${schoolName}" та класу "${className}" не знайдені.`);
     })
     .catch(error => {
@@ -437,7 +437,7 @@ function loadTeachers(schoolName = '', className = '') {
 }
 
 // --- WebSocket Integration ---
-const WEBSOCKET_ENDPOINT = '/ws-stomp'; 
+const WEBSOCKET_ENDPOINT = '/ws-stomp';
 
 let stompClient = null;
 
@@ -589,7 +589,7 @@ function disconnectStompWebSocket() {
   }
 }
 
-document.addEventListener('DOMContentLoaded',() => {
+document.addEventListener('DOMContentLoaded', () => {
   loadProfile();
   loadAdmins();
   loadSchools();

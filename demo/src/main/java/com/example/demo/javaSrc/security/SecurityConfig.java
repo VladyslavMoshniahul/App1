@@ -44,6 +44,7 @@ public class SecurityConfig {
                                "/styles/**", "/scripts/**", "/images/**").permitAll()
 
               .requestMatchers("/ws-stomp/**").permitAll()
+          .requestMatchers("/admin.html").hasRole("ADMIN")
 
               .requestMatchers("/api/**").authenticated()
 
