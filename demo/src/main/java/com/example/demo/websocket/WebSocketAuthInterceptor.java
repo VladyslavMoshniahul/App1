@@ -1,6 +1,5 @@
 package com.example.demo.websocket;
 
-import com.example.demo.javaSrc.security.JwtUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -14,33 +13,43 @@ import java.util.Map;
 
 public class WebSocketAuthInterceptor implements HandshakeInterceptor {
 
-    private final JwtUtils jwtUtils;
+@Override
+public boolean beforeHandshake(
+        @SuppressWarnings("null") ServerHttpRequest request,
+        @SuppressWarnings("null") ServerHttpResponse response,
+        @SuppressWarnings("null") WebSocketHandler wsHandler,
+        @SuppressWarnings("null") Map<String, Object> attributes) {
 
-    public WebSocketAuthInterceptor(JwtUtils jwtUtils) {
-        this.jwtUtils = jwtUtils;
-    }
+    System.out.println("[Handshake] Початок перевірки");
 
-    @Override
-    public boolean beforeHandshake(
-            @SuppressWarnings("null") ServerHttpRequest request,
-            @SuppressWarnings("null") ServerHttpResponse response,
-            @SuppressWarnings("null") WebSocketHandler wsHandler,
-            @SuppressWarnings("null") Map<String, Object> attributes) {
-        if (request instanceof ServletServerHttpRequest servletRequest) {
-            HttpServletRequest httpRequest = servletRequest.getServletRequest();
-            Cookie[] cookies = httpRequest.getCookies();
-            if (cookies != null) {
-                for (Cookie cookie : cookies) {
-                    if ("token".equals(cookie.getName())) {
-                        String token = cookie.getValue();
-                        attributes.put("jwt", token);
-                        return true;
-                    }
-                }
+    if (request instanceof ServletServerHttpRequest servletRequest) {
+        HttpServletRequest httpRequest = servletRequest.getServletRequest();
+        System.out.println("[Handshake] Отримано HttpServletRequest");
+
+        Cookie[] cookies = httpRequest.getCookies();
+        if (cookies != null) {
+            System.out.println("[Handshake] Кількість cookies: " + cookies.length);
+
+            for (Cookie cookie : cookies) {
+                System.out.println("[Handshake] Перевірка cookie: " + cookie.getName());
+
+               //TODO   i need e fix that if ("JWT".equals(cookie.getName())) {    
+                    String token = cookie.getValue();
+                    System.out.println("[Handshake] Знайдено JWT cookie: " + token);
+
+                    attributes.put("jwt", token);
+                    System.out.println("[Handshake] Token додано до attributes");
+
+                    return true;
+               // }
             }
-        }
-        return true; // Allow connections without JWT for testing
-    }
+
+        } 
+    } 
+    return false;
+}
+
+
 
     @Override
     public void afterHandshake(
