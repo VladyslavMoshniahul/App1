@@ -1,9 +1,9 @@
 document.getElementById("loginButton").addEventListener("click", async () => {
   const email = document.getElementById("login").value.trim();
   const pass  = document.getElementById("password").value.trim();
-
+  const role  = document.getElementById("role").value.trim();
   if (!email || !pass) {
-    return alert("Будь ласка, заповніть всі поля.");
+    return toastr.error("Будь ласка, заповніть всі поля.");
   }
 
   const params = new URLSearchParams();
@@ -15,16 +15,20 @@ document.getElementById("loginButton").addEventListener("click", async () => {
       method: "POST",
       credentials: "include",
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
+        "Content-Type": "application/json"
       },
-      body: params.toString()
+      body: JSON.stringify({ 
+                        email: email,
+                        password: pass,
+                        role: role
+                    })
     });
 
     if (res.status === 401) {
-      return alert("Невірний email або пароль.");
+      return toastr.error("Невірний email або пароль.");
     }
     if (!res.ok) {
-      return alert("Помилка: статус " + res.status);
+      return toastr.error("Помилка: статус " + res.status);
     }
 
     const { role: realRole } = await res.json();
@@ -45,11 +49,11 @@ document.getElementById("loginButton").addEventListener("click", async () => {
         window.location.href = "admin.html";
         break;
       default:
-        alert("Невідома роль: " + realRole);
+        toastr.error("Невідома роль: " + realRole);
     }
   } catch (err) {
     console.error(err);
-    alert("Не вдалося увійти.");
+    toastr.error("Не вдалося увійти.");
   }
 });
 

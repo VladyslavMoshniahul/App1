@@ -27,22 +27,20 @@ public class AuthController {
     @Autowired
     private final PeopleService peopleService;
 
-    
     public AuthController(AuthenticationManager authManager,
-                          JwtUtils jwtUtils,
-                          PeopleService peopleService) {
-        this.authManager   = authManager;
-        this.jwtUtils      = jwtUtils;
+            JwtUtils jwtUtils,
+            PeopleService peopleService) {
+        this.authManager = authManager;
+        this.jwtUtils = jwtUtils;
         this.peopleService = peopleService;
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest,
-                                HttpServletResponse response) {
+            HttpServletResponse response) {
         try {
             Authentication authentication = authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword())
-            );
+                    new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -52,19 +50,17 @@ public class AuthController {
 
             response.addCookie(jwtCookie);
 
-
             People u = peopleService.findByEmail(authRequest.getEmail());
             if (u == null) {
                 throw new UsernameNotFoundException("User not found");
             }
             if (!u.getRole().name().equalsIgnoreCase(authRequest.getRole())) {
                 return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "Role mismatch"));
+                        .status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Role mismatch"));
             }
             return ResponseEntity.ok(Map.of(
-                "role", u.getRole().name()
-            ));
+                    "role", u.getRole().name()));
         } catch (BadCredentialsException ex) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
@@ -72,5 +68,19 @@ public class AuthController {
         }
     }
 
-    
+    @PostMapping("/api/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+
+        Cookie jwtCookie = new Cookie("JWT", null);
+        jwtCookie.setHttpOnly(true);
+        jwtCookie.setSecure(true);
+        jwtCookie.setPath("/");
+        jwtCookie.setMaxAge(0);
+
+        response.addCookie(jwtCookie);
+
+        SecurityContextHolder.clearContext();
+
+        return ResponseEntity.ok(Map.of("message", "Ви успішно вийшли з системи."));
+    }
 }

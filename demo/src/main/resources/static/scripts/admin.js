@@ -46,10 +46,26 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 const logoutButton = document.getElementById("logoutButton");
-logoutButton.addEventListener("click", () => {
-  localStorage.clear();
-  toastr.success("Ви вийшли з акаунту.");
-  window.location.href = "/login.html";
+logoutButton.addEventListener("click", async () => {
+    try {
+        const response = await fetch('/api/logout', { 
+            method: 'POST',
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            localStorage.clear();
+            toastr.success("Ви успішно вийшли з акаунту.");
+            window.location.href = "/login.html";
+        } else {
+            const errorData = await response.json().catch(() => ({ error: 'Невідома помилка виходу' }));
+            toastr.error(`Помилка виходу: ${errorData.error}`);
+            toastr.error('Logout failed:', response.status, errorData);
+        }
+    } catch (error) {
+        toastr.error("Не вдалося відправити запит на вихід:", error);
+        toastr.error("Помилка мережі при виході. Спробуйте ще раз.");
+    }
 });
 
 document.getElementById("openButton").addEventListener("click", () => {
@@ -453,7 +469,6 @@ function connectStompWebSocket() {
       console.log('WebSocket: Оновлений список адмінів:', admins);
       const adminsList = document.getElementById('admins-list');
       renderList(adminsList, admins, admin => `${admin.firstName} ${admin.lastName} (${admin.email})`);
-      toastr.info("Оновлено список адмінів.");
     });
 
     stompClient.subscribe('/topic/users/teachers/list', function (message) {
@@ -461,7 +476,6 @@ function connectStompWebSocket() {
       console.log('WebSocket: Оновлений список вчителів:', teachers);
       const teachersList = document.getElementById('teachers-list');
       renderList(teachersList, teachers, teacher => `${teacher.firstName} ${teacher.lastName} (${teacher.email})`);
-      toastr.info("Оновлено список вчителів.");
     });
 
     stompClient.subscribe('/topic/users/students/list', function (message) {
@@ -469,7 +483,6 @@ function connectStompWebSocket() {
       console.log('WebSocket: Оновлений список студентів:', students);
       const studentsList = document.getElementById('students-list');
       renderList(studentsList, students, student => `${student.firstName} ${student.lastName} (${student.email})`);
-      toastr.info("Оновлено список студентів.");
     });
 
     stompClient.subscribe('/topic/users/parents/list', function (message) {
@@ -477,13 +490,11 @@ function connectStompWebSocket() {
       console.log('WebSocket: Оновлений список батьків:', parents);
       const parentsList = document.getElementById('parents-list');
       renderList(parentsList, parents, parent => `${parent.firstName} ${parent.lastName} (${parent.email})`);
-      toastr.info("Оновлено список батьків.");
     });
 
     stompClient.subscribe('/topic/users/created', function (message) {
       const newUser = JSON.parse(message.body);
       console.log('WebSocket: Створено нового користувача:', newUser);
-      toastr.success(`Створено нового користувача: ${newUser.firstName} ${newUser.lastName} (${newUser.role}).`);
       loadAdmins();
       loadDirectors();
       loadTeachers();
@@ -492,7 +503,6 @@ function connectStompWebSocket() {
     stompClient.subscribe('/topic/users/updated/id/{id}', function (message) {
       const updatedUser = JSON.parse(message.body);
       console.log('WebSocket: Оновлено користувача:', updatedUser);
-      toastr.info(`Профіль користувача ${updatedUser.firstName} ${updatedUser.lastName} оновлено.`);
 
     });
 
@@ -512,7 +522,6 @@ function connectStompWebSocket() {
       document.getElementById('profile-aboutMe').textContent = userProfile.aboutMe || '-';
       document.getElementById('profile-email').textContent = userProfile.email || '-';
       document.getElementById('profile-role').textContent = userProfile.role || '-';
-      toastr.info("Ваш профіль оновлено.");
     });
 
 
@@ -521,13 +530,11 @@ function connectStompWebSocket() {
       console.log('WebSocket: Оновлений список шкіл:', schools);
       const schoolsList = document.getElementById('schools-list');
       renderList(schoolsList, schools, school => school.name);
-      toastr.info("Оновлено список шкіл.");
     });
 
     stompClient.subscribe('/topic/schools/created', function (message) {
       const newSchool = JSON.parse(message.body);
       console.log('WebSocket: Створено нову школу:', newSchool);
-      toastr.success(`Створено нову школу: ${newSchool.name}.`);
       loadSchools();
     });
 
@@ -536,44 +543,37 @@ function connectStompWebSocket() {
       console.log('WebSocket: Оновлений список класів (адмін):', classes);
       const classesList = document.getElementById('classes-list');
       renderList(classesList, classes, cls => cls.name);
-      toastr.info("Оновлено список класів.");
     });
 
     stompClient.subscribe('/topic/classes/created', function (message) {
       const newClass = JSON.parse(message.body);
       console.log('WebSocket: Створено новий клас:', newClass);
-      toastr.success(`Створено новий клас: ${newClass.name}.`);
       loadClasses(document.getElementById('classes-school-input').value.trim());
     });
 
     stompClient.subscribe('/topic/users/create/error', function (message) {
       const errorMessage = message.body;
       console.error('WebSocket Error: Помилка створення користувача:', errorMessage);
-      toastr.error(errorMessage);
     });
 
     stompClient.subscribe('/topic/users/update/error', function (message) {
       const errorMessage = message.body;
       console.error('WebSocket Error: Помилка оновлення користувача:', errorMessage);
-      toastr.error(errorMessage);
     });
 
     stompClient.subscribe('/topic/users/profile/error', function (message) {
       const errorMessage = message.body;
       console.error('WebSocket Error: Помилка профілю:', errorMessage);
-      toastr.error(errorMessage);
     });
 
     stompClient.subscribe('/topic/schools/error', function (message) {
       const errorMessage = message.body;
       console.error('WebSocket Error: Помилка шкіл:', errorMessage);
-      toastr.error(errorMessage);
     });
 
     stompClient.subscribe('/topic/classes/create/error', function (message) {
       const errorMessage = message.body;
       console.error('WebSocket Error: Помилка створення класу:', errorMessage);
-      toastr.error(errorMessage);
     });
 
   }, function (error) {

@@ -28,7 +28,7 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
 
                 for (Cookie cookie : cookies) {
 
-                    if ("JSESSIONID".equals(cookie.getName())) {
+                    if ("JWT".equals(cookie.getName())) {
                         String token = cookie.getValue();
 
                         attributes.put("jwt", token);

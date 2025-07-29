@@ -7,7 +7,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.config.http.SessionCreationPolicy; 
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -18,7 +18,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.example.demo.javaSrc.peoples.*;
 
-import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -34,51 +33,36 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http,
                                            JwtAuthenticationFilter jwtFilter) throws Exception {
         http
-          .csrf(csrf -> csrf.disable())
-          .authorizeHttpRequests(auth -> auth
-              .requestMatchers("/teacher.html").hasRole("TEACHER")
-              .requestMatchers("/parent.html").hasRole("PARENT")
-              .requestMatchers("/student.html").hasRole("STUDENT")
-              .requestMatchers("/director.html").hasRole("DIRECTOR")
+            .csrf(csrf -> csrf.disable()) 
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/teacher.html").hasRole("TEACHER")
+                .requestMatchers("/parent.html").hasRole("PARENT")
+                .requestMatchers("/student.html").hasRole("STUDENT")
+                .requestMatchers("/director.html").hasRole("DIRECTOR")
 
-              .requestMatchers("/login.html", "/api/login",
-                               "/styles/**", "/scripts/**", "/images/**").permitAll()
+                .requestMatchers("/login.html", "/api/login",
+                                 "/styles/**", "/scripts/**", "/images/**").permitAll()
 
-              .requestMatchers("/ws-stomp/**").permitAll()
-          .requestMatchers("/admin.html").hasRole("ADMIN")
+                .requestMatchers("/ws-stomp/**").permitAll() 
+                .requestMatchers("/admin.html").hasRole("ADMIN")
 
-              .requestMatchers("/api/**").authenticated()
+                .requestMatchers("/api/**").authenticated() 
+                .anyRequest().authenticated() 
+            )
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+            
+            .httpBasic(Customizer.withDefaults()) 
 
-              .anyRequest().authenticated()
-          )
-          .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-          .formLogin(form -> form
-              .loginPage("/login.html")
-              .loginProcessingUrl("/api/login")
-              .successHandler((req, resp, auth) -> {
-                  resp.setStatus(HttpServletResponse.SC_OK);
-                  resp.setContentType("application/json;charset=UTF-8");
-                  String role = auth.getAuthorities().stream()
-                                    .map(GrantedAuthority::getAuthority)
-                                    .findFirst().orElse("");
-                  if (role.startsWith("ROLE_")) role = role.substring(5);
-                  resp.getWriter().write("{\"role\":\"" + role + "\"}");
-              })
-              .failureHandler((req, resp, exc) ->
-                  resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication Failed")
-              )
-              .permitAll()
-          )
+            .logout(logout -> logout
+                .logoutUrl("/api/logout")
+                .logoutSuccessUrl("/login.html")
+                .invalidateHttpSession(false) 
+                .deleteCookies("JSESSIONID", "JWT") 
+            )
 
-          .logout(logout -> logout
-              .logoutUrl("/api/logout")
-              .logoutSuccessUrl("/login.html")
-              .invalidateHttpSession(true)
-              .deleteCookies("JSESSIONID", "JWT")
-          )
-
-          .cors(Customizer.withDefaults());
+            .cors(Customizer.withDefaults());
 
         return http.build();
     }
@@ -104,5 +88,4 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
 }
