@@ -20,21 +20,16 @@ public class WebSocketAuthInterceptor implements HandshakeInterceptor {
             @SuppressWarnings("null") WebSocketHandler wsHandler,
             @SuppressWarnings("null") Map<String, Object> attributes) {
 
-        System.out.println("[Handshake] Початок перевірки");
-
         if (request instanceof ServletServerHttpRequest servletRequest) {
             HttpServletRequest httpRequest = servletRequest.getServletRequest();
-            System.out.println("[Handshake] Отримано HttpServletRequest");
 
             Cookie[] cookies = httpRequest.getCookies();
             if (cookies != null) {
 
                 for (Cookie cookie : cookies) {
-                    System.out.println("[Handshake] Перевірка cookie: " + cookie.getName());
 
                     if ("JSESSIONID".equals(cookie.getName())) {
                         String token = cookie.getValue();
-                        System.out.println("[Handshake] Знайдено JSESSIONID cookie: " + token);
 
                         attributes.put("jwt", token);
 
