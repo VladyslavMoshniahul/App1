@@ -75,7 +75,7 @@ public class SecurityConfig {
               .logoutUrl("/api/logout")
               .logoutSuccessUrl("/login.html")
               .invalidateHttpSession(true)
-              .deleteCookies("JSESSIONID")
+              .deleteCookies("JSESSIONID", "JWT")
           )
 
           .cors(Customizer.withDefaults());
