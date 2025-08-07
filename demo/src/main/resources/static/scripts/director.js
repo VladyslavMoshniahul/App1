@@ -17,6 +17,10 @@ tabButtons.forEach((btn) => {
       document.getElementById("creating-page").classList.add("active");
     } else if (btn.id === "tab-petitions") {
       document.getElementById("petitions-section").classList.add("active");
+    } else if (btn.id == "tab-events") {
+      document.getElementById("events-section").classList.add("active");
+    }else if (btn.id === "tab-votes") {
+      document.getElementById("votes-section").classList.add("active");
     }
   });
 });
