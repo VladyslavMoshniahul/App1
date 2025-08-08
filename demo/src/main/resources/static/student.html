@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Сторінка директора</title>
+  <link rel="stylesheet" href="styles/student.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+</head>
+
+<body>
+  <header>
+    <h1>Панель директора</h1>
+    <div class="header-buttons">
+      <button id="logoutButton" class="auth-button">Вийти</button>
+      <button id="themeToggle" class="theme-toggle-button">🌙</button>
+    </div>
+  </header>
+
+  <div class="nav-tabs">
+    <button id="tab-profile" class="active" type="button">Профіль</button>
+    <button id="tab-statistic" type="button">Статистика</button>
+    <button id="tab-creating" type="button">Створення</button>
+    <button id="tab-petitions" type="button">Петиції</button>
+    <button id="tab-votes" type="button">Голосування</button>
+    <button id="tab-events" type="button">Події</button>
+  </div>
+
+  <main>
+    <!-- === Профіль === -->
+    <section id="profile-section" class="page-section active">
+      <h1>Мій профіль</h1>
+
+      <div id="profile-info">
+        <h2>Інформація про мене</h2>
+        <p><strong>Ім'я:</strong> <span id="profile-firstName">-</span></p>
+        <p><strong>Прізвище:</strong> <span id="profile-lastName">-</span></p>
+        <p><strong>Дата народження:</strong> <span id="profile-dateOfBirth">-</span></p>
+        <p><strong>Про мене:</strong> <span id="profile-aboutMe">-</span></p>
+        <p><strong>Школа:</strong><span id="profile-schoolName">-</span></p>
+        <p><strong>Email:</strong> <span id="profile-email">-</span></p>
+        <p><strong>Роль:</strong> <span id="profile-role">-</span></p>
+      </div>
+
+      <button id="openButton">Оновлення профілю</button>
+      <div id="updateProfile" class="updateProfile-overlay">
+        <div class="updateProfile">
+          <h2>Оновити профіль</h2>
+          <form id="editProfileForm">
+            <label for="edit-firstName">Ім'я:</label>
+            <input type="text" id="edit-firstName" name="firstName" />
+
+            <label for="edit-lastName">Прізвище:</label>
+            <input type="text" id="edit-lastName" name="lastName" />
+
+            <label for="edit-aboutMe">Про мене:</label>
+            <textarea id="edit-aboutMe" name="aboutMe"></textarea>
+
+            <label for="edit-dateOfBirth">Дата народження:</label>
+            <input type="date" id="edit-dateOfBirth" name="dateOfBirth" />
+
+            <label for="edit-email">Email:</label>
+            <input type="email" id="edit-email" name="email" />
+
+            <label for="edit-password">Новий пароль:</label>
+            <input type="password" id="edit-password" name="password" />
+
+            <label for="confirm-password">Підтвердження пароля:</label>
+            <input type="password" id="confirm-password" name="confirmPassword" />
+
+            <button type="submit" id="saveButton">Зберегти</button>
+            <button id="closeButton" type="button">Скасувати</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- === Статистика === -->
+    <section id="statistics-section" class="page-section">
+      <div id="classes-section">
+        <h2>Список класів</h2>
+        <ul id="classes-list"></ul>
+      </div>
+
+      <div id="teachers-section">
+        <h2>Список вчителів</h2>
+        <input type="text" id="teachers-class-input" placeholder="Назва класу" />
+        <ul id="teachers-list"></ul>
+      </div>
+
+      <div id="students-section">
+        <h2>Список учнів</h2>
+        <input type="text" id="students-class-input" placeholder="Назва класу" />
+        <ul id="students-list"></ul>
+      </div>
+
+      <div id="parents-section">
+        <h2>Список батьків</h2>
+        <input type="text" id="parents-class-input" placeholder="Назва класу" />
+        <ul id="parents-list"></ul>
+      </div>
+    </section>
+
+    <!-- === Створення === -->
+    <section id="creating-page" class="page-section">
+      <div id="create-class">
+        <h2>Створити клас</h2>
+        <form id="create-class-form">
+          <input type="text" id="class-name" placeholder="Назва класу" />
+          <button type="submit" id="create-class-button">Створити клас</button>
+        </form>
+      </div>
+      <div id="create-user">
+        <h2>Створити користувача</h2>
+        <form id="create-user-form">
+          <input type="text" id="user-first-name" placeholder="Ім’я" />
+          <input type="text" id="user-last-name" placeholder="Прізвище" />
+          <input type="email" id="user-email" placeholder="Email" />
+          <input type="password" id="user-password" type="password" placeholder="Пароль" />
+          <input type="text" id="user-class" placeholder="Назва класу" />
+          <input id="user-dateOfBirth" type="date" placeholder="Дата народження" />
+
+          <select id="user-role">
+            <option value="">Оберіть роль</option>
+            <option value="TEACHER">Вчитель</option>
+            <option value="STUDENT">Учень</option>
+            <option value="PARENT">Батьки</option>
+          </select>
+          <button type="submit" id="create-user-button">Створити користувача</button>
+        </form>
+      </div>
+      </div>
+    </section>
+
+    <!-- ===Петиції=== -->
+    <section id="petitions-section" class="page-section">
+      <h2>Петиції на розгляд</h2>
+      <input type="text" id="petition-class-input" placeholder="Назва класу" />
+      <ul id="petitions-list"></ul>
+    </section>
+
+    <!-- Голосування -->
+    <section id="votes-section" class="page-section">
+      <h2>Голосування</h2>
+      <div id="votes-list"></div>
+      <div id="vote-create">
+        <h2>Створити голосування</h2>
+        <form id="vote-create-form">
+          <input name="vote-title" placeholder="Назва голосування" required><br>
+          <textarea name="vote-description" placeholder="Опис"></textarea><br>
+          <label>Рівень:
+            <select name="vote-level" id="vote-level" required>
+              <option value="SCHOOL">Вся школа</option>
+              <option value="CLASS">Клас</option>
+              <option value="TEACHERS_GROUP">Група вчителів</option>
+              <option value="SELECTED">Вибрані учасники</option>
+            </select>
+          </label><br>
+          <div id="vote-level-extra"></div>
+          <label>Початок: <input type="datetime-local" name="vote-startDate" required></label><br>
+          <label>Дедлайн: <input type="datetime-local" name="vote-endDate" required></label><br>
+          <label><input type="checkbox" name="vote-multipleChoice"> Дозволити декілька відповідей</label><br>
+          <div id="vote-options-list">
+            <input class="vote-option" name="option" placeholder="Варіант 1" required>
+            <input class="vote-option" name="option" placeholder="Варіант 2" required>
+          </div>
+          <button type="button" id="add-vote-option">Додати варіант</button><br>
+          <button type="submit" id="create-vote-button">Створити голосування</button>
+        </form>
+      </div>
+    </section>
+
+        <!-- Події -->
+    <section id="events-section" class="page-section">
+      <h2>Події</h2>
+      <div id="events-list"></div>
+      <div id="create-event">
+        <h2>Створити подію</h2>
+        <form id="create-event-form">
+          <input name="event-class-name" placeholder="Назва класу"><br>
+          <input name="event-title" placeholder="Назва голосування" required><br>
+          <textarea name="event-content" placeholder="Опис"></textarea><br>
+          <input name="event-locationORlink" placeholder="Локація або посилання"><br>
+          <label>Початок: <input type="datetime-local" name="event-startDate" required></label><br>
+          <label>Триваліть(у хв): <input type="number" name="event-duration" required min="5"></label><br>
+          <select id="event-type" name="event-type" required>
+            <option value="">Оберіть тип</option>
+            <option value="SCHOOL_EVENT">Шкільна подія</option>
+            <option value="PERSONAL">Особисте</option>
+            <option value="PARENTS_MEETING">Батьківські збори</option>
+          </select>
+          <input type="file" name="event-file" id="event-file"><br>
+          <button type="submit" id="create-event-button">Створити подію</button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <script type="module" src="scripts/student.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</body>
+
+</html>
