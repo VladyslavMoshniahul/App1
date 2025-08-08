@@ -1,2 +1,2 @@
 # App1
-Try to realizate Web-Socket with cookie in Spring Boot
+Now web-socket is working, but I need to fix and write a lot of frontend part 
