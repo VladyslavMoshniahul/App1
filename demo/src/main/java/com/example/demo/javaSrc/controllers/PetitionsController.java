@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -197,7 +198,7 @@ public class PetitionsController {
             return ResponseEntity.badRequest().build();
         }
         petition.setDirectorsDecision(Petition.DirectorsDecision.APPROVED);
-        Petition updated = petitionService.createPetition(petition); 
+        Petition updated = petitionService.createPetition(petition);
 
         int totalStudents = petitionService.getTotalStudentsForPetition(updated);
         PetitionDto dto = PetitionDto.from(updated, totalStudents);
@@ -252,15 +253,33 @@ public class PetitionsController {
     @GetMapping("/petitionsForDirector")
     public List<Petition> getPetitionsForDirector(Authentication auth,
             @RequestParam(required = false) String className) {
-        List<Petition> petitions;
         People me = userController.currentUser(auth);
+
         SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(me.getSchoolId(), className);
+
+        List<Petition> petitions;
+        long countStudents;
+
         if (schoolClass == null) {
             petitions = petitionService.getPetitionBySchool(me.getSchoolId());
+            countStudents = userService.getCountBySchoolIdAndRole(me.getSchoolId(), People.Role.STUDENT);
         } else {
             petitions = petitionService.getPetitionByClassAndSchool(schoolClass.getId(), me.getSchoolId());
+            countStudents = userService.getCountBySchoolIdAndClassIdAndRole(
+                    me.getSchoolId(), schoolClass.getId(), People.Role.STUDENT);
         }
-        return petitions;
+
+        for (Petition petition : petitions) {
+            if (petition.getCurrentPositiveVoteCount() <= countStudents / 2 + 1) {
+                petition.setDirectorsDecision(Petition.DirectorsDecision.NOT_ENOUGH_VOTING);
+            } else {
+                petition.setDirectorsDecision(Petition.DirectorsDecision.PENDING);
+            }
+        }
+
+        return petitions.stream()
+                .filter(p -> p.getDirectorsDecision() == Petition.DirectorsDecision.PENDING)
+                .collect(Collectors.toList());
     }
 
     @PostMapping("/comments")

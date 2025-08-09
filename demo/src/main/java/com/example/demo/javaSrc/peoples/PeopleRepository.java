@@ -15,4 +15,7 @@ public interface PeopleRepository extends JpaRepository<People, Long> {
     List<People> findByRoleAndSchoolId(People.Role role, Long schoolId);
     List<People> findByRoleAndSchoolIdAndClassId(People.Role role, Long schoolId, Long classId);
     String findEmailById(Long id);
+    Long findCountBySchoolIdAndClassIdAndRole(Long schoolId, Long classId, People.Role role);
+    Long findCountBySchoolIdAndRole(Long schoolId, People.Role role);
+
 }

@@ -277,12 +277,12 @@ function loadParents(className = '') {
     toastr.error("Не вдалося завантажити список батьків.");
   }
 }
-
 function loadPetition(className = '') {
   const petitionList = document.getElementById('petition-list');
+  petitionList.innerHTML = ''; 
+
   try {
     const url = new URL('/api/petitions/petitionsForDirector', window.location.origin);
-
     if (className) {
       url.searchParams.append('className', className);
     }
@@ -294,16 +294,71 @@ function loadPetition(className = '') {
       })
       .then(data => {
         if (data.length > 0) {
-          const petitionNames = data.map(petition => `${petition.title}`);
-          renderList(petitionList, petitionNames);
+          data.forEach(petition => {
+            const li = document.createElement('li');
+            li.classList.add('petition-item');
+
+            const header = document.createElement('div');
+            header.classList.add('petition-header');
+            header.innerHTML = `
+              <span class="petition-title">${petition.title}</span>
+              <button class="toggle-details">▼</button>
+            `;
+
+            const details = document.createElement('div');
+            details.classList.add('petition-details');
+            details.style.display = 'none';
+            details.innerHTML = `
+              <p><strong>Опис:</strong> ${petition.description}</p>
+              <p><strong>Голосів "За":</strong> ${petition.currentPositiveVoteCount}</p>
+              <p><strong>Дата створення:</strong> ${new Date(petition.startDate).toLocaleDateString()}</p>
+              <button class="accept-btn">✅ Прийняти</button>
+              <button class="reject-btn">❌ Відхилити</button>
+            `;
+
+            header.querySelector('.toggle-details').addEventListener('click', () => {
+              details.style.display = details.style.display === 'none' ? 'block' : 'none';
+            });
+
+            details.querySelector('.accept-btn').addEventListener('click', () => {
+              updatePetitionDecision(petition.id, 'APPROVED');
+            });
+            details.querySelector('.reject-btn').addEventListener('click', () => {
+              updatePetitionDecision(petition.id, 'REJECTED');
+            });
+
+            li.appendChild(header);
+            li.appendChild(details);
+            petitionList.appendChild(li);
+          });
         } else {
-          renderList(petitionList, [], `Заявки для школи не знайдені.`);
+          petitionList.innerHTML = `<li>Заявки для школи не знайдені.</li>`;
         }
       });
   } catch (error) {
     console.error("Помилка при завантаженні заявок:", error);
     toastr.error("Не вдалося завантажити список заявок.");
   }
+}
+
+function updatePetitionDecision(petitionId, action) {
+  let endpoint;
+  if (action === 'APPROVE') {
+    endpoint = `/api/petitions/${petitionId}/directorApprove`;
+  } else {
+    endpoint = `/api/petitions/${petitionId}/directorReject`;
+  }
+
+  fetchWithAuth(endpoint, { method: 'POST' })
+    .then(response => {
+      if (!response.ok) throw new Error('Не вдалося оновити рішення');
+      toastr.success(action === 'APPROVE' ? 'Петицію схвалено' : 'Петицію відхилено');
+      loadPetition(); 
+    })
+    .catch(error => {
+      console.error(error);
+      toastr.error('Помилка при оновленні рішення.');
+    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -432,6 +487,13 @@ function connectStompWebSocket() {
       const newClass = JSON.parse(message.body);
       console.log('WebSocket: Створено новий клас:', newClass);
       loadClasses(document.getElementById('classes-school-input').value.trim());
+    });
+
+    stompClient.subscribe('/queue/petitions/my-petition/decision', function(message) {
+      const decision = JSON.parse(message.body);
+      console.log('WebSocket: Отримано рішення:', decision);
+      toastr.success(`Рішення на заявку "${decision.title}" - ${decision.decision}`);
+      loadPetition();
     });
 
     stompClient.subscribe('/topic/users/create/error', function (message) {

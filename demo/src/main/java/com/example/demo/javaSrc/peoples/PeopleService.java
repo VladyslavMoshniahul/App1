@@ -91,4 +91,12 @@ public class PeopleService {
             target.setPassword(source.getPassword());
         }
     }
+
+    public Long getCountBySchoolIdAndClassIdAndRole(Long schoolId, Long classId, People.Role role) {
+        return peopleRepository.findCountBySchoolIdAndClassIdAndRole(schoolId, classId, role);
+    }
+
+    public Long getCountBySchoolIdAndRole(Long schoolId, People.Role role) {
+        return peopleRepository.findCountBySchoolIdAndRole(schoolId, role);
+    }
 }

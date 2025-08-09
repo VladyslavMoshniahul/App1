@@ -74,8 +74,12 @@ public class PetitionService {
         return petitionRepository.findByStatus(status);
     }
 
-    public List<Petition> getPetitionByDirectorsDecision(Petition.DirectorsDecision directorsDecision) {
-        return petitionRepository.findByDirectorsDecision(directorsDecision);
+    public List<Petition> getPetitionByDirectorsDecisionAndSchoolId(Long schoolId, Petition.DirectorsDecision directorsDecision) {
+        return petitionRepository.findByDirectorsDecisionAndSchoolId(schoolId, directorsDecision);
+    }
+    
+    public List<Petition> getPetitionByDirectorsDecisionAndSchoolIdAndClassId(Long schoolId, Long classId, Petition.DirectorsDecision directorsDecision) {
+        return petitionRepository.findByDirectorsDecisionAndSchoolIdAndClassId(schoolId,classId , directorsDecision);
     }
 
     public Petition updatePetition(Long id, Petition updatedPetition) {
