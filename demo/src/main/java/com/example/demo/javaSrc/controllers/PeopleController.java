@@ -411,7 +411,7 @@ public class PeopleController {
     }
 
     @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR')")
-    @PutMapping("/users/{id}")
+    @PutMapping("/updateUsers/{id}")
     public ResponseEntity<People> updateUserByTeacherOrDirector(@PathVariable Long id, @RequestBody People updatedData) {
         People updated = userService.updateProfile(id, updatedData);
         if (updated != null) {

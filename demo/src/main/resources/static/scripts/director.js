@@ -19,7 +19,7 @@ tabButtons.forEach((btn) => {
       document.getElementById("petitions-section").classList.add("active");
     } else if (btn.id == "tab-events") {
       document.getElementById("events-section").classList.add("active");
-    }else if (btn.id === "tab-votes") {
+    } else if (btn.id === "tab-votes") {
       document.getElementById("votes-section").classList.add("active");
     }
   });
@@ -279,7 +279,7 @@ function loadParents(className = '') {
 }
 function loadPetition(className = '') {
   const petitionList = document.getElementById('petition-list');
-  petitionList.innerHTML = ''; 
+  petitionList.innerHTML = '';
 
   try {
     const url = new URL('/api/petitions/petitionsForDirector', window.location.origin);
@@ -314,7 +314,13 @@ function loadPetition(className = '') {
               <p><strong>Дата створення:</strong> ${new Date(petition.startDate).toLocaleDateString()}</p>
               <button class="accept-btn">✅ Прийняти</button>
               <button class="reject-btn">❌ Відхилити</button>
+              
             `;
+            fetchWithAuth(`/api/user/users/${petition.createdBy}`)
+              .then(r => r.json())
+              .then(user => {
+                details.innerHTML += `<p><strong>Автор:</strong> ${user.email}</p>`;
+              });
 
             header.querySelector('.toggle-details').addEventListener('click', () => {
               details.style.display = details.style.display === 'none' ? 'block' : 'none';
@@ -353,7 +359,7 @@ function updatePetitionDecision(petitionId, action) {
     .then(response => {
       if (!response.ok) throw new Error('Не вдалося оновити рішення');
       toastr.success(action === 'APPROVE' ? 'Петицію схвалено' : 'Петицію відхилено');
-      loadPetition(); 
+      loadPetition();
     })
     .catch(error => {
       console.error(error);
@@ -489,7 +495,7 @@ function connectStompWebSocket() {
       loadClasses(document.getElementById('classes-school-input').value.trim());
     });
 
-    stompClient.subscribe('/queue/petitions/my-petition/decision', function(message) {
+    stompClient.subscribe('/queue/petitions/my-petition/decision', function (message) {
       const decision = JSON.parse(message.body);
       console.log('WebSocket: Отримано рішення:', decision);
       toastr.success(`Рішення на заявку "${decision.title}" - ${decision.decision}`);
