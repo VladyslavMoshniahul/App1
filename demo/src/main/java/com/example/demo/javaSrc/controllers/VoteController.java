@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.simp.SimpMessagingTemplate; 
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.javaSrc.peoples.People;
 import com.example.demo.javaSrc.voting.Vote;
 import com.example.demo.javaSrc.voting.VoteService;
 import com.example.demo.javaSrc.voting.VotingParticipant;
@@ -38,11 +39,11 @@ public class VoteController {
     private final SimpMessagingTemplate messagingTemplate;
 
     public VoteController(VoteService voteService, ObjectMapper objectMapper, PeopleController userController,
-                          SimpMessagingTemplate messagingTemplate) { 
+            SimpMessagingTemplate messagingTemplate) {
         this.voteService = voteService;
         this.objectMapper = new ObjectMapper();
         this.userController = userController;
-        this.messagingTemplate = messagingTemplate; 
+        this.messagingTemplate = messagingTemplate;
     }
 
     @PostMapping("/createVoting")
@@ -50,8 +51,8 @@ public class VoteController {
         try {
             Vote newVote = new Vote();
             newVote.setSchoolId(userController.currentUser(auth).getSchoolId());
-            Long classId = request.getClassId() != null ?
-                    request.getClassId() : userController.currentUser(auth).getClassId();
+            Long classId = request.getClassId() != null ? request.getClassId()
+                    : userController.currentUser(auth).getClassId();
             newVote.setClassId(classId);
             newVote.setTitle(request.getTitle());
             newVote.setDescription(request.getDescription());
@@ -110,8 +111,10 @@ public class VoteController {
     }
 
     @GetMapping("/votes")
-    public List<Vote> getVotes(@RequestParam(required = false) Long schoolId,
-                               @RequestParam(required = false) Long classId) {
+    public List<Vote> getVotes(Authentication auth,
+            @RequestParam(required = false) Long classId) {
+        People currentUser = userController.currentUser(auth);
+        Long schoolId = currentUser.getSchoolId();
         if (classId != null && schoolId != null) {
             return voteService.getVotingsByClassAndSchool(classId, schoolId);
         } else if (schoolId != null) {
@@ -132,8 +135,8 @@ public class VoteController {
 
     @GetMapping("voting/user/{userId}")
     public ResponseEntity<List<Vote>> getAccessibleVotings(@PathVariable Long userId,
-                                                           @RequestParam Long schoolId,
-                                                           @RequestParam(required = false) Long classId) {
+            @RequestParam Long schoolId,
+            @RequestParam(required = false) Long classId) {
         List<Vote> votings = voteService.getAccessibleVotingsForUser(userId, schoolId, classId);
         return new ResponseEntity<>(votings, HttpStatus.OK);
     }
@@ -155,7 +158,7 @@ public class VoteController {
 
         boolean success = voteService.recordVote(votingId, variantIds, userId);
         if (success) {
-           
+
             VotingResults updatedResults = voteService.getVotingResults(votingId);
             messagingTemplate.convertAndSend("/topic/votings/" + votingId + "/results", updatedResults);
             Vote updatedVote = voteService.getVotingById(votingId);
@@ -168,7 +171,8 @@ public class VoteController {
                     messagingTemplate.convertAndSend("/topic/votings/class/" + updatedVote.getClassId(), updatedVote);
                 }
             }
-            messagingTemplate.convertAndSendToUser(userId.toString(), "/queue/my-vote-status", "Ваш голос за голосування ID " + votingId + " успішно зараховано.");
+            messagingTemplate.convertAndSendToUser(userId.toString(), "/queue/my-vote-status",
+                    "Ваш голос за голосування ID " + votingId + " успішно зараховано.");
 
             return ResponseEntity.ok("Vote recorded successfully");
         } else {
@@ -190,8 +194,8 @@ public class VoteController {
     public ResponseEntity<Vote> updateVoting(@PathVariable Long id, @RequestBody Vote request, Authentication auth) {
         Vote updatedVote = new Vote();
         updatedVote.setSchoolId(userController.currentUser(auth).getSchoolId());
-        Long classId = request.getClassId() != null ?
-                request.getClassId() : userController.currentUser(auth).getClassId();
+        Long classId = request.getClassId() != null ? request.getClassId()
+                : userController.currentUser(auth).getClassId();
         updatedVote.setClassId(classId);
         updatedVote.setTitle(request.getTitle());
         updatedVote.setDescription(request.getDescription());
@@ -227,16 +231,18 @@ public class VoteController {
     @DeleteMapping("voting/{id}")
     public ResponseEntity<Void> deleteVoting(@PathVariable Long id) {
         Vote deletedVote = voteService.getVotingById(id);
-        
+
         voteService.deleteVoting(id);
 
         messagingTemplate.convertAndSend("/topic/votings/deleted", "Голосування ID " + id + " було видалено.");
         if (deletedVote != null) {
             if (deletedVote.getSchoolId() != null) {
-                messagingTemplate.convertAndSend("/topic/votings/school/" + deletedVote.getSchoolId() + "/deleted", "Голосування ID " + id + " було видалено.");
+                messagingTemplate.convertAndSend("/topic/votings/school/" + deletedVote.getSchoolId() + "/deleted",
+                        "Голосування ID " + id + " було видалено.");
             }
             if (deletedVote.getClassId() != null) {
-                messagingTemplate.convertAndSend("/topic/votings/class/" + deletedVote.getClassId() + "/deleted", "Голосування ID " + id + " було видалено.");
+                messagingTemplate.convertAndSend("/topic/votings/class/" + deletedVote.getClassId() + "/deleted",
+                        "Голосування ID " + id + " було видалено.");
             }
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

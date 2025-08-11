@@ -606,7 +606,38 @@ function updatePetitionDecision(petitionId, action) {
       toastr.error('Помилка при оновленні рішення.');
     });
 }
+function loadVotes(){
+  const votesList = document.getElementById('votes-list');
+  votesList.innerHTML = '';
 
+  fetchWithAuth('/api/vote/votes')
+    .then(response => {
+      if (!response.ok) throw new Error('Не вдалося отримати голосування');
+      return response.json();
+    })
+    .then(data => {
+      if (data.length > 0) {
+        data.forEach(vote => {
+          const li = document.createElement('li');
+          li.classList.add('vote-item');
+          li.innerHTML = `
+            <h4>${vote.title}</h4>
+            <p>${vote.description}</p>
+            <p>Старт: ${new Date(vote.startDate).toLocaleDateString()}</p>
+            <p>Кінець: ${new Date(vote.endDate).toLocaleDateString()}</p>
+            <p>Варіанти: ${vote.variants.map(v => v.text).join(', ')}</p>
+          `;
+          votesList.appendChild(li);
+        });
+      } else {
+        votesList.innerHTML = '<li>Голосування не знайдено.</li>';
+      }
+    })
+    .catch(error => {
+      console.error("Помилка при завантаженні голосувань:", error);
+      toastr.error("Не вдалося завантажити список голосувань.");
+    });
+}
 document.addEventListener('DOMContentLoaded', () => {
   loadProfile();
   loadClasses();
