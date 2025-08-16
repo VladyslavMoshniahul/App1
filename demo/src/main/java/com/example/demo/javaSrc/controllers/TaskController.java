@@ -125,10 +125,6 @@ public class TaskController {
             result.removeIf(task -> !classId.equals(task.getClassId()));
         }
 
-        if (eventId != null) {
-            result.removeIf(task -> task.getEvent() == null || !eventId.equals(task.getEvent().getId()));
-        }
-
         if (Boolean.TRUE.equals(onlyFuture)) {
             result.removeIf(task -> task.getDeadline() != null && task.getDeadline().before(new java.util.Date()));
         }

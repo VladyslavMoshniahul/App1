@@ -1,10 +1,13 @@
 package com.example.demo.javaSrc.controllers;
 
+import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.javaSrc.comments.EventsCommentService;
+import com.example.demo.javaSrc.comments.EventCommentDTO;
 import com.example.demo.javaSrc.comments.EventsComment;
 import com.example.demo.javaSrc.events.Event;
 import com.example.demo.javaSrc.events.EventCreateRequest;
@@ -35,8 +39,6 @@ import com.example.demo.javaSrc.peoples.People;
 import com.example.demo.javaSrc.peoples.PeopleService;
 import com.example.demo.javaSrc.school.ClassService;
 import com.example.demo.javaSrc.school.SchoolClass;
-import com.example.demo.javaSrc.tasks.Task;
-import com.example.demo.javaSrc.tasks.TaskRepository;
 
 @RestController
 @RequestMapping("/api/event")
@@ -50,8 +52,6 @@ public class EventController {
     @Autowired
     private final InvitationsService invitationsService;
     @Autowired
-    private final TaskRepository taskRepository;
-    @Autowired
     private final EventsCommentService eventsCommentService;
     @Autowired
     private final ClassService classService;
@@ -60,14 +60,13 @@ public class EventController {
 
     public EventController(PeopleController userController, EventService eventService, PeopleService userService,
             InvitationsService invitationsService,
-            TaskRepository taskRepository, EventsCommentService eventsCommentService,
+            EventsCommentService eventsCommentService,
             ClassService classService,
             SimpMessagingTemplate messagingTemplate) {
         this.userController = userController;
         this.eventService = eventService;
         this.userService = userService;
         this.invitationsService = invitationsService;
-        this.taskRepository = taskRepository;
         this.eventsCommentService = eventsCommentService;
         this.classService = classService;
         this.messagingTemplate = messagingTemplate;
@@ -226,16 +225,26 @@ public class EventController {
         return ResponseEntity.ok(files);
     }
 
-    @GetMapping("/file/{fileId}")
-    public ResponseEntity<byte[]> downloadFile(@PathVariable Long fileId) {
-        EventFile file = eventService.getEventFileById(fileId);
-        if (file == null)
+    @GetMapping("/downloadFiles/{eventId}")
+    public ResponseEntity<byte[]> downloadFilesZip(@PathVariable Long eventId) throws java.io.IOException {
+        List<EventFile> files = eventService.getFilesForEvent(eventId);
+        if (files == null || files.isEmpty()) {
             return ResponseEntity.notFound().build();
-
-        return ResponseEntity.ok()
-                .header("Content-Disposition", "attachment; filename=\"" + file.getFileName() + "\"")
-                .contentType(MediaType.parseMediaType(file.getFileType()))
-                .body(file.getFileData());
+        }
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ZipOutputStream zipOut = new ZipOutputStream(baos)) {
+            for (EventFile file : files) {
+                ZipEntry entry = new ZipEntry(file.getFileName());
+                zipOut.putNextEntry(entry);
+                zipOut.write(file.getFileData());
+                zipOut.closeEntry();
+            }
+            zipOut.finish();
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=\"event-" + eventId + "-files.zip\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(baos.toByteArray());
+        }
     }
 
     @GetMapping("/my-invitations")
@@ -317,35 +326,14 @@ public class EventController {
         return ResponseEntity.ok("Відповідь прийнята");
     }
 
-    @PostMapping("/event/{eventId}/task")
-    public ResponseEntity<Task> addTaskToEvent(
-            @PathVariable Long eventId,
-            @RequestBody Task taskData) {
-
-        Event event = eventService.getEventById(eventId);
-        if (event == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Task task = new Task();
-        task.setTitle(taskData.getTitle());
-        task.setContent(taskData.getContent());
-        task.setEvent(event);
-
-        Task saved = taskRepository.save(task);
-        messagingTemplate.convertAndSend("/topic/events/" + eventId + "/tasks/new", saved);
-        return ResponseEntity.ok(saved);
-    }
-
-    @GetMapping("/event/{eventId}/tasks")
-    public ResponseEntity<List<Task>> getTasksForEvent(@PathVariable Long eventId) {
-        List<Task> tasks = taskRepository.findByEventId(eventId);
-        return ResponseEntity.ok(tasks);
-    }
-
-    @PostMapping("/comments")
-    public ResponseEntity<EventsComment> addComment(@RequestBody EventsComment comment) {
-        EventsComment saved = eventsCommentService.createComment(comment);
+    @PostMapping("/writeComments/{eventId}")
+    public ResponseEntity<EventsComment> addComment(@RequestBody EventsComment comment,
+                                                     @PathVariable Long eventId,
+                                                     Authentication auth) {
+        EventsComment saved = new EventsComment();
+        saved.setEventId(eventId);
+        saved.setUserId(userController.currentUser(auth).getId());  
+        saved = eventsCommentService.createComment(comment);                                              
         messagingTemplate.convertAndSend("/topic/events/" + saved.getEventId() + "/comments/new", saved);
         return ResponseEntity.ok(saved);
     }
@@ -359,8 +347,15 @@ public class EventController {
     }
 
     @GetMapping("/comments/event/{eventId}")
-    public List<EventsComment> getCommentsByEvent(@PathVariable Long eventId) {
-        return eventsCommentService.getCommentsByEventId(eventId);
+    public List<EventCommentDTO> getCommentsByEvent(@PathVariable Long eventId) {
+        List<EventsComment> comments = eventsCommentService.getCommentsByEventId(eventId);
+
+        return comments.stream()
+                .map(c -> {
+                    People author = userService.getPeopleById(c.getUserId()); 
+                    return new EventCommentDTO(c, author);
+                })
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/comments/user/{userId}")

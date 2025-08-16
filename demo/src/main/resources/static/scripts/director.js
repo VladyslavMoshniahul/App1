@@ -68,341 +68,379 @@ document.getElementById("closeButton").addEventListener("click", () => {
 
 async function loadProfileForEdit() {
   try {
-    const response = await fetchWithAuth('/api/user/myProfile');
+    const response = await fetchWithAuth("/api/user/myProfile");
     if (!response.ok) {
       throw new Error("Не вдалося отримати профіль");
     }
     const user = await response.json();
 
-    document.getElementById("edit-firstName").value = user.firstName || '';
-    document.getElementById("edit-lastName").value = user.lastName || '';
-    document.getElementById("edit-aboutMe").value = user.aboutMe || '';
-    document.getElementById("edit-dateOfBirth").value = user.dateOfBirth || '';
-    document.getElementById("edit-email").value = user.email || '';
+    document.getElementById("edit-firstName").value = user.firstName || "";
+    document.getElementById("edit-lastName").value = user.lastName || "";
+    document.getElementById("edit-aboutMe").value = user.aboutMe || "";
+    document.getElementById("edit-dateOfBirth").value = user.dateOfBirth || "";
+    document.getElementById("edit-email").value = user.email || "";
   } catch (error) {
     console.error("Помилка при завантаженні профілю для редагування:", error);
     toastr.error("Не вдалося завантажити дані профілю.");
   }
 }
 
-document.getElementById("editProfileForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+document
+  .getElementById("editProfileForm")
+  .addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  const password = document.getElementById("edit-password").value.trim();
-  const confirmPassword = document.getElementById("confirm-password").value.trim();
-  const firstName = document.getElementById("edit-firstName").value.trim();
-  const lastName = document.getElementById("edit-lastName").value.trim();
-  const aboutMe = document.getElementById("edit-aboutMe").value.trim();
-  const dateOfBirth = document.getElementById("edit-dateOfBirth").value.trim();
-  const email = document.getElementById("edit-email").value.trim();
-  if (password && password !== confirmPassword) {
-    toastr.error("Паролі не співпадають.");
-    return;
-  }
+    const password = document.getElementById("edit-password").value.trim();
+    const confirmPassword = document
+      .getElementById("confirm-password")
+      .value.trim();
+    const firstName = document.getElementById("edit-firstName").value.trim();
+    const lastName = document.getElementById("edit-lastName").value.trim();
+    const aboutMe = document.getElementById("edit-aboutMe").value.trim();
+    const dateOfBirth = document
+      .getElementById("edit-dateOfBirth")
+      .value.trim();
+    const email = document.getElementById("edit-email").value.trim();
+    if (password && password !== confirmPassword) {
+      toastr.error("Паролі не співпадають.");
+      return;
+    }
 
-  try {
-    const res = await fetchWithAuth(`/api/user/me`, {
-      method: "PUT",
+    try {
+      const res = await fetchWithAuth(`/api/user/me`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          aboutMe,
+          dateOfBirth,
+          email,
+          password,
+        }),
+      });
+
+      if (!res.ok) throw new Error(res.status);
+      toastr.success("Профіль успішно оновлено.");
+      document.getElementById("updateProfile").style.display = "none";
+      document.getElementById("editProfileForm").reset();
+    } catch (error) {
+      toastr.error("Помилка при оновленні профілю. Спробуйте ще раз.");
+    }
+  });
+
+document
+  .getElementById("create-class-form")
+  .addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const response = await fetchWithAuth("/api/user/myProfile");
+    const user = await response.json();
+    const schoolName = user.schoolName || "";
+
+    const className = document.getElementById("class-name").value.trim();
+
+    if (!className) {
+      toastr.error("Будь ласка, введіть назву класу.");
+      return;
+    }
+
+    fetchWithAuth("/api/school/create-class", {
+      method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ firstName, lastName, aboutMe, dateOfBirth, email, password })
-    });
-
-    if (!res.ok) throw new Error(res.status);
-    toastr.success("Профіль успішно оновлено.");
-    document.getElementById("updateProfile").style.display = "none";
-    document.getElementById("editProfileForm").reset();
-  } catch (error) {
-    toastr.error("Помилка при оновленні профілю. Спробуйте ще раз.");
-  }
-
-});
-
-document.getElementById("create-class-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const response = await fetchWithAuth('/api/user/myProfile');
-  const user = await response.json();
-  const schoolName = user.schoolName || '';
-
-  const className = document.getElementById("class-name").value.trim();
-
-  if (!className) {
-    toastr.error("Будь ласка, введіть назву класу.");
-    return;
-  }
-
-  fetchWithAuth("/api/school/create-class", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ schoolName, className })
-  })
-    .then((res) => {
-      if (!res.ok) throw new Error();
-      toastr.success(`Клас ${className} у школі ${schoolName} успішно створено.`);
-      document.getElementById("create-class-form").reset();
+      body: JSON.stringify({ schoolName, className }),
     })
-    .catch((e) => toastr.error("Не вдалося створити клас." + e.message));
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        toastr.success(
+          `Клас ${className} у школі ${schoolName} успішно створено.`
+        );
+        document.getElementById("create-class-form").reset();
+      })
+      .catch((e) => toastr.error("Не вдалося створити клас." + e.message));
+  });
 
-});
+document
+  .getElementById("create-user-form")
+  .addEventListener("submit", async (e) => {
+    e.preventDefault();
 
+    const response = await fetchWithAuth("/api/user/myProfile");
+    const user = await response.json();
+    const schoolName = user.schoolName || "";
 
-document.getElementById("create-user-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
+    const firstName = document.getElementById("user-first-name").value.trim();
+    const lastName = document.getElementById("user-last-name").value.trim();
+    const email = document.getElementById("user-email").value.trim();
+    const password = document.getElementById("user-password").value.trim();
+    const className = document.getElementById("user-class").value.trim();
+    const role = document.getElementById("user-role").value.trim();
+    const dateOfBirth = document
+      .getElementById("user-dateOfBirth")
+      .value.trim();
 
-  const response = await fetchWithAuth('/api/user/myProfile');
-  const user = await response.json();
-  const schoolName = user.schoolName || '';
+    if (!firstName) {
+      toastr.error("Будь ласка, введіть ім'я.");
+      return;
+    }
+    if (!lastName) {
+      toastr.error("Будь ласка, введіть прізвище.");
+      return;
+    }
+    if (!email) {
+      toastr.error("Будь ласка, введіть email.");
+      return;
+    }
+    if (!password) {
+      toastr.error("Будь ласка, введіть пароль.");
+      return;
+    }
+    if (!role) {
+      toastr.error("Будь ласка, оберіть роль для користувача.");
+      return;
+    }
+    if (!dateOfBirth) {
+      toastr.error("Будь ласка, введіть дату народження.");
+      return;
+    }
 
-  const firstName = document.getElementById("user-first-name").value.trim();
-  const lastName = document.getElementById("user-last-name").value.trim();
-  const email = document.getElementById("user-email").value.trim();
-  const password = document.getElementById("user-password").value.trim();
-  const className = document.getElementById("user-class").value.trim();
-  const role = document.getElementById("user-role").value.trim();
-  const dateOfBirth = document.getElementById("user-dateOfBirth").value.trim();
-
-  if (!firstName) {
-    toastr.error("Будь ласка, введіть ім'я.");
-    return;
-  } if (!lastName) {
-    toastr.error("Будь ласка, введіть прізвище.");
-    return;
-  } if (!email) {
-    toastr.error("Будь ласка, введіть email.");
-    return;
-  } if (!password) {
-    toastr.error("Будь ласка, введіть пароль.");
-    return;
-  } if (!role) {
-    toastr.error("Будь ласка, оберіть роль для користувача.");
-    return;
-  } if (!dateOfBirth) {
-    toastr.error("Будь ласка, введіть дату народження.");
-    return;
-  }
-
-  fetchWithAuth("/api/user/create_users", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      firstName,
-      lastName,
-      email,
-      password,
-      schoolName,
-      className,
-      role,
-      dateOfBirth
+    fetchWithAuth("/api/user/create_users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName,
+        lastName,
+        email,
+        password,
+        schoolName,
+        className,
+        role,
+        dateOfBirth,
+      }),
     })
-  })
-    .then((res) => {
-      if (!res.ok) throw new Error();
-      toastr.success(`Користувача у вашій школі успішно створено.`);
-      document.getElementById("create-user-form").reset();
-    })
-    .catch(() => toastr.error("Не вдалося створити користувача."));
-});
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        toastr.success(`Користувача у вашій школі успішно створено.`);
+        document.getElementById("create-user-form").reset();
+      })
+      .catch(() => toastr.error("Не вдалося створити користувача."));
+  });
 
-document.getElementById('vote-create-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
+document
+  .getElementById("vote-create-form")
+  .addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  const form = e.target;
-  const title = form['vote-title'].value.trim();
-  const description = form['vote-description'].value.trim();
-  const level = form['vote-level'].value;
-  const startDate = form['vote-startDate'].value;
-  const endDate = form['vote-endDate'].value;
-  const multipleChoice = form['vote-multipleChoice'].checked;
+    const form = e.target;
+    const title = form["vote-title"].value.trim();
+    const description = form["vote-description"].value.trim();
+    const level = form["vote-level"].value;
+    const startDate = form["vote-startDate"].value;
+    const endDate = form["vote-endDate"].value;
+    const multipleChoice = form["vote-multipleChoice"].checked;
 
-  const optionInputs = document.querySelectorAll('.vote-option');
-  const options = Array.from(optionInputs)
-    .map(input => input.value.trim())
-    .filter(opt => opt.length > 0);
+    const optionInputs = document.querySelectorAll(".vote-option");
+    const options = Array.from(optionInputs)
+      .map((input) => input.value.trim())
+      .filter((opt) => opt.length > 0);
 
-  if (options.length < 2) {
-    toastr.error('Мінімум два варіанти голосування.');
-    return;
-  }
+    if (options.length < 2) {
+      toastr.error("Мінімум два варіанти голосування.");
+      return;
+    }
 
-  const payload = {
-    title,
-    description,
-    votingLevel: level === "SELECTED" ? "SELECTED_USERS" : level,
-    startDate,
-    endDate,
-    multipleChoice,
-    variants: options.map(text => ({ text }))
-  };
+    const payload = {
+      title,
+      description,
+      votingLevel: level === "SELECTED" ? "SELECTED_USERS" : level,
+      startDate,
+      endDate,
+      multipleChoice,
+      variants: options.map((text) => ({ text })),
+    };
 
-  try {
-    const response = await fetch('/api/vote/createVoting', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    try {
+      const response = await fetch("/api/vote/createVoting", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    if (response.ok) {
-      await response.json();
-      toastr.success("Голосування створено успішно!");
-      form.reset();
-      document.getElementById('vote-options-list').innerHTML = `
+      if (response.ok) {
+        await response.json();
+        toastr.success("Голосування створено успішно!");
+        form.reset();
+        document.getElementById("vote-options-list").innerHTML = `
               <input class="vote-option" name="option" placeholder="Варіант 1" required>
               <input class="vote-option" name="option" placeholder="Варіант 2" required>
             `;
-    } else {
-      const errorText = await response.text();
-      toastr.error("Помилка: " + errorText);
+      } else {
+        const errorText = await response.text();
+        toastr.error("Помилка: " + errorText);
+      }
+    } catch (error) {
+      console.error("Помилка при створенні голосування:", error);
+      toastr.error("Виникла помилка при надсиланні голосування.");
     }
-  } catch (error) {
-    console.error("Помилка при створенні голосування:", error);
-    toastr.error("Виникла помилка при надсиланні голосування.");
-  }
-});
+  });
 
-document.getElementById('add-vote-option').addEventListener('click', () => {
-  const list = document.getElementById('vote-options-list');
-  const input = document.createElement('input');
-  input.className = 'vote-option';
-  input.name = 'option';
+document.getElementById("add-vote-option").addEventListener("click", () => {
+  const list = document.getElementById("vote-options-list");
+  const input = document.createElement("input");
+  input.className = "vote-option";
+  input.name = "option";
   input.placeholder = `Варіант ${list.children.length + 1}`;
   input.required = true;
   list.appendChild(input);
 });
 
-document.getElementById('create-event-form').addEventListener('submit', async function (e) {
-  e.preventDefault();
+document
+  .getElementById("create-event-form")
+  .addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-  const form = e.target;
+    const form = e.target;
 
-  const className = form['event-class-name'].value.trim();
-  const title = form['event-title'].value.trim();
-  const content = form['event-content'].value.trim();
-  const locationOrLink = form['event-locationORlink'].value.trim();
-  const startDate = form['event-startDate'].value;
-  const duration = parseInt(form['event-duration'].value, 10);
-  const eventType = document.getElementById('event-type').value;
+    const className = form["event-class-name"].value.trim();
+    const title = form["event-title"].value.trim();
+    const content = form["event-content"].value.trim();
+    const locationOrLink = form["event-locationORlink"].value.trim();
+    const startDate = form["event-startDate"].value;
+    const duration = parseInt(form["event-duration"].value, 10);
+    const eventType = document.getElementById("event-type").value;
 
-  if (!eventType) {
-    toastr.error("Будь ласка, виберіть тип події.");
-    return;
-  }
-
-  let classId = null;
-  try {
-    const classResp = await fetch(`/api/school/getClassIdByName?name=${encodeURIComponent(className)}`);
-    if (classResp.ok) {
-      classId = await classResp.json();
-    } else {
-      toastr.error("Клас не знайдено");
+    if (!eventType) {
+      toastr.error("Будь ласка, виберіть тип події.");
       return;
     }
-  } catch (err) {
-    console.error("Помилка при отриманні класу:", err);
-    toastr.error("Не вдалося отримати ID класу");
-    return;
-  }
 
-  const eventData = {
-    title,
-    content,
-    locationOrLink,
-    startEvent: startDate,
-    duration,
-    eventType,
-    classId
-  };
-
-  try {
-    const response = await fetch('/api/event/events', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(eventData)
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(text || 'Помилка створення події');
+    let classId = null;
+    try {
+      const classResp = await fetch(
+        `/api/school/getClassIdByName?name=${encodeURIComponent(className)}`
+      );
+      if (classResp.ok) {
+        classId = await classResp.json();
+      } else {
+        toastr.error("Клас не знайдено");
+        return;
+      }
+    } catch (err) {
+      console.error("Помилка при отриманні класу:", err);
+      toastr.error("Не вдалося отримати ID класу");
+      return;
     }
 
-    const createdEvent = await response.json();
+    const eventData = {
+      title,
+      content,
+      locationOrLink,
+      startEvent: startDate,
+      duration,
+      eventType,
+      classId,
+    };
 
-    if (!createdEvent?.id) {
-      throw new Error("Невірна відповідь сервера при створенні події.");
-    }
-
-    const fileInput = document.getElementById('event-file');
-    const file = fileInput.files[0];
-
-    if (file) {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const uploadResp = await fetch(`/api/event/${createdEvent.id}/upload`, {
-        method: 'POST',
-        body: formData
+    try {
+      const response = await fetch("/api/event/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(eventData),
       });
 
-      if (!uploadResp.ok) {
-        toastr.warning("Подію створено, але файл не завантажено");
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || "Помилка створення події");
       }
+
+      const createdEvent = await response.json();
+
+      if (!createdEvent?.id) {
+        throw new Error("Невірна відповідь сервера при створенні події.");
+      }
+
+      const fileInput = document.getElementById("event-file");
+      const file = fileInput.files[0];
+
+      if (file) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const uploadResp = await fetch(`/api/event/${createdEvent.id}/upload`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadResp.ok) {
+          toastr.warning("Подію створено, але файл не завантажено");
+        }
+      }
+
+      toastr.success("Подію створено успішно!");
+      form.reset();
+      document.getElementById("event-file").value = "";
+    } catch (err) {
+      console.error("Помилка при створенні події:", err);
+      toastr.error("Не вдалося створити подію: " + err.message);
     }
+  });
 
-    toastr.success("Подію створено успішно!");
-    form.reset();
-    document.getElementById('event-file').value = "";
-
-  } catch (err) {
-    console.error("Помилка при створенні події:", err);
-    toastr.error("Не вдалося створити подію: " + err.message);
-  }
-});
-
-function renderList(listElement, items, emptyMessage = "Немає даних для відображення.") {
-  listElement.innerHTML = '';
+function renderList(
+  listElement,
+  items,
+  emptyMessage = "Немає даних для відображення."
+) {
+  listElement.innerHTML = "";
 
   if (items && items.length > 0) {
-    items.forEach(item => {
-      const li = document.createElement('li');
+    items.forEach((item) => {
+      const li = document.createElement("li");
       li.textContent = item;
       listElement.appendChild(li);
     });
   } else {
-    const li = document.createElement('li');
+    const li = document.createElement("li");
     li.textContent = emptyMessage;
-    li.style.fontStyle = 'italic';
-    li.style.color = '#777';
+    li.style.fontStyle = "italic";
+    li.style.color = "#777";
     listElement.appendChild(li);
   }
 }
 
 function loadProfile() {
-  const profile = document.getElementById('profile-section');
+  const profile = document.getElementById("profile-section");
 
   try {
-    fetchWithAuth('/api/user/myProfile')
-      .then(response => {
+    fetchWithAuth("/api/user/myProfile")
+      .then((response) => {
         if (!response.ok) {
-          throw new Error('Не вдалося отримати профіль');
+          throw new Error("Не вдалося отримати профіль");
         }
         return response.json();
       })
-      .then(user => {
-        document.getElementById('profile-firstName').textContent = user.firstName || '-';
-        document.getElementById('profile-lastName').textContent = user.lastName || '-';
+      .then((user) => {
+        document.getElementById("profile-firstName").textContent =
+          user.firstName || "-";
+        document.getElementById("profile-lastName").textContent =
+          user.lastName || "-";
         const rawDate = user.dateOfBirth;
         if (rawDate) {
           const date = new Date(rawDate);
-          const formatted = date.toLocaleDateString('uk-UA');
-          document.getElementById('profile-dateOfBirth').textContent = formatted;
+          const formatted = date.toLocaleDateString("uk-UA");
+          document.getElementById("profile-dateOfBirth").textContent =
+            formatted;
         } else {
-          document.getElementById('profile-dateOfBirth').textContent = '-';
+          document.getElementById("profile-dateOfBirth").textContent = "-";
         }
-        document.getElementById('profile-aboutMe').textContent = user.aboutMe || '-';
-        document.getElementById('profile-schoolName').textContent = user.schoolName || '-';
-        document.getElementById('profile-email').textContent = user.email || '-';
-        document.getElementById('profile-role').textContent = user.role || '-';
+        document.getElementById("profile-aboutMe").textContent =
+          user.aboutMe || "-";
+        document.getElementById("profile-schoolName").textContent =
+          user.schoolName || "-";
+        document.getElementById("profile-email").textContent =
+          user.email || "-";
+        document.getElementById("profile-role").textContent = user.role || "-";
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Помилка при завантаженні профілю:", error);
         toastr.error("Не вдалося завантажити профіль.");
       });
@@ -413,21 +451,25 @@ function loadProfile() {
 }
 
 function loadClasses() {
-  const classesList = document.getElementById('classes-list');
+  const classesList = document.getElementById("classes-list");
   try {
-    const url = new URL('/api/school/classes', window.location.origin);
+    const url = new URL("/api/school/classes", window.location.origin);
 
     fetchWithAuth(url.toString())
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
+      .then((response) => {
+        if (!response.ok) throw new Error("Network response was not ok");
         return response.json();
       })
-      .then(data => {
+      .then((data) => {
         if (data.length > 0) {
-          const classNames = data.map(cls => `${cls.name}`);
+          const classNames = data.map((cls) => `${cls.name}`);
           renderList(classesList, classNames);
         } else {
-          renderList(classesList, [], `Класи для школи "${schoolName}" не знайдено.`);
+          renderList(
+            classesList,
+            [],
+            `Класи для школи "${schoolName}" не знайдено.`
+          );
         }
       });
   } catch (error) {
@@ -436,26 +478,33 @@ function loadClasses() {
   }
 }
 
-function loadTeachers(className = '') {
-  const teachersList = document.getElementById('teachers-list');
+function loadTeachers(className = "") {
+  const teachersList = document.getElementById("teachers-list");
   try {
-    const url = new URL('/api/user/teachers', window.location.origin);
+    const url = new URL("/api/user/teachers", window.location.origin);
 
     if (className) {
-      url.searchParams.append('className', className);
+      url.searchParams.append("className", className);
     }
 
     fetchWithAuth(url.toString())
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
+      .then((response) => {
+        if (!response.ok) throw new Error("Network response was not ok");
         return response.json();
       })
-      .then(data => {
+      .then((data) => {
         if (data.length > 0) {
-          const teacherNames = data.map(teacher => `${teacher.firstName} ${teacher.lastName} ${teacher.email}`);
+          const teacherNames = data.map(
+            (teacher) =>
+              `${teacher.firstName} ${teacher.lastName} ${teacher.email}`
+          );
           renderList(teachersList, teacherNames);
         } else {
-          renderList(teachersList, [], `Вчителі для класу "${className}" не знайдені.`);
+          renderList(
+            teachersList,
+            [],
+            `Вчителі для класу "${className}" не знайдені.`
+          );
         }
       });
   } catch (error) {
@@ -463,26 +512,33 @@ function loadTeachers(className = '') {
     toastr.error("Не вдалося завантажити список вчителів.");
   }
 }
-function loadStudents(className = '') {
-  const studentsList = document.getElementById('students-list');
+function loadStudents(className = "") {
+  const studentsList = document.getElementById("students-list");
   try {
     const url = new URL(`/api/user/students`, window.location.origin);
 
     if (className) {
-      url.searchParams.append('className', className);
+      url.searchParams.append("className", className);
     }
 
     fetchWithAuth(url.toString())
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
+      .then((response) => {
+        if (!response.ok) throw new Error("Network response was not ok");
         return response.json();
       })
-      .then(data => {
+      .then((data) => {
         if (data.length > 0) {
-          const studentNames = data.map(student => `${student.firstName} ${student.lastName} ${student.email}`);
+          const studentNames = data.map(
+            (student) =>
+              `${student.firstName} ${student.lastName} ${student.email}`
+          );
           renderList(studentsList, studentNames);
         } else {
-          renderList(studentsList, [], `Учні для класу "${className}" не знайдені.`);
+          renderList(
+            studentsList,
+            [],
+            `Учні для класу "${className}" не знайдені.`
+          );
         }
       });
   } catch (error) {
@@ -490,26 +546,32 @@ function loadStudents(className = '') {
     toastr.error("Не вдалося завантажити список учнів.");
   }
 }
-function loadParents(className = '') {
-  const parentsList = document.getElementById('parents-list');
+function loadParents(className = "") {
+  const parentsList = document.getElementById("parents-list");
   try {
     const url = new URL(`/api/user/parents`, window.location.origin);
 
     if (className) {
-      url.searchParams.append('className', className);
+      url.searchParams.append("className", className);
     }
 
     fetchWithAuth(url.toString())
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
+      .then((response) => {
+        if (!response.ok) throw new Error("Network response was not ok");
         return response.json();
       })
-      .then(data => {
+      .then((data) => {
         if (data.length > 0) {
-          const parentNames = data.map(parent => `${parent.firstName} ${parent.lastName} ${parent.email}`);
+          const parentNames = data.map(
+            (parent) => `${parent.firstName} ${parent.lastName} ${parent.email}`
+          );
           renderList(parentsList, parentNames);
         } else {
-          renderList(parentsList, [], `Батьки для класу "${className}" не знайдені.`);
+          renderList(
+            parentsList,
+            [],
+            `Батьки для класу "${className}" не знайдені.`
+          );
         }
       });
   } catch (error) {
@@ -517,192 +579,402 @@ function loadParents(className = '') {
     toastr.error("Не вдалося завантажити список батьків.");
   }
 }
-function loadPetition(className = '') {
-  const petitionList = document.getElementById('petition-list');
-  petitionList.innerHTML = '';
+function loadVotes() {
+  const votesList = document.getElementById("votes-list");
+  votesList.innerHTML = "";
 
-  try {
-    const url = new URL('/api/petitions/petitionsForDirector', window.location.origin);
-    if (className) {
-      url.searchParams.append('className', className);
-    }
-
-    fetchWithAuth(url.toString())
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json();
-      })
-      .then(data => {
-        if (data.length > 0) {
-          data.forEach(petition => {
-            const li = document.createElement('li');
-            li.classList.add('petition-item');
-
-            const header = document.createElement('div');
-            header.classList.add('petition-header');
-            header.innerHTML = `
-              <span class="petition-title">${petition.title}</span>
-              <button class="toggle-details">▼</button>
-            `;
-
-            const details = document.createElement('div');
-            details.classList.add('petition-details');
-            details.style.display = 'none';
-            details.innerHTML = `
-              <p><strong>Опис:</strong> ${petition.description}</p>
-              <p><strong>Голосів "За":</strong> ${petition.currentPositiveVoteCount}</p>
-              <p><strong>Дата створення:</strong> ${new Date(petition.startDate).toLocaleDateString()}</p>
-              <button class="accept-btn">✅ Прийняти</button>
-              <button class="reject-btn">❌ Відхилити</button>
-              
-            `;
-            fetchWithAuth(`/api/user/users/${petition.createdBy}`)
-              .then(r => r.json())
-              .then(user => {
-                details.innerHTML += `<p><strong>Автор:</strong> ${user.email}</p>`;
-              });
-
-            header.querySelector('.toggle-details').addEventListener('click', () => {
-              details.style.display = details.style.display === 'none' ? 'block' : 'none';
-            });
-
-            details.querySelector('.accept-btn').addEventListener('click', () => {
-              updatePetitionDecision(petition.id, 'APPROVED');
-            });
-            details.querySelector('.reject-btn').addEventListener('click', () => {
-              updatePetitionDecision(petition.id, 'REJECTED');
-            });
-
-            li.appendChild(header);
-            li.appendChild(details);
-            petitionList.appendChild(li);
-          });
-        } else {
-          petitionList.innerHTML = `<li>Заявки для школи не знайдені.</li>`;
-        }
-      });
-  } catch (error) {
-    console.error("Помилка при завантаженні заявок:", error);
-    toastr.error("Не вдалося завантажити список заявок.");
-  }
-}
-
-function updatePetitionDecision(petitionId, action) {
-  let endpoint;
-  if (action === 'APPROVE') {
-    endpoint = `/api/petitions/${petitionId}/directorApprove`;
-  } else {
-    endpoint = `/api/petitions/${petitionId}/directorReject`;
-  }
-
-  fetchWithAuth(endpoint, { method: 'POST' })
-    .then(response => {
-      if (!response.ok) throw new Error('Не вдалося оновити рішення');
-      toastr.success(action === 'APPROVE' ? 'Петицію схвалено' : 'Петицію відхилено');
-      loadPetition();
-    })
-    .catch(error => {
-      console.error(error);
-      toastr.error('Помилка при оновленні рішення.');
-    });
-}
-function loadVotes(){
-  const votesList = document.getElementById('votes-list');
-  votesList.innerHTML = '';
-
-  fetchWithAuth('/api/vote/votes')
-    .then(response => {
-      if (!response.ok) throw new Error('Не вдалося отримати голосування');
+  fetchWithAuth("/api/vote/votes")
+    .then((response) => {
+      if (!response.ok) throw new Error("Не вдалося отримати голосування");
       return response.json();
     })
-    .then(data => {
+    .then((data) => {
       if (data.length > 0) {
-        data.forEach(vote => {
-          const li = document.createElement('li');
-          li.classList.add('vote-item');
+        data.forEach((vote) => {
+          const li = document.createElement("li");
+          li.classList.add("vote-item");
           li.innerHTML = `
             <h4>${vote.title}</h4>
             <p>${vote.description}</p>
             <p>Старт: ${new Date(vote.startDate).toLocaleDateString()}</p>
             <p>Кінець: ${new Date(vote.endDate).toLocaleDateString()}</p>
-            <p>Варіанти: ${vote.variants.map(v => v.text).join(', ')}</p>
+            <p>Варіанти: ${vote.variants.map((v) => v.text).join(", ")}</p>
           `;
           votesList.appendChild(li);
         });
       } else {
-        votesList.innerHTML = '<li>Голосування не знайдено.</li>';
+        votesList.innerHTML = "<li>Голосування не знайдено.</li>";
       }
     })
-    .catch(error => {
+    .catch((error) => {
       console.error("Помилка при завантаженні голосувань:", error);
       toastr.error("Не вдалося завантажити список голосувань.");
     });
 }
-document.addEventListener('DOMContentLoaded', () => {
+
+function updatePetitionDecision(petitionId, action) {
+  let endpoint;
+  if (action === "APPROVED") {
+    endpoint = `/api/petitions/${petitionId}/directorApprove`;
+  } else {
+    endpoint = `/api/petitions/${petitionId}/directorReject`;
+  }
+
+  fetchWithAuth(endpoint, { method: "POST" })
+    .then((response) => {
+      if (!response.ok) throw new Error("Не вдалося оновити рішення");
+      toastr.success(
+        action === "APPROVED" ? "Петицію схвалено" : "Петицію відхилено"
+      );
+      loadPetition();
+    })
+    .catch((error) => {
+      console.error(error);
+      toastr.error("Помилка при оновленні рішення.");
+    });
+}
+
+function loadPetition(className = "") { 
+  const petitionList = document.getElementById("petition-list");
+  petitionList.innerHTML = "";
+
+  const url = new URL("/api/petitions/petitionsForDirector", window.location.origin);
+  if (className) url.searchParams.append("className", className);
+
+  fetchWithAuth(url.toString())
+    .then((response) => {
+      if (!response.ok) throw new Error("Не вдалося отримати заяви");
+      return response.json();
+    })
+    .then((data) => {
+      if (data.length > 0) {
+        data.forEach((petition) => {
+          const li = document.createElement("li");
+          li.classList.add("petition-item");
+
+          const header = document.createElement("div");
+          header.classList.add("petition-header");
+          header.innerHTML = `
+            <span class="petition-title">${petition.title}</span>
+            <button class="toggle-details">▼</button>
+            <button class="toggle-petition-comments">▼</button>
+          `;
+
+          const details = document.createElement("div");
+          details.classList.add("petition-details");
+          details.style.display = "none";
+          details.innerHTML = `
+            <p><strong>Опис:</strong> ${petition.description}</p>
+            <p><strong>Голосів "За":</strong> ${petition.currentPositiveVoteCount}</p>
+            <p><strong>Дата створення:</strong> ${new Date(petition.startDate).toLocaleDateString()}</p>
+            <button class="accept-btn">✅ Прийняти</button>
+            <button class="reject-btn">❌ Відхилити</button>
+          `;
+
+          const comments = document.createElement("div");
+          comments.id = "petitionComments-list-" + petition.id;
+          comments.classList.add("petition-comments");
+          comments.style.display = "none";
+          comments.innerHTML = `
+            <ul class="petitionComments-list"></ul>
+            <input type="text" class="petitionComment-input" placeholder="Ваш коментар..." />
+            <button class="write-petitionComment">Написати</button>
+          `;
+
+          fetchWithAuth(`/api/user/users/${petition.createdBy}`)
+            .then((r) => r.json())
+            .then((user) => {
+              details.innerHTML += `<p><strong>Автор:</strong> ${user.email}</p>`;
+            });
+
+          header.querySelector(".toggle-details")
+            .addEventListener("click", () => {
+              details.style.display = details.style.display === "none" ? "block" : "none";
+            });
+
+          details.querySelector(".accept-btn")
+            .addEventListener("click", () => updatePetitionDecision(petition.id, "APPROVED"));
+          details.querySelector(".reject-btn")
+            .addEventListener("click", () => updatePetitionDecision(petition.id, "REJECTED"));
+
+          header.querySelector(".toggle-petition-comments")
+            .addEventListener("click", () => {
+              comments.style.display = comments.style.display === "none" ? "block" : "none";
+              if (comments.style.display === "block") loadPetitionComments(petition, comments);
+            });
+
+          li.appendChild(header);
+          li.appendChild(details);
+          li.appendChild(comments);
+          petitionList.appendChild(li);
+        });
+      } else {
+        petitionList.innerHTML = "<li>Заявки для школи не знайдені.</li>";
+      }
+    })
+    .catch((error) => {
+      console.error("Помилка при завантаженні заявок:", error);
+      toastr.error("Не вдалося завантажити список заявок.");
+    });
+}
+
+function loadPetitionComments(petition, commentsContainer) {
+  const petitionCommentsList = commentsContainer.querySelector(".petitionComments-list");
+  petitionCommentsList.innerHTML = '';
+
+  fetchWithAuth(`/api/petitions/comments/petition/${petition.id}`)
+    .then(response => {
+      if (!response.ok) throw new Error("Не вдалося отримати коментарі");
+      return response.json();
+    })
+    .then((data) => {
+      if (data.length > 0) {
+        data.forEach((comment) => {
+          const li = document.createElement("li");
+          li.classList.add("comment-item");
+          li.innerHTML = `
+            <p>${comment.text}</p>
+            <p>Написано: ${new Date(comment.createdAt).toLocaleDateString()}</p>
+            <p>Написав: ${comment.email}</p>
+          `;
+          petitionCommentsList.appendChild(li);
+        });
+      } else {
+        petitionCommentsList.innerHTML = "<li>Коментарів не знайдено.</li>";
+      }
+    })
+    .catch((error) => {
+      console.error("Помилка при завантаженні коментарів:", error);
+      toastr.error("Не вдалося завантажити список коментарів.");
+    });
+}
+
+function loadEvents() {
+  const eventList = document.getElementById("events-list");
+  eventList.innerHTML = "";
+
+  fetchWithAuth('/api/event/getEvents')
+    .then((response) => {
+      if (!response.ok) throw new Error("Не вдалося отримати події");
+      return response.json();
+    })
+    .then((data) => {
+      if (data.length > 0) {
+        data.forEach((event) => {
+          const li = document.createElement("li");
+          li.classList.add("event-item");
+
+          const header = document.createElement("div");
+          header.classList.add("event-header");
+          header.innerHTML = `
+            <span class="event-title">${event.title}</span>
+            <button class="toggle-details">Деталі</button>
+            <button class="toggle-comments">Коментарі</button>
+          `;
+
+          const details = document.createElement("div");
+          details.classList.add("event-details");
+          details.style.display = "none";
+
+          fetchWithAuth(`/api/user/users/${event.createdBy}`)
+            .then((r) => r.json())
+            .then((user) => {
+              details.innerHTML += `<p><strong>Автор:</strong> ${user.email}</p>`;
+            });
+
+          fetchWithAuth(`/api/event/${event.id}/files`)
+            .then(res => res.json())
+            .then(file => {
+              details.innerHTML += `<p><strong>Файл:</strong> ${file.fileName}.${file.fileType}</p>`;
+              details.innerHTML += `<button class="download-btn">Завантажити файл</button>`;
+            });
+
+          const comments = document.createElement("div");
+          comments.id = "eventComments-list-" + event.id;
+          comments.classList.add("event-comments");
+          comments.style.display = "none";
+          comments.innerHTML = `
+            <ul class="eventComments-list"></ul>
+            <input type="text" class="comment-input" placeholder="Ваш коментар..." />
+            <button class="write-comment">Написати</button>
+          `;
+
+          header.querySelector(".toggle-details")
+            .addEventListener("click", () => {
+              details.style.display =
+                details.style.display === "none" ? "block" : "none";
+            });
+
+          header.querySelector(".toggle-comments")
+            .addEventListener("click", () => {
+              comments.style.display =
+                comments.style.display === "none" ? "block" : "none";
+              if (comments.style.display === "block") {
+                loadEventComments(event, comments);
+              }
+            });
+
+          details.addEventListener("click", (e) => {
+            if (e.target.classList.contains("download-btn")) {
+              fetchWithAuth(`/api/event/downloadFiles/${event.id}`)
+                .then(resp => {
+                  if (!resp.ok) throw new Error("Не вдалося завантажити файли");
+                  return resp.blob();
+                })
+                .then(blob => {
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `event-${event.id}-files.zip`; 
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  window.URL.revokeObjectURL(url);
+                })
+                .catch(err => console.error("Помилка при завантаженні:", err));
+            }
+          });
+
+          comments.querySelector(".write-comment")
+            .addEventListener("click", () => {
+              const text = comments.querySelector(".comment-input").value;
+              if (!text) return;
+
+              fetchWithAuth(`/api/event/writeComments/${event.id}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text })
+              })
+                .then(res => {
+                  if (!res.ok) throw new Error("Не вдалося зберегти коментар");
+                  return res.json();
+                })
+                .then(saved => {
+                  const li = document.createElement("li");
+                  li.classList.add("comment-item");
+                  li.innerHTML = `
+                    <p>${saved.text}</p>
+                    <p><small>Написано: ${saved.email} | ${new Date(saved.createdAt).toLocaleString()}</small></p>
+                  `;
+                  comments.querySelector(".eventComments-list").appendChild(li);
+                  comments.querySelector(".comment-input").value = "";
+                })
+                .catch(err => console.error("Помилка при збереженні коментаря:", err));
+            });
+
+          li.appendChild(header);
+          li.appendChild(details);
+          li.appendChild(comments);
+          eventList.appendChild(li);
+        });
+      } else {
+        eventList.innerHTML = "<li>Подій не знайдено</li>";
+      }
+    })
+    .catch((error) => {
+      console.error("Не вдалося завантажити події", error);
+      toastr.error("Не вдалося завантажити події");
+    });
+}
+
+function loadEventComments(event, commentsContainer) {
+  const eventCommentsList = commentsContainer.querySelector(".eventComments-list");
+  eventCommentsList.innerHTML = '';
+
+  fetchWithAuth(`/comments/event/${event.id}`)
+    .then(response => {
+      if (!response.ok) throw new Error("Не вдалося отримати коментарі");
+      return response.json();
+    })
+    .then((data) => {
+      if (data.length > 0) {
+        data.forEach((comment) => {
+          const li = document.createElement("li");
+          li.classList.add("comment-item");
+          li.innerHTML = `
+            <p>${comment.text}</p>
+            <p>Написано о: ${new Date(comment.createdAt).toLocaleDateString()}</p>
+            <p>Написав: ${comment.email}</p>
+          `;
+          eventCommentsList.appendChild(li);
+        });
+      } else {
+        eventCommentsList.innerHTML = "<li>Коментарів не знайдено.</li>";
+      }
+    })
+    .catch((error) => {
+      console.error("Помилка при завантаженні коментарів:", error);
+      toastr.error("Не вдалося завантажити список коментарів.");
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
   loadProfile();
   loadClasses();
   loadTeachers();
   loadPetition();
+  loadVotes();
+  loadEvents();
 
   connectStompWebSocket();
 
-  window.addEventListener('beforeunload', disconnectStompWebSocket);
+  window.addEventListener("beforeunload", disconnectStompWebSocket);
 
-  const teachersClassInput = document.getElementById('teachers-class-input');
+  const teachersClassInput = document.getElementById("teachers-class-input");
   if (teachersClassInput) {
     const updateTeachersList = () => {
       const className = teachersClassInput.value.trim();
       loadTeachers(className);
     };
-    teachersClassInput.addEventListener('input', updateTeachersList);
+    teachersClassInput.addEventListener("input", updateTeachersList);
   }
 
-  const studentClassInput = document.getElementById('students-class-input');
+  const studentClassInput = document.getElementById("students-class-input");
   if (studentClassInput) {
     const updateStudentsList = () => {
       const className = studentClassInput.value.trim();
       loadStudents(className);
     };
-    studentClassInput.addEventListener('input', updateStudentsList);
+    studentClassInput.addEventListener("input", updateStudentsList);
   }
 
-  const parentClassInput = document.getElementById('parents-class-input');
+  const parentClassInput = document.getElementById("parents-class-input");
   if (parentClassInput) {
     const updateParentsList = () => {
       const className = parentClassInput.value.trim();
       loadParents(className);
     };
-    parentClassInput.addEventListener('input', updateParentsList);
+    parentClassInput.addEventListener("input", updateParentsList);
   }
 
-  const petitionClassInput = document.getElementById('petition-class-input');
+  const petitionClassInput = document.getElementById("petition-class-input");
   if (petitionClassInput) {
     const updatePetitionList = () => {
       const className = petitionClassInput.value.trim();
       loadPetition(className);
     };
-    petitionClassInput.addEventListener('input', updatePetitionList);
+    petitionClassInput.addEventListener("input", updatePetitionList);
   }
 });
 
 toastr.options = {
-  "closeButton": true,
-  "debug": false,
-  "newestOnTop": false,
-  "progressBar": true,
-  "positionClass": "toast-top-center",
-  "preventDuplicates": false,
-  "onclick": null,
-  "showDuration": "300",
-  "hideDuration": "1000",
-  "timeOut": "5000",
-  "extendedTimeOut": "1000",
-  "showEasing": "swing",
-  "hideEasing": "linear",
-  "showMethod": "fadeIn",
-  "hideMethod": "fadeOut"
+  closeButton: true,
+  debug: false,
+  newestOnTop: false,
+  progressBar: true,
+  positionClass: "toast-top-center",
+  preventDuplicates: false,
+  onclick: null,
+  showDuration: "300",
+  hideDuration: "1000",
+  timeOut: "5000",
+  extendedTimeOut: "1000",
+  showEasing: "swing",
+  hideEasing: "linear",
+  showMethod: "fadeIn",
+  hideMethod: "fadeOut",
 };
-const WEBSOCKET_ENDPOINT = '/ws-stomp';
+const WEBSOCKET_ENDPOINT = "/ws-stomp";
 
 let stompClient = null;
 
@@ -710,88 +982,18 @@ function connectStompWebSocket() {
   const socket = new SockJS(WEBSOCKET_ENDPOINT);
   stompClient = Stomp.over(socket);
 
-  stompClient.connect({}, function (frame) {
-    console.log('Connected: ' + frame);
-
-    stompClient.subscribe('/topic/users/teachers/list', function (message) {
-      const teachers = JSON.parse(message.body);
-      console.log('WebSocket: Оновлений список вчителів:', teachers);
-      const teachersList = document.getElementById('teachers-list');
-      renderList(teachersList, teachers, teacher => `${teacher.firstName} ${teacher.lastName} (${teacher.email})`);
-    });
-
-    stompClient.subscribe('/topic/users/students/list', function (message) {
-      const students = JSON.parse(message.body);
-      console.log('WebSocket: Оновлений список студентів:', students);
-      const studentsList = document.getElementById('students-list');
-      renderList(studentsList, students, student => `${student.firstName} ${student.lastName} (${student.email})`);
-    });
-
-    stompClient.subscribe('/topic/users/parents/list', function (message) {
-      const parents = JSON.parse(message.body);
-      console.log('WebSocket: Оновлений список батьків:', parents);
-      const parentsList = document.getElementById('parents-list');
-      renderList(parentsList, parents, parent => `${parent.firstName} ${parent.lastName} (${parent.email})`);
-    });
-
-    stompClient.subscribe('/topic/users/created', function (message) {
-      const newUser = JSON.parse(message.body);
-      console.log('WebSocket: Створено нового користувача:', newUser);
-      loadAdmins();
-      loadDirectors();
-      loadTeachers();
-    });
-
-    stompClient.subscribe('/topic/users/profile', function (message) {
-      const userProfile = JSON.parse(message.body);
-      console.log('WebSocket: Оновлення профілю поточного користувача:', userProfile);
-      document.getElementById('profile-firstName').textContent = userProfile.firstName || '-';
-      document.getElementById('profile-lastName').textContent = userProfile.lastName || '-';
-      const rawDate = userProfile.dateOfBirth;
-      if (rawDate) {
-        const date = new Date(rawDate);
-        const formatted = date.toLocaleDateString('uk-UA');
-        document.getElementById('profile-dateOfBirth').textContent = formatted;
-      } else {
-        document.getElementById('profile-dateOfBirth').textContent = '-';
-      }
-      document.getElementById('profile-aboutMe').textContent = userProfile.aboutMe || '-';
-      document.getElementById('profile-email').textContent = userProfile.email || '-';
-      document.getElementById('profile-role').textContent = userProfile.role || '-';
-    });
-
-    stompClient.subscribe('/topic/classes/created', function (message) {
-      const newClass = JSON.parse(message.body);
-      console.log('WebSocket: Створено новий клас:', newClass);
-      loadClasses(document.getElementById('classes-school-input').value.trim());
-    });
-
-    stompClient.subscribe('/queue/petitions/my-petition/decision', function (message) {
-      const decision = JSON.parse(message.body);
-      console.log('WebSocket: Отримано рішення:', decision);
-      toastr.success(`Рішення на заявку "${decision.title}" - ${decision.decision}`);
-      loadPetition();
-    });
-
-    stompClient.subscribe('/topic/users/create/error', function (message) {
-      const errorMessage = message.body;
-      console.error('WebSocket Error: Помилка створення користувача:', errorMessage);
-    });
-
-    stompClient.subscribe('/topic/users/profile/error', function (message) {
-      const errorMessage = message.body;
-      console.error('WebSocket Error: Помилка профілю:', errorMessage);
-    });
-
-    stompClient.subscribe('/topic/classes/create/error', function (message) {
-      const errorMessage = message.body;
-      console.error('WebSocket Error: Помилка створення класу:', errorMessage);
-    });
-
-  }, function (error) {
-    console.error('WebSocket connection error:', error);
-    toastr.error("Помилка з'єднання з сервером реального часу. Спробуйте пізніше.");
-  });
+  stompClient.connect(
+    {},
+    function (frame) {
+      console.log("Connected: " + frame);
+    },
+    function (error) {
+      console.error("WebSocket connection error:", error);
+      toastr.error(
+        "Помилка з'єднання з сервером реального часу. Спробуйте пізніше."
+      );
+    }
+  );
 }
 
 function disconnectStompWebSocket() {

@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.javaSrc.comments.PetitionsComment;
 import com.example.demo.javaSrc.comments.PetitionsCommentService;
+import com.example.demo.javaSrc.comments.PetitonCommentDto;
 import com.example.demo.javaSrc.peoples.People;
 import com.example.demo.javaSrc.peoples.PeopleService;
 import com.example.demo.javaSrc.petitions.Petition;
@@ -298,8 +299,15 @@ public class PetitionsController {
     }
 
     @GetMapping("/comments/petition/{petitionId}")
-    public List<PetitionsComment> getCommentsByPetition(@PathVariable Long petitionId) {
-        return petitionsCommentService.getCommentsByPetitionId(petitionId);
+    public List<PetitonCommentDto> getCommentsByPetition(@PathVariable Long petitionId) {
+        List<PetitionsComment> comments = petitionsCommentService.getCommentsByPetitionId(petitionId);
+
+        return comments.stream()
+                .map(c -> {
+                    People author = userService.getPeopleById(c.getUserId()); 
+                    return new PetitonCommentDto(c, author);
+                })
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/comments/user/{userId}")

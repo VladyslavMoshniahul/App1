@@ -1,9 +1,6 @@
 package com.example.demo.javaSrc.tasks;
 
-
 import java.util.Date;
-
-import com.example.demo.javaSrc.events.Event;
 
 import jakarta.persistence.*;
 
@@ -19,11 +16,6 @@ public class Task {
 
     @Column(name = "class_id")
     private Long classId;
- 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id")
-    private Event event;
-
 
     @Column(name = "title",nullable = false)
     private String title;
@@ -36,11 +28,10 @@ public class Task {
 
     public Task() {}
 
-    public Task(Long schoolId, Long classId, Event event,
+    public Task(Long schoolId, Long classId, 
                 String title, String content, Date deadline) {
         this.schoolId = schoolId;
         this.classId = classId;
-        this.event = event;
         this.title = title;
         this.content = content;
         this.deadline = deadline;
@@ -81,14 +72,6 @@ public class Task {
         } else if (deadline instanceof java.util.Date d) {
             this.deadline = d;
         }
-    }
-
-    public Event getEvent() {
-        return event;
-    }
-
-    public void setEvent(Event event) {
-        this.event = event;
     }
 
 }

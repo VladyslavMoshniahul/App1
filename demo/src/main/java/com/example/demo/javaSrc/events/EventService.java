@@ -33,7 +33,7 @@ public class EventService {
         return eventRepository.findBySchoolIdAndClassId(schoolId, classId);
     }
     
-      public List<Event> getFutureEvents(Long userId) {
+    public List<Event> getFutureEvents(Long userId) {
         return eventRepository.findByCreatedByAndStartEventAfter(userId, LocalDateTime.now());
     }
 

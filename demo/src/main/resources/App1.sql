@@ -179,7 +179,6 @@ CREATE TABLE IF NOT EXISTS `tasks` (
   `id`         BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `school_id`  BIGINT NOT NULL,
   `class_id`   BIGINT NULL,
-  `event_id`   BIGINT NULL,
   `title`      VARCHAR(100) NOT NULL,
   `content`    TEXT NULL,
   `deadline`   DATETIME NOT NULL,
