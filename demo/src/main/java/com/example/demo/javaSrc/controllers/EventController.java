@@ -2,7 +2,6 @@ package com.example.demo.javaSrc.controllers;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -73,37 +72,19 @@ public class EventController {
     }
 
     @GetMapping("/getEvents")
-    public List<Event> getEvents(
-            Authentication auth,
-            @RequestParam(required = false) Long schoolId,
-            @RequestParam(required = false) Long classId,
-            @RequestParam(required = false) Long userId) {
+    public List<Event> getEvents(Authentication auth) {
 
         People me = userController.currentUser(auth);
 
-        if (userId != null) {
-            People target = userService.getAllPeoples().stream()
-                    .filter(u -> u.getId().equals(userId))
-                    .findFirst().orElse(null);
-            if (target == null) {
-                return List.of();
-            }
-            Long sch = target.getSchoolId();
-            Long cls = target.getClassId();
-            List<Event> events = eventService.getEventsForSchool(sch);
-            return events.stream()
-                    .filter(event -> event.getClassId() == null || (cls != null && cls.equals(event.getClassId())))
-                    .sorted(Comparator.comparing(Event::getStartEvent))
-                    .collect(Collectors.toList());
-        }
-
-        Long sch = schoolId != null ? schoolId : me.getSchoolId();
-        Long cls = classId != null ? classId : me.getClassId();
-        List<Event> events = eventService.getEventsForSchool(sch);
-        return events.stream()
-                .filter(event -> event.getClassId() == null || (cls != null && cls.equals(event.getClassId())))
-                .sorted(Comparator.comparing(Event::getStartEvent))
+        List<Invitation> invitations = invitationsService.getInvitationsByUserId(me.getId());
+        if(invitations == null){return List.of();}
+        List<Long> eventIds = invitations.stream()
+                .map(Invitation::getEventId)
                 .collect(Collectors.toList());
+        List<Event> events = eventIds.stream()
+                .map(eventService::getEventById) 
+                .collect(Collectors.toList());
+        return events;
     }
 
     @GetMapping("/{id}")
@@ -136,6 +117,9 @@ public class EventController {
         if (userController.currentUser(auth).getRole() == People.Role.STUDENT
                 && !Objects.equals(classId, userController.currentUser(auth).getClassId())) {
             return ResponseEntity.status(403).body("Учень може створювати події лише для свого класу");
+        }
+        if (userController.currentUser(auth).getRole() == People.Role.PARENT) {
+            return ResponseEntity.status(403).body("Батьки не можуть створювати події");
         }
         if (schoolClass == null) {
             event.setClassId(null);
