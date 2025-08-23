@@ -1,12 +1,12 @@
 package com.example.demo.javaSrc.petitions;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public record PetitionDto(
     Long id,
     String title,
     String description,
-    Date endDate,
+    LocalDateTime endDate,
     int currentVotes,
     int threshold,
     boolean pendingDirector,

@@ -51,7 +51,6 @@ public class Invitation {
     public void setEventId(Long eventId) { this.eventId = eventId; }
     public void setVoteId(Long voteId) { this.voteId = voteId; }
     public void setUserId(Long userId) { this.userId = userId; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
     @PrePersist
     @PreUpdate

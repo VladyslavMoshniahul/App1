@@ -1,14 +1,15 @@
 package com.example.demo.javaSrc.petitions;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 public record PetitionCreateRequest(
     String   title,
     String   description,
     @JsonFormat(pattern = "yyyy-MM-dd")
-    LocalDate startDate,
+    LocalDateTime startDate,
     @JsonFormat(pattern = "yyyy-MM-dd")
-    LocalDate endDate,
+    LocalDateTime endDate,
     Long     classId
 ) {}

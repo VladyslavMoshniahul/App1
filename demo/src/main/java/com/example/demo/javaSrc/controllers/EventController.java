@@ -80,7 +80,7 @@ public class EventController {
         List<InvitationDTO> invitations = invitationsService.getInvitationsForUser(me.getId());
         if(invitations == null){return List.of();}
         List<Long> eventIds = invitations.stream()
-                .map(InvitationDTO::getEventId)
+                .map(InvitationDTO::getEventOrVoteId)
                 .collect(Collectors.toList());
         List<Event> events = eventIds.stream()
                 .map(eventService::getEventById) 
@@ -232,7 +232,7 @@ public class EventController {
         }
     }
 
-    @GetMapping("/my-invitations")
+   /* @GetMapping("/my-invitations")
     public List<UserInvitationStatus> getMyInvitations(
             Authentication auth,
             @RequestParam(required = false) UserInvitationStatus.Status status) {
@@ -309,7 +309,7 @@ public class EventController {
                 "/queue/invitations/status",
                 "Запрошення ID " + invitationId + " оновлено на статус " + status.name());
         return ResponseEntity.ok("Відповідь прийнята");
-    }
+    }*/
 
     @PostMapping("/writeComments/{eventId}")
     public ResponseEntity<EventsComment> addComment(@RequestBody EventsComment comment,

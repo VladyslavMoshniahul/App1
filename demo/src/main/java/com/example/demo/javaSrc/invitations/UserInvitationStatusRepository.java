@@ -23,6 +23,15 @@ public interface UserInvitationStatusRepository extends JpaRepository<UserInvita
     @Query(value = "SELECT u.status, COUNT(*) FROM user_invitation_status u JOIN invitation i ON u.invitation_id = i.id WHERE i.event_id = :eventId GROUP BY u.status", nativeQuery = true)
     List<Object[]> countStatusesByEventId(@Param("eventId") Long eventId);
 
+    @Query(value = "SELECT EXISTS(SELECT 1 FROM user_invitation_status u JOIN invitation i ON u.invitation_id = i.id WHERE u.user_id = :userId AND i.vote_id = :voteId)", nativeQuery = true)
+    boolean existsByUserIdAndVoteId(@Param("userId") Long userId, @Param("voteId") Long voteId);
+
+    @Query(value = "SELECT u.user_id FROM user_invitation_status u JOIN invitation i ON u.invitation_id = i.id WHERE i.vote_id = :voteId AND u.status = :status", nativeQuery = true)
+    List<Long> findUserIdsByVoteIdAndStatus(@Param("voteId") Long voteId, @Param("status") String status);
+
+    @Query(value = "SELECT u.status, COUNT(*) FROM user_invitation_status u JOIN invitation i ON u.invitation_id = i.id WHERE i.vote_id = :voteId GROUP BY u.status", nativeQuery = true)
+    List<Object[]> countStatusesByVoteId(@Param("voteId") Long voteId);
+
     void deleteByInvitationId(Long invitationId);
     void deleteByUserId(Long userId); 
 

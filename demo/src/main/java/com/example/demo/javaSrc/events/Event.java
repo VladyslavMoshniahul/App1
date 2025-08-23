@@ -47,8 +47,8 @@ public class Event {
     public Event() {}
 
     public Event(Long schoolId, Long classId, String title, LocalDateTime startEvent,
-                 String content, String locationOrLink, int duration,
-                 EventType eventType, Long createdBy) {
+                String content, String locationOrLink, int duration,
+                EventType eventType, Long createdBy) {
         this.schoolId = schoolId;
         this.classId = classId;
         this.title = title;

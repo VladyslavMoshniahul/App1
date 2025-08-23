@@ -1,6 +1,6 @@
 package com.example.demo.javaSrc.tasks;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
 
@@ -24,12 +24,12 @@ public class Task {
     private String content;
 
     @Column(name = "deadline",nullable = false)
-    private Date deadline;
+    private LocalDateTime deadline;
 
     public Task() {}
 
     public Task(Long schoolId, Long classId, 
-                String title, String content, Date deadline) {
+                String title, String content, LocalDateTime deadline) {
         this.schoolId = schoolId;
         this.classId = classId;
         this.title = title;
@@ -51,8 +51,8 @@ public class Task {
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
 
-    public Date getDeadline() { return (Date) deadline.clone(); }
-    public void setDeadline(Date deadline) { this.deadline = deadline; }
+    public LocalDateTime getDeadline() { return deadline; }
+    public void setDeadline(LocalDateTime deadline) { this.deadline = deadline; }
 
     @com.fasterxml.jackson.annotation.JsonSetter("deadline")
     public void setDeadlineFromJson(Object deadline) {
@@ -65,11 +65,11 @@ public class Task {
                     instant = java.time.LocalDateTime.parse(str.replace("Z", ""))
                         .atZone(java.time.ZoneId.systemDefault()).toInstant();
                 }
-                this.deadline = java.util.Date.from(instant);
+                this.deadline = java.time.LocalDateTime.from(instant);
             } catch (Exception e) {
                 this.deadline = null;
             }
-        } else if (deadline instanceof java.util.Date d) {
+        } else if (deadline instanceof java.time.LocalDateTime d) {
             this.deadline = d;
         }
     }

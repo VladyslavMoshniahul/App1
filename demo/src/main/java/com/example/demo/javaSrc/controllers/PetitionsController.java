@@ -1,7 +1,6 @@
 package com.example.demo.javaSrc.controllers;
 
-import java.time.ZoneId;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -79,14 +78,8 @@ public class PetitionsController {
         petition.setTitle(req.title());
         petition.setDescription(req.description());
 
-        Date startDate = Date.from(
-                req.startDate()
-                        .atStartOfDay(ZoneId.systemDefault())
-                        .toInstant());
-        Date endDate = Date.from(
-                req.endDate()
-                        .atStartOfDay(ZoneId.systemDefault())
-                        .toInstant());
+        LocalDateTime startDate =  req.startDate();
+        LocalDateTime endDate = req.endDate();
         petition.setStartDate(startDate);
         petition.setEndDate(endDate);
 

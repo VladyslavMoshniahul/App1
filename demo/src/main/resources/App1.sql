@@ -39,8 +39,8 @@ CREATE TABLE IF NOT EXISTS `voting` (
     `class_id` BIGINT NULL,
     `title` VARCHAR(250) NOT NULL,
     `description` TEXT NULL,
-    `start_date` DATETIME NOT NULL,
-    `end_date` DATETIME NOT NULL,
+    `start_date` TIMESTAMP NOT NULL,
+    `end_date` TIMESTAMP NOT NULL,
     `created_by` BIGINT NOT NULL,
     `multiple_choice` BOOLEAN NOT NULL DEFAULT FALSE,
     `voting_level` ENUM(
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS `voting_vote` (
     `voting_id` BIGINT NOT NULL,
     `variant_id` BIGINT NOT NULL,
     `user_id` BIGINT NOT NULL,
-    `vote_date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `vote_date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`voting_id`) REFERENCES `voting`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`variant_id`) REFERENCES `voting_variant`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`user_id`) REFERENCES `people`(`id`) ON DELETE CASCADE,
@@ -86,8 +86,8 @@ CREATE TABLE IF NOT EXISTS `petitions` (
   `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `title` VARCHAR(250) NOT NULL,
   `description` TEXT NULL,
-  `start_date` DATETIME NOT NULL,
-  `end_date` DATETIME NOT NULL,
+  `start_date` TIMESTAMP NOT NULL,
+  `end_date` TIMESTAMP NOT NULL,
   `created_by` BIGINT NOT NULL,
   `school_id` BIGINT NOT NULL,
   `class_id` BIGINT NULL,
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS `petition_votes` (
   `petition_id` BIGINT NOT NULL,
   `student_id` BIGINT NOT NULL,
   `vote` ENUM('YES', 'NO') NOT NULL,
-  `voted_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `voted_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (`petition_id`, `student_id`),
   FOREIGN KEY (`petition_id`) REFERENCES `petitions`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`student_id`) REFERENCES `people`(`id`) ON DELETE CASCADE
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS `petitions_comments`(
   `user_id` BIGINT NOT NULL,
   `petition_id` BIGINT NOT NULL,
   `text` TEXT NOT NULL,
-  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`user_id`) REFERENCES `people`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`petition_id`) REFERENCES `petitions`(`id`) ON DELETE CASCADE
 )ENGINE=InnoDB;
@@ -126,7 +126,7 @@ CREATE TABLE IF NOT EXISTS `events` (
   `content`          TEXT NULL,
   `location_or_link` TEXT NULL,
   `duration`         INT NOT NULL,
-  `start_event`      DATETIME NOT NULL,
+  `start_event`      TIMESTAMP NOT NULL,
   `event_type`       ENUM('EXAM','TEST','SCHOOL_EVENT','PARENTS_MEETING','PERSONAL') NOT NULL,
   `created_by`       BIGINT NOT NULL,
   FOREIGN KEY (`school_id`)   REFERENCES `schools`(`id`)   ON DELETE CASCADE,
@@ -140,7 +140,7 @@ CREATE TABLE IF NOT EXISTS `event_files` (
   file_name VARCHAR(255) NOT NULL,
   file_type VARCHAR(100) NOT NULL,
   file_data LONGBLOB NOT NULL,  
-  uploaded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS `invitations` (
   `event_id`   BIGINT NULL,
   `vote_id`    BIGINT NULL,
   `user_id`    BIGINT NOT NULL,
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (`event_id`)   REFERENCES `events`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`user_id`)    REFERENCES `people`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`vote_id`)    REFERENCES `voting`(`id`) ON DELETE CASCADE,
@@ -187,7 +187,7 @@ CREATE TABLE IF NOT EXISTS `tasks` (
   `class_id`   BIGINT NULL,
   `title`      VARCHAR(100) NOT NULL,
   `content`    TEXT NULL,
-  `deadline`   DATETIME NOT NULL,
+  `deadline`   TIMESTAMP NOT NULL,
   FOREIGN KEY (`school_id`)  REFERENCES `schools`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`class_id`)   REFERENCES `classes`(`id`) ON DELETE SET NULL,
   FOREIGN KEY (`event_id`)   REFERENCES `events`(`id`)  ON DELETE SET NULL

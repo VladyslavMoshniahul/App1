@@ -1,7 +1,6 @@
 package com.example.demo.javaSrc.petitions;
 
-
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -48,10 +47,10 @@ public class Petition {
     private Long createdBy;
 
     @Column(name = "start_date", nullable = false)
-    private Date startDate;
+    private LocalDateTime startDate;
 
     @Column(name = "end_date", nullable = false)
-    private Date endDate;
+    private LocalDateTime endDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -68,7 +67,7 @@ public class Petition {
     }
 
     public Petition(String title, String description, Long schoolId, Long classId,
-            Long createdBy, Date startDate, Date endDate, Status status) {
+            Long createdBy, LocalDateTime startDate, LocalDateTime endDate, Status status) {
         this.schoolId = schoolId;
         this.classId = classId;
         this.title = title;
@@ -126,19 +125,19 @@ public class Petition {
         this.createdBy = createdBy;
     }
 
-    public Date getStartDate() {
+    public LocalDateTime getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(LocalDateTime startDate) {
         this.startDate = startDate;
     }
 
-    public Date getEndDate() {
+    public LocalDateTime getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date endDate) {
+    public void setEndDate(LocalDateTime endDate) {
         this.endDate = endDate;
     }
 

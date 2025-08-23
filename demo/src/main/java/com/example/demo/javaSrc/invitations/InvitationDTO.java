@@ -4,26 +4,26 @@ import java.time.LocalDateTime;
 
 public class InvitationDTO {
     private Long invitationId;
-    private Long eventId;
-    private String eventTitle;
-    private LocalDateTime eventDate;
+    private Long eventOrVoteId;
+    private String eventOrVoteTitle;
+    private LocalDateTime eventOrVoteDate;
     private String invitedBy; 
     private UserInvitationStatus.Status status;
     private LocalDateTime updatedAt;
 
     public InvitationDTO(
         Long invitationId,
-        Long eventId,
-        String eventTitle,
-        LocalDateTime eventDate,
+        Long eventOrVoteId,
+        String eventOrVoteTitle,
+        LocalDateTime eventOrVoteDate,
         String invitedBy,
         UserInvitationStatus.Status status,
         LocalDateTime updatedAt
     ) {
         this.invitationId = invitationId;
-        this.eventId = eventId;
-        this.eventTitle = eventTitle;
-        this.eventDate = eventDate;
+        this.eventOrVoteId = eventOrVoteId;
+        this.eventOrVoteTitle = eventOrVoteTitle;
+        this.eventOrVoteDate = eventOrVoteDate;
         this.invitedBy = invitedBy;
         this.status = status;
         this.updatedAt = updatedAt;
@@ -37,28 +37,28 @@ public class InvitationDTO {
         this.invitationId = invitationId;
     }
 
-    public Long getEventId() {
-        return eventId;
+    public Long getEventOrVoteId() {
+        return eventOrVoteId;
     }
 
-    public void setEventId(Long eventId) {
-        this.eventId = eventId;
+    public void setEventOrVoteId(Long eventOrVoteId) {
+        this.eventOrVoteId = eventOrVoteId;
     }
 
     public String getEventTitle() {
-        return eventTitle;
+        return eventOrVoteTitle;
     }
 
-    public void setEventTitle(String eventTitle) {
-        this.eventTitle = eventTitle;
+    public void setEventOrVoteTitle(String eventOrVoteTitle) {
+        this.eventOrVoteTitle = eventOrVoteTitle;
     }
 
-    public LocalDateTime getEventDate() {
-        return eventDate;
+    public LocalDateTime getventOrVoteDate() {
+        return eventOrVoteDate;
     }
 
-    public void setEventDate(LocalDateTime eventDate) {
-        this.eventDate = eventDate;
+    public void setEventOrVoteDate(LocalDateTime eventOrVoteDate) {
+        this.eventOrVoteDate = eventOrVoteDate;
     }
 
     public String getInvitedBy() {

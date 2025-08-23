@@ -1,13 +1,23 @@
 package com.example.demo.javaSrc.voting;
 
 
-import jakarta.persistence.*;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List; 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.CascadeType;
 
 @Entity
 @Table(name = "voting")
@@ -55,10 +65,10 @@ public class Vote {
     private Long createdBy;
 
     @Column(name = "start_date", nullable = false)
-    private Date startDate;
+    private LocalDateTime startDate;
 
     @Column(name = "end_date", nullable = false)
-    private Date endDate;
+    private LocalDateTime endDate;
 
     @Column(name = "multiple_choice", nullable = false)
     private boolean multipleChoice;
@@ -86,7 +96,7 @@ public class Vote {
     }
 
     public Vote(Long schoolId, Long classId, String title, String description,
-            Long createdBy, Date startDate, Date endDate, boolean multipleChoice,
+            Long createdBy, LocalDateTime startDate, LocalDateTime endDate, boolean multipleChoice,
             VotingLevel votingLevel, String variantsJson) {
         this.schoolId = schoolId;
         this.classId = classId;
@@ -185,19 +195,19 @@ public class Vote {
         this.createdBy = createdBy;
     }
 
-    public Date getStartDate() {
+    public LocalDateTime getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(LocalDateTime startDate) {
         this.startDate = startDate;
     }
 
-    public Date getEndDate() {
+    public LocalDateTime getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date endDate) {
+    public void setEndDate(LocalDateTime endDate) {
         this.endDate = endDate;
     }
 

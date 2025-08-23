@@ -1,5 +1,6 @@
 package com.example.demo.javaSrc.voting;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -171,11 +172,11 @@ public class VoteService {
     @Transactional
     @Scheduled(fixedRate = 60000) 
     public void closeExpiredVotings() {
-        Date now = new Date();
+        LocalDateTime now = LocalDateTime.now();
         List<Vote> openVotings = voteRepository.findByStatus(Vote.VoteStatus.OPEN);
 
         List<Vote> expired = openVotings.stream()
-                .filter(vote -> vote.getEndDate().before(now))
+                .filter(vote -> vote.getEndDate().isBefore(now))
                 .peek(vote -> vote.setStatus(Vote.VoteStatus.CLOSED))
                 .toList();
 
@@ -190,7 +191,7 @@ public class VoteService {
         }
         Vote vote = voteOptional.get();
 
-        if (vote.getStatus() == Vote.VoteStatus.CLOSED || vote.getEndDate().before(new Date())) {
+        if (vote.getStatus() == Vote.VoteStatus.CLOSED || vote.getEndDate().isBefore(LocalDateTime.now())) {
             return false;
         }
 

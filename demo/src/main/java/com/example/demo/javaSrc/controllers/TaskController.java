@@ -1,5 +1,6 @@
 package com.example.demo.javaSrc.controllers;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -126,7 +127,7 @@ public class TaskController {
         }
 
         if (Boolean.TRUE.equals(onlyFuture)) {
-            result.removeIf(task -> task.getDeadline() != null && task.getDeadline().before(new java.util.Date()));
+            result.removeIf(task -> task.getDeadline() != null && task.getDeadline().isBefore(LocalDateTime.now()));
         }
 
         result.sort(Comparator.comparing(Task::getDeadline));

@@ -1,7 +1,6 @@
 package com.example.demo.javaSrc.petitions;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
@@ -122,9 +121,7 @@ public class PetitionService {
 
         LocalDateTime now = LocalDateTime.now();
 
-        LocalDateTime petitionEnd = petition.getEndDate().toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime();
+        LocalDateTime petitionEnd = petition.getEndDate();
 
         if (now.isAfter(petitionEnd)) {
             throw new IllegalStateException("Petition already ended");
@@ -167,10 +164,10 @@ public class PetitionService {
     @Scheduled(fixedRate = 60000)
     @Transactional
     public void closeExpiredPetitions() {
-        Date now = new Date();
+        LocalDateTime now = LocalDateTime.now();
         List<Petition> openPetitions = petitionRepository.findByStatus(Petition.Status.OPEN);
         openPetitions.stream()
-            .filter(petition -> petition.getEndDate().before(now))
+            .filter(petition -> petition.getEndDate().isBefore(now))
             .forEach(petition -> petition.setStatus(Petition.Status.CLOSED));
         petitionRepository.saveAll(openPetitions);
     }
