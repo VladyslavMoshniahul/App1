@@ -120,7 +120,7 @@ public class VoteController {
         } else if (schoolId != null) {
             return voteService.getVotingsBySchool(schoolId);
         } else {
-            return voteService.getAllVotings();
+            return List.of();
         }
     }
 

@@ -32,6 +32,7 @@ import com.example.demo.javaSrc.events.EventCreateRequest;
 import com.example.demo.javaSrc.events.EventFile;
 import com.example.demo.javaSrc.events.EventService;
 import com.example.demo.javaSrc.invitations.Invitation;
+import com.example.demo.javaSrc.invitations.InvitationDTO;
 import com.example.demo.javaSrc.invitations.InvitationsService;
 import com.example.demo.javaSrc.invitations.UserInvitationStatus;
 import com.example.demo.javaSrc.peoples.People;
@@ -76,10 +77,10 @@ public class EventController {
 
         People me = userController.currentUser(auth);
 
-        List<Invitation> invitations = invitationsService.getInvitationsByUserId(me.getId());
+        List<InvitationDTO> invitations = invitationsService.getInvitationsForUser(me.getId());
         if(invitations == null){return List.of();}
         List<Long> eventIds = invitations.stream()
-                .map(Invitation::getEventId)
+                .map(InvitationDTO::getEventId)
                 .collect(Collectors.toList());
         List<Event> events = eventIds.stream()
                 .map(eventService::getEventById) 
@@ -276,7 +277,7 @@ public class EventController {
             }
         }
 
-        Invitation invitation = invitationsService.createGroupInvitation(eventId, currentUser.getId(), userIds);
+        Invitation invitation = invitationsService.createInvitation(currentUser.getId(), eventId,null,  userIds);
         userIds.forEach(userId -> {
             messagingTemplate.convertAndSendToUser(
                     userId.toString(),
