@@ -189,8 +189,7 @@ CREATE TABLE IF NOT EXISTS `tasks` (
   `content`    TEXT NULL,
   `deadline`   TIMESTAMP NOT NULL,
   FOREIGN KEY (`school_id`)  REFERENCES `schools`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`class_id`)   REFERENCES `classes`(`id`) ON DELETE SET NULL,
-  FOREIGN KEY (`event_id`)   REFERENCES `events`(`id`)  ON DELETE SET NULL
+  FOREIGN KEY (`class_id`)   REFERENCES `classes`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `user_task_status` (
