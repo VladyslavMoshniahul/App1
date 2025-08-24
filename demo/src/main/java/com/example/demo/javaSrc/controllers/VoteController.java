@@ -1,6 +1,9 @@
 package com.example.demo.javaSrc.controllers;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +21,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.javaSrc.invitations.InvitationDTO;
+import com.example.demo.javaSrc.invitations.InvitationsService;
 import com.example.demo.javaSrc.peoples.People;
+import com.example.demo.javaSrc.school.ClassService;
 import com.example.demo.javaSrc.voting.Vote;
 import com.example.demo.javaSrc.voting.VoteService;
 import com.example.demo.javaSrc.voting.VotingParticipant;
@@ -37,13 +43,19 @@ public class VoteController {
     private final PeopleController userController;
     @Autowired
     private final SimpMessagingTemplate messagingTemplate;
+    @Autowired
+    private final InvitationsService invitationsService;
+    @Autowired
+    private final ClassService classService;
 
     public VoteController(VoteService voteService, ObjectMapper objectMapper, PeopleController userController,
-            SimpMessagingTemplate messagingTemplate) {
+            SimpMessagingTemplate messagingTemplate,InvitationsService invitationsService,ClassService classService) {
         this.voteService = voteService;
         this.objectMapper = new ObjectMapper();
         this.userController = userController;
         this.messagingTemplate = messagingTemplate;
+        this.invitationsService = invitationsService;
+        this.classService = classService;
     }
 
     @PostMapping("/createVoting")
@@ -112,16 +124,38 @@ public class VoteController {
 
     @GetMapping("/votes")
     public List<Vote> getVotes(Authentication auth,
-            @RequestParam(required = false) Long classId) {
+                            @RequestParam(required = false) String className) {
         People currentUser = userController.currentUser(auth);
         Long schoolId = currentUser.getSchoolId();
-        if (classId != null && schoolId != null) {
-            return voteService.getVotingsByClassAndSchool(classId, schoolId);
-        } else if (schoolId != null) {
-            return voteService.getVotingsBySchool(schoolId);
-        } else {
-            return List.of();
+        Long classId = classService.getClassesBySchoolIdAndName(schoolId, className).getId();
+
+        List<InvitationDTO> invitations = invitationsService.getInvitationsForUser(currentUser.getId());
+        List<Long> invitedVoteIds = invitations.stream()
+                .filter(inv -> inv.getType() == InvitationDTO.Type.VOTE)
+                .map(InvitationDTO::getEventOrVoteId)
+                .toList();
+
+        List<Vote> invitedVotes = invitedVoteIds.stream()
+                .map(voteService::getVotingById)
+                .filter(Objects::nonNull)
+                .toList();
+
+        List<Vote> votesBySchoolOrClass = new ArrayList<>();
+        if (schoolId != null) {
+            if (classId != null) {
+                votesBySchoolOrClass.addAll(voteService.getVotingsByClassAndSchool(classId, schoolId));
+            } 
+            votesBySchoolOrClass.addAll(voteService.getVotingsBySchool(schoolId));
         }
+
+        if (currentUser.getRole() == People.Role.STUDENT || currentUser.getRole() == People.Role.PARENT) {     
+            votesBySchoolOrClass.addAll(voteService.getVotingsByClassAndSchool(currentUser.getClassId(), schoolId));
+            votesBySchoolOrClass.addAll(voteService.getVotingsBySchool(schoolId));
+        }
+
+        return Stream.concat(invitedVotes.stream(), votesBySchoolOrClass.stream())
+                .distinct()
+                .toList();
     }
 
     @GetMapping("voting/{id}")

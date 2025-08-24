@@ -78,6 +78,7 @@ public class EventController {
         List<InvitationDTO> invitations = invitationsService.getInvitationsForUser(me.getId());
         if(invitations == null){return List.of();}
         List<Long> eventIds = invitations.stream()
+                .filter(inv -> inv.getType() == InvitationDTO.Type.EVENT)
                 .map(InvitationDTO::getEventOrVoteId)
                 .collect(Collectors.toList());
         List<Event> events = eventIds.stream()
