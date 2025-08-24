@@ -83,7 +83,7 @@ public class InvitationsController {
                                                                         @RequestParam UserInvitationStatus.Status status) {
         UserInvitationStatus invitation= invitationsService.
                                                 updateInvitationStatus(invitationId, userController.currentUser(auth).getId(),  status);
-
+        messagingTemplate.convertAndSend("/topic/invitations/status/" + userController.currentUser(auth).getId(), "status changed");
         return ResponseEntity.ok(invitation);
     }
 }

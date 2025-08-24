@@ -620,7 +620,7 @@ function updatePetitionDecision(petitionId, action) {
     endpoint = `/api/petitions/${petitionId}/directorReject`;
   }
 
-  fetchWithAuth(endpoint, { method: "POST" })
+  fetchWithAuth(endpoint, { method: "PATCH" })
     .then((response) => {
       if (!response.ok) throw new Error("Не вдалося оновити рішення");
       toastr.success(
@@ -881,7 +881,7 @@ function loadEventComments(event, commentsContainer) {
   const eventCommentsList = commentsContainer.querySelector(".eventComments-list");
   eventCommentsList.innerHTML = '';
 
-  fetchWithAuth(`/comments/event/${event.id}`)
+  fetchWithAuth(`/api/event/comments/event/${event.id}`)
     .then(response => {
       if (!response.ok) throw new Error("Не вдалося отримати коментарі");
       return response.json();
@@ -907,7 +907,106 @@ function loadEventComments(event, commentsContainer) {
       toastr.error("Не вдалося завантажити список коментарів.");
     });
 }
+function loadEventInvitation(){
+  const eventInvitationList = document.getElementById("eventInvitation-list");
+  fetchWithAuth(`/api/invitations/myInvitations/{event}`)
+  .then(response => {
+      if (!response.ok) throw new Error("Не вдалося отримати запрошення на події");
+      return response.json();
+    })
+    .then((data) => {
+      if (data.length > 0) {
+        data.forEach((invitation) => {
+          const li = document.createElement("li");
+          li.classList.add("invitation-item");
+          li.innerHTML = `
+            <p>${invitation.eventOrVoteTitle}</p>
+            <p>Змінено: ${new Date(invitation.updatedAt).toLocaleDateString()}</p>
+            <p>Надіслав: ${invitation.invitedBy}</p>
+          `;
 
+          const header = document.createElement("div");
+          header.classList.add("eventInvitation-header");
+          header.innerHTML = `
+            <button class="toggle-details">▼</button>
+          `;
+
+          const details = document.createElement("div");
+          details.classList.add("eventInvitation-details");
+          details.style.display = "none";
+          details.innerHTML = `
+            <button class="accept-btn">✅ Прийняти</button>
+            <button class="reject-btn">❌ Відхилити</button>
+          `;
+
+          header.querySelector(".toggle-details")
+            .addEventListener("click", () => {
+              details.style.display = details.style.display === "none" ? "block" : "none";
+            });
+
+          details.querySelector(".accept-btn")
+            .addEventListener("click", () => changeEventInvitationStatus(invitation.id, "ACCEPTED"));
+          details.querySelector(".reject-btn")
+            .addEventListener("click", () => changeEventInvitationStatus(invitation.id, "DECLINED"));
+
+          li.appendChild(header);
+          li.appendChild(details);
+          eventInvitationList.appendChild(li);
+        });
+      } else {
+        eventInvitationList.innerHTML = "<li>Запрошень на події не знайдено.</li>";
+      }
+    })
+    .catch((error) => {
+      console.error("Помилка при завантаженні запрошення на події:", error);
+      toastr.error("Не вдалося завантажити список запрошеннь на події.");
+    });
+}
+function changeEventInvitationStatus(invitationId, action){
+  let endpoint = `/api/invitations/changeStatus/${invitationId}`;
+  
+  fetchWithAuth(endpoint, { method: "PATCH" })
+    .then((response) => {
+      if (!response.ok) throw new Error("Не вдалося оновити рішення");
+      toastr.success(
+        action === "ACCEPTED" ? "Ви погодились відвідати подію" : "Ви не погодились відвідати подію"
+      );
+      loadEventInvitation();
+    })
+    .catch((error) => {
+      console.error(error);
+      toastr.error("Помилка при оновленні рішення.");
+    });
+}
+function loadVoteInvitation(){
+  const voteInvitationList = document.getElementById("voteInvitation-list");
+  fetchWithAuth(`/api/invitations/myInvitations/{vote}`)
+  .then(response => {
+      if (!response.ok) throw new Error("Не вдалося отримати запрошення на голосування");
+      return response.json();
+    })
+    .then((data) => {
+      if (data.length > 0) {
+        data.forEach((invitation) => {
+          const li = document.createElement("li");
+          li.classList.add("invitationV-item");
+          li.innerHTML = `
+            <p>${invitation.eventOrVoteTitle}</p>
+            <p>Змінено: ${new Date(invitation.updatedAt).toLocaleDateString()}</p>
+            <p>Надіслав: ${invitation.invitedBy}</p>
+          `;
+          
+          voteInvitationList.appendChild(li);
+        });
+      } else {
+        voteInvitationList.innerHTML = "<li>Запрошень на голосування не знайдено.</li>";
+      }
+    })
+    .catch((error) => {
+      console.error("Помилка при завантаженні запрошення на голосування:", error);
+      toastr.error("Не вдалося завантажити список запрошеннь на голосування.");
+    });
+}
 document.addEventListener("DOMContentLoaded", () => {
   loadProfile();
   loadClasses();
@@ -915,6 +1014,8 @@ document.addEventListener("DOMContentLoaded", () => {
   loadPetition();
   loadVotes();
   loadEvents();
+  loadEventInvitation();
+  loadVoteInvitation();
 
   connectStompWebSocket();
 
