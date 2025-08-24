@@ -3,6 +3,9 @@ package com.example.demo.javaSrc.invitations;
 import java.time.LocalDateTime;
 
 public class InvitationDTO {
+
+    public enum Type{EVENT, VOTE};
+
     private Long invitationId;
     private Long eventOrVoteId;
     private String eventOrVoteTitle;
@@ -10,6 +13,7 @@ public class InvitationDTO {
     private String invitedBy; 
     private UserInvitationStatus.Status status;
     private LocalDateTime updatedAt;
+    private Type type;
 
     public InvitationDTO(
         Long invitationId,
@@ -18,7 +22,8 @@ public class InvitationDTO {
         LocalDateTime eventOrVoteDate,
         String invitedBy,
         UserInvitationStatus.Status status,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        Type type
     ) {
         this.invitationId = invitationId;
         this.eventOrVoteId = eventOrVoteId;
@@ -27,6 +32,7 @@ public class InvitationDTO {
         this.invitedBy = invitedBy;
         this.status = status;
         this.updatedAt = updatedAt;
+        this.type = type;
     }
 
     public Long getInvitationId() {
@@ -83,5 +89,12 @@ public class InvitationDTO {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Type getType() {
+        return type;
+    }
+    public void setType(Type type) {
+        this.type = type;
     }
 }

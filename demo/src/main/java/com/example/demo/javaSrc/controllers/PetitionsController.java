@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -183,7 +184,7 @@ public class PetitionsController {
     }
 
     @PreAuthorize("hasRole('DIRECTOR')")
-    @PostMapping("/{id}/directorApprove")
+    @PatchMapping("/{id}/directorApprove")
     public ResponseEntity<Void> directorApprove(
             @PathVariable Long id) {
 
@@ -213,7 +214,7 @@ public class PetitionsController {
     }
 
     @PreAuthorize("hasRole('DIRECTOR')")
-    @PostMapping("/{id}/directorReject")
+    @PatchMapping("/{id}/directorReject")
     public ResponseEntity<Void> directorReject(
             @PathVariable Long id) {
 

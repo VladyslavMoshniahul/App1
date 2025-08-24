@@ -34,7 +34,7 @@ public class TaskController {
 
     @Autowired
     private final PeopleController userController;
-
+    @Autowired
     private final SimpMessagingTemplate messagingTemplate;
 
     public TaskController(TaskService taskService, PeopleController userController,

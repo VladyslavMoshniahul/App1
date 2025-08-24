@@ -35,7 +35,7 @@ public class VoteController {
     private final ObjectMapper objectMapper;
     @Autowired
     private final PeopleController userController;
-
+    @Autowired
     private final SimpMessagingTemplate messagingTemplate;
 
     public VoteController(VoteService voteService, ObjectMapper objectMapper, PeopleController userController,

@@ -31,10 +31,8 @@ import com.example.demo.javaSrc.events.Event;
 import com.example.demo.javaSrc.events.EventCreateRequest;
 import com.example.demo.javaSrc.events.EventFile;
 import com.example.demo.javaSrc.events.EventService;
-import com.example.demo.javaSrc.invitations.Invitation;
 import com.example.demo.javaSrc.invitations.InvitationDTO;
 import com.example.demo.javaSrc.invitations.InvitationsService;
-import com.example.demo.javaSrc.invitations.UserInvitationStatus;
 import com.example.demo.javaSrc.peoples.People;
 import com.example.demo.javaSrc.peoples.PeopleService;
 import com.example.demo.javaSrc.school.ClassService;
@@ -55,7 +53,7 @@ public class EventController {
     private final EventsCommentService eventsCommentService;
     @Autowired
     private final ClassService classService;
-
+    @Autowired
     private final SimpMessagingTemplate messagingTemplate;
 
     public EventController(PeopleController userController, EventService eventService, PeopleService userService,
@@ -232,89 +230,10 @@ public class EventController {
         }
     }
 
-   /* @GetMapping("/my-invitations")
-    public List<UserInvitationStatus> getMyInvitations(
-            Authentication auth,
-            @RequestParam(required = false) UserInvitationStatus.Status status) {
-        Long userId = userController.currentUser(auth).getId();
-        if (status != null) {
-            return invitationsService.getUserInvitationsByStatus(userId, status);
-        }
-        return invitationsService.getUserInvitations(userId);
-    }
-
-    @PostMapping("/invite")
-    public ResponseEntity<?> sendInvitations(
-            @RequestBody List<Long> userIds,
-            @RequestParam Long eventId,
-            Authentication auth) {
-
-        People currentUser = userController.currentUser(auth);
-        Event event = eventService.getEventById(eventId);
-        if (event == null) {
-            return ResponseEntity.badRequest().body("Подія не знайдена");
-        }
-
-        switch (currentUser.getRole()) {
-            case STUDENT -> {
-                for (Long id : userIds) {
-                    People invited = userService.getPeopleById(id);
-                    if (invited.getRole() != People.Role.STUDENT) {
-                        return ResponseEntity.status(403).body("Учень може запросити лише інших учнів");
-                    }
-                }
-            }
-            case PARENT -> {
-                return ResponseEntity.status(403).body("Батьки не можуть надсилати запрошення");
-            }
-            case ADMIN -> {
-                return ResponseEntity.status(403).body("Адміністратор не може створювати події і запрошення");
-            }
-            default -> {
-                if (event.getCreatedBy() != currentUser.getId()) {
-                    return ResponseEntity.status(403).body("Подія не створена цим користувачем");
-                }
-            }
-        }
-
-        Invitation invitation = invitationsService.createInvitation(currentUser.getId(), eventId,null,  userIds);
-        userIds.forEach(userId -> {
-            messagingTemplate.convertAndSendToUser(
-                    userId.toString(),
-                    "/queue/invitations/new",
-                    invitation);
-        });
-        messagingTemplate.convertAndSend("/topic/invitations/new", "Нові запрошення створено для події: " + eventId);
-
-        return ResponseEntity.ok(invitation);
-    }
-
-    @PostMapping("/respond")
-    public ResponseEntity<?> respondToInvitation(
-            @RequestParam Long invitationId,
-            @RequestParam UserInvitationStatus.Status status,
-            Authentication auth) {
-
-        Long userId = userController.currentUser(auth).getId();
-        boolean updated = invitationsService.respondToInvitation(invitationId, userId, status);
-
-        if (!updated) {
-            return ResponseEntity.status(403).body("Немає доступу до цього запрошення або вже відповіли");
-        }
-        messagingTemplate.convertAndSend("/topic/invitations/status/update",
-                "Запрошення ID " + invitationId + " оновлено для користувача " + userId + " на статус "
-                        + status.name());
-        messagingTemplate.convertAndSendToUser(
-                userId.toString(),
-                "/queue/invitations/status",
-                "Запрошення ID " + invitationId + " оновлено на статус " + status.name());
-        return ResponseEntity.ok("Відповідь прийнята");
-    }*/
-
     @PostMapping("/writeComments/{eventId}")
     public ResponseEntity<EventsComment> addComment(@RequestBody EventsComment comment,
-                                                     @PathVariable Long eventId,
-                                                     Authentication auth) {
+                                                    @PathVariable Long eventId,
+                                                    Authentication auth) {
         EventsComment saved = new EventsComment();
         saved.setEventId(eventId);
         saved.setUserId(userController.currentUser(auth).getId());  

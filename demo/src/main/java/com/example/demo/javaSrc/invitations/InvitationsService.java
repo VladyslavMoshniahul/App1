@@ -109,15 +109,18 @@ public class InvitationsService {
 
             String title;
             LocalDateTime start;
+            InvitationDTO.Type type;
 
             if (invitation.getEventId() != null) {
                 Event event = eventRepository.findById(invitation.getEventId()).orElse(null);
                 title = event != null ? event.getTitle() : "Невідома подія";
                 start = event != null ? event.getStartEvent() : null;
+                type = InvitationDTO.Type.EVENT;
             } else {
                 Vote voting = votingRepository.findById(invitation.getVoteId()).orElse(null);
                 title = voting != null ? voting.getTitle() : "Невідоме голосування";
                 start = voting !=null ? voting.getStartDate() : null;
+                type = InvitationDTO.Type.VOTE;
             }
 
             return new InvitationDTO(
@@ -127,17 +130,18 @@ public class InvitationsService {
                     start,
                     creator != null ? creator.getEmail() : "Невідомий користувач",
                     status.getStatus(),
-                    status.getUpdatedAt());
+                    status.getUpdatedAt(),
+                    type);
         }).filter(Objects::nonNull).toList();
     }
 
-    public void updateInvitationStatus(Long invitationId, Long userId, UserInvitationStatus.Status status) {
+    public UserInvitationStatus updateInvitationStatus(Long invitationId, Long userId, UserInvitationStatus.Status status) {
         UserInvitationStatus invitationStatus = userInvitationStatusRepository
                 .findByInvitationIdAndUserId(invitationId, userId).orElseThrow(() -> new RuntimeException("Not found"));
         invitationStatus.setStatus(status);
         LocalDateTime now = LocalDateTime.now();
         invitationStatus.setUpdatedAt(now);
-        userInvitationStatusRepository.save(invitationStatus);
+        return userInvitationStatusRepository.save(invitationStatus);
     }
 
     public void deleteInvitation(Long invitationId) {
