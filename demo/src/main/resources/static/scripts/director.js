@@ -54,10 +54,26 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 const logoutButton = document.getElementById("logoutButton");
-logoutButton.addEventListener("click", () => {
-  localStorage.clear();
-  toastr.success("Ви вийшли з акаунту.");
-  window.location.href = "/login.html";
+logoutButton.addEventListener("click", async () => {
+  try {
+    const response = await fetch('/api/logout', {
+      method: 'POST',
+      credentials: 'include'
+    });
+
+    if (response.ok) {
+      localStorage.clear();
+      toastr.success("Ви успішно вийшли з акаунту.");
+      window.location.href = "/login.html";
+    } else {
+      const errorData = await response.json().catch(() => ({ error: 'Невідома помилка виходу' }));
+      toastr.error(`Помилка виходу: ${errorData.error}`);
+      toastr.error('Logout failed:', response.status, errorData);
+    }
+  } catch (error) {
+    toastr.error("Не вдалося відправити запит на вихід:", error);
+    toastr.error("Помилка мережі при виході. Спробуйте ще раз.");
+  }
 });
 
 document.getElementById("openButton").addEventListener("click", () => {
