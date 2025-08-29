@@ -410,7 +410,6 @@ function loadClasses(schoolName = '') {
     })
     .catch(error => {
       console.error("Помилка при завантаженні класів:", error);
-      toastr.error("Не вдалося завантажити список класів.");
     });
 }
 
@@ -427,7 +426,6 @@ function loadDirectors(schoolName = '') {
     })
     .catch(error => {
       console.error("Помилка при завантаженні директорів:", error);
-      toastr.error("Не вдалося завантажити список директорів.");
     });
 }
 
@@ -448,7 +446,6 @@ function loadTeachers(schoolName = '', className = '') {
     })
     .catch(error => {
       console.error("Помилка при завантаженні вчителів:", error);
-      toastr.error("Не вдалося завантажити список вчителів.");
     });
 }
 
