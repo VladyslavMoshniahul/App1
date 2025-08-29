@@ -52,6 +52,14 @@ public class PeopleService {
         return peopleRepository.findByEmail(email).orElse(null);
     }
 
+    public List<People> getPeopleBySchoolAndRole(Long schoolId, People.Role role){
+        return peopleRepository.findByRoleAndSchoolId(role, schoolId);
+    }
+
+    public List<People> getPeopleBySchool(Long schoolId){
+        return peopleRepository.findBySchoolId(schoolId);
+    }
+
     public People updateProfile(Long id, People updatedData) {
         return peopleRepository.findById(id).map(existing -> {
             copyCommonFields(updatedData, existing, false);
