@@ -169,7 +169,7 @@ CREATE TABLE IF NOT EXISTS `invitations` (
   )
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS `user_invitations_status` (
+CREATE TABLE IF NOT EXISTS `user_invitation_status` (
   `id`             BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `invitation_id`  BIGINT NOT NULL,
   `user_id`        BIGINT NOT NULL,

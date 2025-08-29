@@ -31,7 +31,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
-                                           JwtAuthenticationFilter jwtFilter) throws Exception {
+                                        JwtAuthenticationFilter jwtFilter) throws Exception {
         http
             .csrf(csrf -> csrf.disable()) 
             .authorizeHttpRequests(auth -> auth
@@ -41,7 +41,7 @@ public class SecurityConfig {
                 .requestMatchers("/director.html").hasRole("DIRECTOR")
 
                 .requestMatchers("/login.html", "/api/login",
-                                 "/styles/**", "/scripts/**", "/images/**").permitAll()
+                            "/styles/**", "/scripts/**", "/images/**").permitAll()
 
                 .requestMatchers("/ws-stomp/**").permitAll() 
                 .requestMatchers("/admin.html").hasRole("ADMIN")
