@@ -461,7 +461,6 @@ function loadProfile() {
       })
       .catch((error) => {
         console.error("Помилка при завантаженні профілю:", error);
-        toastr.error("Не вдалося завантажити профіль.");
       });
   } catch (error) {
     console.error("Несподівана помилка:", error);
@@ -493,7 +492,6 @@ function loadClasses() {
       });
   } catch (error) {
     console.error("Помилка при завантаженні класів:", error);
-    toastr.error("Не вдалося завантажити список класів.");
   }
 }
 
@@ -528,7 +526,6 @@ function loadTeachers(className = "") {
       });
   } catch (error) {
     console.error("Помилка при завантаженні вчителів:", error);
-    toastr.error("Не вдалося завантажити список вчителів.");
   }
 }
 function loadStudents(className = "") {
@@ -562,7 +559,6 @@ function loadStudents(className = "") {
       });
   } catch (error) {
     console.error("Помилка при завантаженні учнів:", error);
-    toastr.error("Не вдалося завантажити список учнів.");
   }
 }
 function loadParents(className = "") {
@@ -595,7 +591,6 @@ function loadParents(className = "") {
       });
   } catch (error) {
     console.error("Помилка при завантаженні батьків:", error);
-    toastr.error("Не вдалося завантажити список батьків.");
   }
 }
 function loadVotes() {
@@ -627,7 +622,6 @@ function loadVotes() {
     })
     .catch((error) => {
       console.error("Помилка при завантаженні голосувань:", error);
-      toastr.error("Не вдалося завантажити список голосувань.");
     });
 }
 
@@ -733,7 +727,6 @@ function loadPetition(className = "") {
     })
     .catch((error) => {
       console.error("Помилка при завантаженні заявок:", error);
-      toastr.error("Не вдалося завантажити список заявок.");
     });
 }
 
@@ -764,7 +757,6 @@ function loadPetitionComments(petition, commentsContainer) {
     })
     .catch((error) => {
       console.error("Помилка при завантаженні коментарів:", error);
-      toastr.error("Не вдалося завантажити список коментарів.");
     });
 }
 
@@ -892,7 +884,6 @@ function loadEvents() {
     })
     .catch((error) => {
       console.error("Не вдалося завантажити події", error);
-      toastr.error("Не вдалося завантажити події");
     });
 }
 
@@ -923,7 +914,6 @@ function loadEventComments(event, commentsContainer) {
     })
     .catch((error) => {
       console.error("Помилка при завантаженні коментарів:", error);
-      toastr.error("Не вдалося завантажити список коментарів.");
     });
 }
 function loadEventInvitation(){
@@ -979,7 +969,6 @@ function loadEventInvitation(){
     })
     .catch((error) => {
       console.error("Помилка при завантаженні запрошення на події:", error);
-      toastr.error("Не вдалося завантажити список запрошеннь на події.");
     });
 }
 function changeEventInvitationStatus(invitationId, action){
@@ -1025,7 +1014,6 @@ function loadVoteInvitation(){
     })
     .catch((error) => {
       console.error("Помилка при завантаженні запрошення на голосування:", error);
-      toastr.error("Не вдалося завантажити список запрошеннь на голосування.");
     });
 }
 document.addEventListener("DOMContentLoaded", () => {
