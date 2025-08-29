@@ -21,7 +21,10 @@ tabButtons.forEach((btn) => {
       document.getElementById("events-section").classList.add("active");
     } else if (btn.id === "tab-votes") {
       document.getElementById("votes-section").classList.add("active");
+    } else if(btn.id === "tab-invitation"){
+      document.getElementById("invitation-section").classList.add("active");
     }
+
   });
 });
 
@@ -909,6 +912,7 @@ function loadEventComments(event, commentsContainer) {
 }
 function loadEventInvitation(){
   const eventInvitationList = document.getElementById("eventInvitation-list");
+  eventInvitationList.innerHTML = "";
   fetchWithAuth(`/api/invitations/myInvitations/{event}`)
   .then(response => {
       if (!response.ok) throw new Error("Не вдалося отримати запрошення на події");
@@ -980,6 +984,7 @@ function changeEventInvitationStatus(invitationId, action){
 }
 function loadVoteInvitation(){
   const voteInvitationList = document.getElementById("voteInvitation-list");
+  voteInvitationList.innerHTML ="";
   fetchWithAuth(`/api/invitations/myInvitations/{vote}`)
   .then(response => {
       if (!response.ok) throw new Error("Не вдалося отримати запрошення на голосування");

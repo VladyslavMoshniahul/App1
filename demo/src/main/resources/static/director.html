@@ -182,7 +182,7 @@
         <h2>Створити подію</h2>
         <form id="create-event-form">
           <input name="event-class-name" placeholder="Назва класу"><br>
-          <input name="event-title" placeholder="Назва голосування" required><br>
+          <input name="event-title" placeholder="Назва події" required><br>
           <textarea name="event-content" placeholder="Опис"></textarea><br>
           <input name="event-locationORlink" placeholder="Локація або посилання"><br>
           <label>Початок: <input type="datetime-local" name="event-startDate" required></label><br>
@@ -198,11 +198,16 @@
         </form>
       </div>
     </section>
+
     <!-- Запрошення -->
     <section id="invitation-section" class="page-section">
       <h2>Запрошення</h2>
-      <div id ="eventInvitation-list"></div>
-      <div id ="voteInvitation-list"></div>
+      <div id ="eventInvitation-list">
+        <h3>Запрошення на події</h3>
+      </div>
+      <div id ="voteInvitation-list">
+        <h3>Запрошення на голусування</h3>
+      </div>
     </section>
 
   </main>

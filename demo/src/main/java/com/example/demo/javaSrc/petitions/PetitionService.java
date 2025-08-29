@@ -74,11 +74,11 @@ public class PetitionService {
     }
 
     public List<Petition> getPetitionByDirectorsDecisionAndSchoolId(Long schoolId, Petition.DirectorsDecision directorsDecision) {
-        return petitionRepository.findByDirectorsDecisionAndSchoolId(schoolId, directorsDecision);
+        return petitionRepository.findByDirectorsDecisionAndSchoolId( directorsDecision, schoolId);
     }
     
     public List<Petition> getPetitionByDirectorsDecisionAndSchoolIdAndClassId(Long schoolId, Long classId, Petition.DirectorsDecision directorsDecision) {
-        return petitionRepository.findByDirectorsDecisionAndSchoolIdAndClassId(schoolId,classId , directorsDecision);
+        return petitionRepository.findByDirectorsDecisionAndSchoolIdAndClassId(directorsDecision, schoolId,classId  );
     }
 
     public Petition updatePetition(Long id, Petition updatedPetition) {

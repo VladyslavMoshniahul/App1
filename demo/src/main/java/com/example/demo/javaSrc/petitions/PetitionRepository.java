@@ -23,7 +23,9 @@ public interface PetitionRepository extends JpaRepository<Petition, Long> {
 
     List<Petition> findByStartDateBetween(Date startDate, Date endDate);
 
-    List<Petition> findByDirectorsDecisionAndSchoolIdAndClassId(Long schoolId, Long classId, Petition.DirectorsDecision directorsDecision);
 
-    List<Petition> findByDirectorsDecisionAndSchoolId(Long schoolId, Petition.DirectorsDecision directorsDecision);
+    List<Petition> findByDirectorsDecisionAndSchoolIdAndClassId(Petition.DirectorsDecision directorsDecision, Long schoolId, Long classId);
+
+    List<Petition> findByDirectorsDecisionAndSchoolId(Petition.DirectorsDecision directorsDecision, Long schoolId);
 }
+
