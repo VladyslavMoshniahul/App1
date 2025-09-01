@@ -21,7 +21,7 @@ tabButtons.forEach((btn) => {
       document.getElementById("events-section").classList.add("active");
     } else if (btn.id === "tab-votes") {
       document.getElementById("votes-section").classList.add("active");
-    } else if(btn.id === "tab-invitation"){
+    } else if (btn.id === "tab-invitation") {
       document.getElementById("invitation-section").classList.add("active");
     }
 
@@ -271,7 +271,7 @@ document
     const payload = {
       title,
       description,
-      votingLevel: level === "SELECTED" ? "SELECTED_USERS" : level,
+      votingLevel: level,
       startDate,
       endDate,
       multipleChoice,
@@ -286,7 +286,16 @@ document
       });
 
       if (response.ok) {
-        await response.json();
+        const createdVote = await response.json();
+        if (createdVote.votingLevel === "SCHOOL") {
+          try {
+            await fetch(`/api/invitations/createVoteInvitationForSchool?voteId=${createdVote.id}`, {
+              method: "POST",
+            });
+          } catch (error) {
+            console.error("Помилка при надсиланні запрошень на голосування:", error);
+          }
+        }
         toastr.success("Голосування створено успішно!");
         form.reset();
         document.getElementById("vote-options-list").innerHTML = `
@@ -647,7 +656,7 @@ function updatePetitionDecision(petitionId, action) {
     });
 }
 
-function loadPetition(className = "") { 
+function loadPetition(className = "") {
   const petitionList = document.getElementById("petition-list");
   petitionList.innerHTML = "";
 
@@ -836,7 +845,7 @@ function loadEvents() {
                   const url = window.URL.createObjectURL(blob);
                   const a = document.createElement("a");
                   a.href = url;
-                  a.download = `event-${event.id}-files.zip`; 
+                  a.download = `event-${event.id}-files.zip`;
                   document.body.appendChild(a);
                   a.click();
                   a.remove();
@@ -916,11 +925,11 @@ function loadEventComments(event, commentsContainer) {
       console.error("Помилка при завантаженні коментарів:", error);
     });
 }
-function loadEventInvitation(){
+function loadEventInvitation() {
   const eventInvitationList = document.getElementById("eventInvitation-list");
   eventInvitationList.innerHTML = "";
   fetchWithAuth(`/api/invitations/myInvitations/{event}`)
-  .then(response => {
+    .then(response => {
       if (!response.ok) throw new Error("Не вдалося отримати запрошення на події");
       return response.json();
     })
@@ -971,9 +980,9 @@ function loadEventInvitation(){
       console.error("Помилка при завантаженні запрошення на події:", error);
     });
 }
-function changeEventInvitationStatus(invitationId, action){
+function changeEventInvitationStatus(invitationId, action) {
   let endpoint = `/api/invitations/changeStatus/${invitationId}`;
-  
+
   fetchWithAuth(endpoint, { method: "PATCH" })
     .then((response) => {
       if (!response.ok) throw new Error("Не вдалося оновити рішення");
@@ -987,11 +996,11 @@ function changeEventInvitationStatus(invitationId, action){
       toastr.error("Помилка при оновленні рішення.");
     });
 }
-function loadVoteInvitation(){
+function loadVoteInvitation() {
   const voteInvitationList = document.getElementById("voteInvitation-list");
-  voteInvitationList.innerHTML ="";
+  voteInvitationList.innerHTML = "";
   fetchWithAuth(`/api/invitations/myInvitations/{vote}`)
-  .then(response => {
+    .then(response => {
       if (!response.ok) throw new Error("Не вдалося отримати запрошення на голосування");
       return response.json();
     })
@@ -1005,7 +1014,7 @@ function loadVoteInvitation(){
             <p>Змінено: ${new Date(invitation.updatedAt).toLocaleDateString()}</p>
             <p>Надіслав: ${invitation.invitedBy}</p>
           `;
-          
+
           voteInvitationList.appendChild(li);
         });
       } else {
