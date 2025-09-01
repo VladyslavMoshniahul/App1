@@ -245,72 +245,119 @@ document
       .catch(() => toastr.error("Не вдалося створити користувача."));
   });
 
-document
-  .getElementById("vote-create-form")
-  .addEventListener("submit", async (e) => {
-    e.preventDefault();
+document.getElementById("vote-create-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-    const form = e.target;
-    const title = form["vote-title"].value.trim();
-    const description = form["vote-description"].value.trim();
-    const level = form["vote-level"].value;
-    const startDate = form["vote-startDate"].value;
-    const endDate = form["vote-endDate"].value;
-    const multipleChoice = form["vote-multipleChoice"].checked;
+  const form = e.target;
+  const title = form["vote-title"].value.trim();
+  const description = form["vote-description"].value.trim();
+  const level = form["vote-level"].value;
+  const startDate = form["vote-startDate"].value;
+  const endDate = form["vote-endDate"].value;
 
-    const optionInputs = document.querySelectorAll(".vote-option");
-    const options = Array.from(optionInputs)
-      .map((input) => input.value.trim())
-      .filter((opt) => opt.length > 0);
+  try {
+    const response = await fetch("/api/votes/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, description, votingLevel: level, startDate, endDate }),
+    });
 
-    if (options.length < 2) {
-      toastr.error("Мінімум два варіанти голосування.");
-      return;
-    }
+    if (response.ok) {
+      const createdVote = await response.json();
 
-    const payload = {
-      title,
-      description,
-      votingLevel: level,
-      startDate,
-      endDate,
-      multipleChoice,
-      variants: options.map((text) => ({ text })),
-    };
+      if (createdVote.votingLevel === "SCHOOL") {
+        await fetch(`/api/invitations/createVoteInvitationForSchool?voteId=${createdVote.id}`, { method: "POST" });
+      } else if (createdVote.votingLevel === "CLASS") {
+        const className = form["vote-class"].value.trim();
+        await fetch(`/api/invitations/createVoteInvitationForClass?voteId=${createdVote.id}&className=${encodeURIComponent(className)}`, { method: "POST" });
+      } else if (createdVote.votingLevel === "TEACHERS_GROUP") {
+        await fetch(`/api/invitations/createVoteInvitationForTeachers?voteId=${createdVote.id}`, { method: "POST" });
+      } else if (createdVote.votingLevel === "SELECTED") {
+        const checked = document.querySelectorAll(".people-checkbox:checked");
+        const selectedIds = Array.from(checked).map(cb => parseInt(cb.value));
 
-    try {
-      const response = await fetch("/api/vote/createVoting", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        const createdVote = await response.json();
-        if (createdVote.votingLevel === "SCHOOL") {
-          try {
-            await fetch(`/api/invitations/createVoteInvitationForSchool?voteId=${createdVote.id}`, {
-              method: "POST",
-            });
-          } catch (error) {
-            console.error("Помилка при надсиланні запрошень на голосування:", error);
-          }
+        if (selectedIds.length === 0) {
+          toastr.error("Виберіть хоча б одного користувача.");
+          return;
         }
-        toastr.success("Голосування створено успішно!");
-        form.reset();
-        document.getElementById("vote-options-list").innerHTML = `
-              <input class="vote-option" name="option" placeholder="Варіант 1" required>
-              <input class="vote-option" name="option" placeholder="Варіант 2" required>
-            `;
-      } else {
-        const errorText = await response.text();
-        toastr.error("Помилка: " + errorText);
+
+        await fetch(`/api/invitations/createVoteInvitation?voteId=${createdVote.id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(selectedIds),
+        });
+        toastr.success("Інвайти надіслані вибраним користувачам!");
       }
-    } catch (error) {
-      console.error("Помилка при створенні голосування:", error);
-      toastr.error("Виникла помилка при надсиланні голосування.");
+
+      toastr.success("Голосування створено успішно!");
+      form.reset();
+      document.getElementById("vote-options-list").innerHTML = `
+        <input class="vote-option" name="option" placeholder="Варіант 1" required>
+        <input class="vote-option" name="option" placeholder="Варіант 2" required>
+      `;
+    } else {
+      const errorText = await response.text();
+      toastr.error("Помилка: " + errorText);
     }
-  });
+  } catch (error) {
+    console.error("Помилка при створенні голосування:", error);
+    toastr.error("Не вдалося створити голосування.");
+  }
+});
+
+async function loadTeachersForInvitations() {
+  try {
+    const response = await fetch("/api/people?role=TEACHER");
+    const teachers = await response.json();
+    const teacherList = document.getElementById("teacher-list");
+    teacherList.innerHTML = teachers.map(t =>
+      `<label><input type="checkbox" class="teacher-checkbox" value="${t.id}"> ${t.firstName} ${t.lastName} (${t.email})</label><br>`
+    ).join("");
+  } catch (error) {
+    console.error("Помилка при завантаженні вчителів:", error);
+  }
+}
+
+async function loadPeople(role = "ALL") {
+  try {
+    const response = await fetch(`/api/people?role=${role}`);
+    const people = await response.json();
+    const peopleList = document.getElementById("people-list");
+    peopleList.innerHTML = people.map(p =>
+      `<label><input type="checkbox" class="people-checkbox" value="${p.id}"> ${p.firstName} ${p.lastName} (${p.email}) [${p.role}]</label><br>`
+    ).join("");
+  } catch (error) {
+    console.error("Помилка при завантаженні користувачів:", error);
+  }
+}
+
+document.getElementById("vote-level").addEventListener("change", (e) => {
+  const extraContainer = document.getElementById("vote-level-extra");
+  extraContainer.innerHTML = "";
+
+  if (e.target.value === "CLASS") {
+    extraContainer.innerHTML = `<input name="vote-class" placeholder="Назва класу" required>`;
+  } else if (e.target.value === "TEACHERS_GROUP") {
+    extraContainer.innerHTML = `<div id="teacher-list"></div>`;
+    loadTeachersForInvitations();
+  } else if (e.target.value === "SELECTED") {
+    extraContainer.innerHTML = `
+      <label>Фільтр по ролі:</label>
+      <select id="role-filter">
+        <option value="ALL">Всі</option>
+        <option value="STUDENT">Учні</option>
+        <option value="PARENT">Батьки</option>
+        <option value="TEACHER">Вчителі</option>
+      </select>
+      <div id="people-list"></div>
+    `;
+    loadPeople();
+
+    document.getElementById("role-filter").addEventListener("change", (ev) => {
+      loadPeople(ev.target.value);
+    });
+  }
+});
 
 document.getElementById("add-vote-option").addEventListener("click", () => {
   const list = document.getElementById("vote-options-list");

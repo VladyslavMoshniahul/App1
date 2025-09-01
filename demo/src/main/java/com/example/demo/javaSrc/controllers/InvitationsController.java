@@ -58,7 +58,7 @@ public class InvitationsController {
         messagingTemplate.convertAndSend("/topic/invitations/" + eventId, "new invitation");
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
-    
+
     @PostMapping("/createEventInvitationForSchool")
     public ResponseEntity<Invitation> createEventInvitationForSchool(Authentication auth,
             @RequestParam Long eventId) {
@@ -111,6 +111,7 @@ public class InvitationsController {
         messagingTemplate.convertAndSend("/topic/schollInvitations/vote/" + voteId, "new invitation");
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
+    
     @PostMapping("/createVoteInvitationForClass")
     public ResponseEntity<Invitation> createVoteInvitationForClass(Authentication auth,
             @RequestParam Long voteId,

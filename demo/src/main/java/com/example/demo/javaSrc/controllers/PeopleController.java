@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.javaSrc.peoples.CreatePeopleRequest;
 import com.example.demo.javaSrc.peoples.PeopleService;
 import com.example.demo.javaSrc.peoples.People;
+import com.example.demo.javaSrc.peoples.PeopleDto;
 import com.example.demo.javaSrc.peoples.PeopleProfileDto;
 import com.example.demo.javaSrc.school.ClassService;
 import com.example.demo.javaSrc.school.School;
@@ -79,7 +80,7 @@ public class PeopleController {
 
         List<People> teachers;
         if (className == null) {
-            teachers = peopleService.getBySchoolClassAndRole(schoolId, null, People.Role.TEACHER);
+            teachers = peopleService.getPeopleBySchoolAndRole(schoolId, People.Role.TEACHER);
             messagingTemplate.convertAndSend("/topic/users/teachers/list", teachers);
 
         } else {
@@ -112,6 +113,27 @@ public class PeopleController {
         }
 
         return students;
+    }
+
+    @GetMapping("/people")
+    public ResponseEntity<List<PeopleDto>> getPeople(Authentication auth,
+            @RequestParam(required = false) String role) {
+        People me = currentUser(auth);
+        Long schoolId = me.getSchoolId();
+
+        List<People> people;
+        if (role == null || role.equalsIgnoreCase("ALL")) {
+            people = peopleService.getPeopleBySchool(schoolId);
+        } else {
+            People.Role enumRole = People.Role.valueOf(role.toUpperCase());
+            people = peopleService.getPeopleBySchoolAndRole(schoolId, enumRole);
+        }
+
+        List<PeopleDto> result = people.stream()
+                .map(p -> new PeopleDto(p.getId(), p.getFirstName(), p.getLastName(), p.getEmail(), p.getRole().name()))
+                .toList();
+
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/parents")
@@ -408,11 +430,12 @@ public class PeopleController {
         messagingTemplate.convertAndSend(topic,
                 peopleService.getBySchoolClassAndRole(me.getSchoolId(), schoolclass.getId(), role));
         return peopleService.getBySchoolClassAndRole(me.getSchoolId(), schoolclass.getId(), role);
-    }   
+    }
 
     @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR')")
     @PutMapping("/updateUsers/{id}")
-    public ResponseEntity<People> updateUserByTeacherOrDirector(@PathVariable Long id, @RequestBody People updatedData) {
+    public ResponseEntity<People> updateUserByTeacherOrDirector(@PathVariable Long id,
+            @RequestBody People updatedData) {
         People updated = peopleService.updateProfile(id, updatedData);
         if (updated != null) {
             messagingTemplate.convertAndSend("/topic/users/updated/id/" + id, updated);

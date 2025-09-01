@@ -25,7 +25,7 @@
     <button id="tab-petitions" type="button">Петиції</button>
     <button id="tab-votes" type="button">Голосування</button>
     <button id="tab-events" type="button">Події</button>
-    <button id="tab-invitation"type="button">Запрошення</button>
+    <button id="tab-invitation" type="button">Запрошення</button>
   </div>
 
   <main>
@@ -202,13 +202,26 @@
     <!-- Запрошення -->
     <section id="invitation-section" class="page-section">
       <h2>Запрошення</h2>
-      <div id ="eventInvitation-list">
+      <div id="eventInvitation-list">
         <h3>Запрошення на події</h3>
       </div>
-      <div id ="voteInvitation-list">
+      <div id="voteInvitation-list">
         <h3>Запрошення на голусування</h3>
       </div>
     </section>
+
+    <div>
+      <label>Фільтр по ролі:</label>
+      <select id="role-filter">
+        <option value="ALL">Всі</option>
+        <option value="STUDENT">Учні</option>
+        <option value="PARENT">Батьки</option>
+        <option value="TEACHER">Вчителі</option>
+      </select>
+    </div>
+
+    <div id="people-list"></div>
+
 
   </main>
 
