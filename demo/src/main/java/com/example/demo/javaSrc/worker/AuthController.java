@@ -54,11 +54,7 @@ public class AuthController {
             if (u == null) {
                 throw new UsernameNotFoundException("User not found");
             }
-            if (!u.getRole().name().equalsIgnoreCase(authRequest.getRole())) {
-                return ResponseEntity
-                        .status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("error", "Role mismatch"));
-            }
+
             return ResponseEntity.ok(Map.of(
                     "role", u.getRole().name()));
         } catch (BadCredentialsException ex) {
@@ -68,7 +64,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/api/logout")
+    @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response) {
 
         Cookie jwtCookie = new Cookie("JWT", null);

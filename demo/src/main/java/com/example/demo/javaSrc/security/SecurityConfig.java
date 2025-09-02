@@ -50,16 +50,8 @@ public class SecurityConfig {
                 .anyRequest().authenticated() 
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-            
 
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-            .logout(logout -> logout
-                .logoutUrl("/api/logout")
-                .logoutSuccessUrl("/login.html")
-                .invalidateHttpSession(false) 
-                .deleteCookies("JSESSIONID", "JWT") 
-            )
 
             .cors(Customizer.withDefaults());
 
