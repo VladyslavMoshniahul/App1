@@ -1,7 +1,6 @@
 document.getElementById("loginButton").addEventListener("click", async () => {
   const email = document.getElementById("login").value.trim();
   const pass  = document.getElementById("password").value.trim();
-  const role  = document.getElementById("role").value.trim();
   if (!email || !pass) {
     return toastr.error("Будь ласка, заповніть всі поля.");
   }
@@ -20,7 +19,6 @@ document.getElementById("loginButton").addEventListener("click", async () => {
       body: JSON.stringify({ 
                         email: email,
                         password: pass,
-                        role: role
                     })
     });
 

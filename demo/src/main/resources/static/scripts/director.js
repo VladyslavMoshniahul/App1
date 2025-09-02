@@ -256,7 +256,7 @@ document.getElementById("vote-create-form").addEventListener("submit", async (e)
   const endDate = form["vote-endDate"].value;
 
   try {
-    const response = await fetch("/api/votes/create", {
+    const response = await fetch("/api/votes/createVoting", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, description, votingLevel: level, startDate, endDate }),
