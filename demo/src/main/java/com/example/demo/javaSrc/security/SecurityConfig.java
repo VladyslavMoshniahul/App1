@@ -35,17 +35,15 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable()) 
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/login.html", "/api/login",
+                            "/styles/**", "/scripts/**", "/images/**").permitAll()
                 .requestMatchers("/teacher.html").hasRole("TEACHER")
                 .requestMatchers("/parent.html").hasRole("PARENT")
                 .requestMatchers("/student.html").hasRole("STUDENT")
                 .requestMatchers("/director.html").hasRole("DIRECTOR")
-
-                .requestMatchers("/login.html", "/api/login",
-                            "/styles/**", "/scripts/**", "/images/**").permitAll()
-
-                .requestMatchers("/ws-stomp/**").permitAll() 
                 .requestMatchers("/admin.html").hasRole("ADMIN")
-
+                .requestMatchers("/ws-stomp/**").permitAll() 
+                
                 .requestMatchers("/api/**").authenticated() 
                 .anyRequest().authenticated() 
             )
@@ -69,7 +67,7 @@ public class SecurityConfig {
         return username -> repo.findByEmail(username)
             .map(person -> User.withUsername(person.getEmail())
                     .password(person.getPassword())
-                    .authorities("ROLE_" + person.getRole())
+                    .authorities("ROLE_"+person.getRole().toString())
                     .build())
             .orElseThrow(() ->
                 new UsernameNotFoundException("User not found: " + username));

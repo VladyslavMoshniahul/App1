@@ -63,18 +63,18 @@ public class JwtUtils {
         Date exp = new Date(now.getTime() + jwtExpirationMs);
         String role = auth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .findFirst().orElse("ROLE_STUDENT");
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Немає ролі у користувача"));
 
         return Jwts.builder()
                 .setSubject(auth.getName())
                 .setIssuer(jwtIssuer)
                 .setIssuedAt(now)
                 .setExpiration(exp)
-                .claim("role", role.replace("ROLE_", ""))
+                .claim("role", role)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
-
 
     public Cookie createJwtCookie(String token) {
         Cookie cookie = new Cookie("JWT", token);
@@ -82,7 +82,7 @@ public class JwtUtils {
         cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge((int) (jwtExpirationMs / 1000));
-        cookie.setAttribute("SameSite", "None"); 
+        cookie.setAttribute("SameSite", "None");
         return cookie;
     }
 
