@@ -103,5 +103,15 @@ public class SchoolController {
         messagingTemplate.convertAndSend("/topic/classes/created", created);
         return ResponseEntity.ok(created);
     }
-
+    
+    @GetMapping("/getClassIdByName")
+    public ResponseEntity<Long> getMethodName(@RequestParam String className, Authentication auth) {
+        Long schoolId = userController.currentUser(auth).getSchoolId();
+        SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, className);
+        if (schoolClass == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        return ResponseEntity.ok(schoolClass.getId());
+    }
+    
 }

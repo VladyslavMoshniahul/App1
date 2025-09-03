@@ -79,7 +79,7 @@ public class PetitionsController {
         petition.setTitle(req.title());
         petition.setDescription(req.description());
 
-        LocalDateTime startDate =  req.startDate();
+        LocalDateTime startDate = req.startDate();
         LocalDateTime endDate = req.endDate();
         petition.setStartDate(startDate);
         petition.setEndDate(endDate);
@@ -264,17 +264,21 @@ public class PetitionsController {
                     me.getSchoolId(), schoolClass.getId(), People.Role.STUDENT);
         }
 
-        for (Petition petition : petitions) {
-            if (petition.getCurrentPositiveVoteCount() <= countStudents / 2 + 1) {
-                petition.setDirectorsDecision(Petition.DirectorsDecision.NOT_ENOUGH_VOTING);
-            } else {
-                petition.setDirectorsDecision(Petition.DirectorsDecision.PENDING);
+        if (petitions != null) {
+            for (Petition petition : petitions) {
+                if (petition.getCurrentPositiveVoteCount() <= countStudents / 2 + 1) {
+                    petition.setDirectorsDecision(Petition.DirectorsDecision.NOT_ENOUGH_VOTING);
+                } else {
+                    petition.setDirectorsDecision(Petition.DirectorsDecision.PENDING);
+                }
             }
-        }
 
-        return petitions.stream()
-                .filter(p -> p.getDirectorsDecision() == Petition.DirectorsDecision.PENDING)
-                .collect(Collectors.toList());
+            return petitions.stream()
+                    .filter(p -> p.getDirectorsDecision() == Petition.DirectorsDecision.PENDING)
+                    .collect(Collectors.toList());
+        } else {
+            return List.of();
+        }
     }
 
     @PostMapping("/comments")
@@ -298,7 +302,7 @@ public class PetitionsController {
 
         return comments.stream()
                 .map(c -> {
-                    People author = userService.getPeopleById(c.getUserId()); 
+                    People author = userService.getPeopleById(c.getUserId());
                     return new PetitonCommentDto(c, author);
                 })
                 .collect(Collectors.toList());

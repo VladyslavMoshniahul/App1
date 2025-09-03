@@ -301,7 +301,7 @@ document.getElementById("vote-create-form").addEventListener("submit", async (e)
     }
   } catch (error) {
     console.error("Помилка при створенні голосування:", error);
-    toastr.error("Не вдалося створити голосування.");
+    toastr.error("Не вдалося створити голосування.", error);
   }
 });
 
@@ -390,20 +390,22 @@ document
     }
 
     let classId = null;
-    try {
-      const classResp = await fetch(
-        `/api/school/getClassIdByName?name=${encodeURIComponent(className)}`
-      );
-      if (classResp.ok) {
-        classId = await classResp.json();
-      } else {
-        toastr.error("Клас не знайдено");
+    if (className) {
+      try {
+        const classResp = await fetch(
+          `/api/school/getClassIdByName?name=${encodeURIComponent(className)}`
+        );
+        if (classResp.ok) {
+          classId = await classResp.json();
+        } else {
+          toastr.error("Клас не знайдено");
+          return;
+        }
+      } catch (err) {
+        console.error("Помилка при отриманні класу:", err);
+        toastr.error("Не вдалося отримати ID класу");
         return;
       }
-    } catch (err) {
-      console.error("Помилка при отриманні класу:", err);
-      toastr.error("Не вдалося отримати ID класу");
-      return;
     }
 
     const eventData = {
@@ -483,7 +485,6 @@ function renderList(
 }
 
 function loadProfile() {
-  const profile = document.getElementById("profile-section");
 
   try {
     fetchWithAuth("/api/user/myProfile")

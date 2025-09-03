@@ -25,6 +25,7 @@ import com.example.demo.javaSrc.invitations.InvitationDTO;
 import com.example.demo.javaSrc.invitations.InvitationsService;
 import com.example.demo.javaSrc.peoples.People;
 import com.example.demo.javaSrc.school.ClassService;
+import com.example.demo.javaSrc.school.SchoolClass;
 import com.example.demo.javaSrc.voting.Vote;
 import com.example.demo.javaSrc.voting.VoteService;
 import com.example.demo.javaSrc.voting.VotingParticipant;
@@ -127,7 +128,7 @@ public class VoteController {
                             @RequestParam(required = false) String className) {
         People currentUser = userController.currentUser(auth);
         Long schoolId = currentUser.getSchoolId();
-        Long classId = classService.getClassesBySchoolIdAndName(schoolId, className).getId();
+        SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, className);
 
         List<InvitationDTO> invitations = invitationsService.getInvitationsForUser(currentUser.getId());
         List<Long> invitedVoteIds = invitations.stream()
@@ -142,7 +143,8 @@ public class VoteController {
 
         List<Vote> votesBySchoolOrClass = new ArrayList<>();
         if (schoolId != null) {
-            if (classId != null) {
+            if (schoolClass != null) {
+                Long classId = schoolClass.getId();
                 votesBySchoolOrClass.addAll(voteService.getVotingsByClassAndSchool(classId, schoolId));
             } 
             votesBySchoolOrClass.addAll(voteService.getVotingsBySchool(schoolId));
