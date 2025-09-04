@@ -11,16 +11,18 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.demo.javaSrc.invitations.InvitationDTO;
+import com.example.demo.javaSrc.invitations.InvitationsService;
 import com.example.demo.javaSrc.peoples.*;
 
 @Service
 public class VoteService {
+
+    private final InvitationsService invitationsService;
     @Autowired
     private final VoteRepository voteRepository;
     @Autowired
     private final VotingVariantRepository votingVariantRepository;
-    @Autowired
-    private final VotingParticipantRepository votingParticipantRepository;
     @Autowired
     private final VotingVoteRepository votingVoteRepository;
     @Autowired
@@ -28,18 +30,17 @@ public class VoteService {
 
     public VoteService(VoteRepository voteRepository,
             VotingVariantRepository votingVariantRepository,
-            VotingParticipantRepository votingParticipantRepository,
             VotingVoteRepository votingVoteRepository,
-            PeopleRepository userRepository) {
+            PeopleRepository userRepository, InvitationsService invitationsService) {
         this.voteRepository = voteRepository;
         this.votingVariantRepository = votingVariantRepository;
-        this.votingParticipantRepository = votingParticipantRepository;
         this.votingVoteRepository = votingVoteRepository;
         this.userRepository = userRepository;
+        this.invitationsService = invitationsService;
     }
 
     @Transactional
-    public Vote createVoting(Vote vote, List<String> variantStrings, List<Long> participantIds) {
+    public Vote createVoting(Vote vote, List<String> variantStrings) {
         Vote savedVote = voteRepository.save(vote);
 
         List<VotingVariant> savedVariants = new ArrayList<>();
@@ -52,15 +53,6 @@ public class VoteService {
             }
         }
         savedVote.setVariants(savedVariants);
-
-        if (participantIds != null) {
-            for (Long userId : participantIds) {
-                VotingParticipant participant = new VotingParticipant();
-                participant.setVote(savedVote);
-                participant.setUserId(userId);
-                votingParticipantRepository.save(participant);
-            }
-        }
 
         return savedVote;
     }
@@ -102,8 +94,7 @@ public class VoteService {
     }
 
     @Transactional
-    public Vote updateVoting(Long id, Vote updatedVote, List<String> updatedVariantTexts,
-            List<Long> updatedParticipantUserIds) {
+    public Vote updateVoting(Long id, Vote updatedVote, List<String> updatedVariantTexts) {
         return voteRepository.findById(id).map(existing -> {
             existing.setSchoolId(updatedVote.getSchoolId());
             existing.setClassId(updatedVote.getClassId());
@@ -122,21 +113,12 @@ public class VoteService {
                 }
             }
 
-            if (existing.getVotingLevel() == Vote.VotingLevel.SELECTED_USERS && updatedParticipantUserIds != null) {
-                votingParticipantRepository.findByVoteId(id).forEach(votingParticipantRepository::delete);
-                for (Long userId : updatedParticipantUserIds) {
-                    votingParticipantRepository.save(new VotingParticipant(existing, userId));
-                }
-            }
-
             return voteRepository.save(existing);
         }).orElse(null);
     }
 
     public List<Vote> getAccessibleVotingsForUser(Long userId, Long schoolId, Long classId) {
-
         List<Vote> allVotings = voteRepository.findByStatus(Vote.VoteStatus.OPEN);
-
         return allVotings.stream()
                 .filter(vote -> {
                     switch (vote.getVotingLevel()) {
@@ -153,7 +135,9 @@ public class VoteService {
                                 return false;
                             }
                         case SELECTED_USERS:
-                            return votingParticipantRepository.findByVoteIdAndUserId(vote.getId(), userId).isPresent();
+                            return invitationsService.getInvitationsForUser(userId).stream()
+                                .anyMatch(inv -> inv.getType() == InvitationDTO.Type.VOTE
+                                        && inv.getEventOrVoteId().equals(vote.getId()));
                         default:
                             return false;
                     }
@@ -170,7 +154,7 @@ public class VoteService {
     }
 
     @Transactional
-    @Scheduled(fixedRate = 60000) 
+    @Scheduled(fixedRate = 60000)
     public void closeExpiredVotings() {
         LocalDateTime now = LocalDateTime.now();
         List<Vote> openVotings = voteRepository.findByStatus(Vote.VoteStatus.OPEN);
@@ -193,13 +177,6 @@ public class VoteService {
 
         if (vote.getStatus() == Vote.VoteStatus.CLOSED || vote.getEndDate().isBefore(LocalDateTime.now())) {
             return false;
-        }
-
-        if (vote.getVotingLevel() == Vote.VotingLevel.SELECTED_USERS) {
-            boolean isParticipant = votingParticipantRepository.findByVoteIdAndUserId(votingId, userId).isPresent();
-            if (!isParticipant) {
-                return false;
-            }
         }
 
         if (!vote.isMultipleChoice() && variantIds.size() > 1) {

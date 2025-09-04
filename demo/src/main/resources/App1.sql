@@ -72,15 +72,6 @@ CREATE TABLE IF NOT EXISTS `voting_vote` (
     UNIQUE KEY `unique_vote_per_variant` (`voting_id`, `user_id`, `variant_id`)
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS `voting_participant` (
-    `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `voting_id` BIGINT NOT NULL,
-    `user_id` BIGINT NOT NULL,
-    FOREIGN KEY (`voting_id`) REFERENCES `voting`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`user_id`) REFERENCES `people`(`id`) ON DELETE CASCADE,
-    UNIQUE KEY `unique_participant` (`voting_id`, `user_id`)
-) ENGINE=InnoDB;
-
 /*PETITIONS*/
 CREATE TABLE IF NOT EXISTS `petitions` (
   `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,

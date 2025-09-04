@@ -6,8 +6,6 @@ import java.util.List;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
@@ -88,9 +86,6 @@ public class Vote {
     @OneToMany(mappedBy = "vote", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VotingVariant> variants;
 
-    @OneToMany(mappedBy = "vote", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    private List<VotingParticipant> participants;
 
     public Vote() {
     }
@@ -141,14 +136,6 @@ public class Vote {
 
     public void setVariants(List<VotingVariant> variants) {
         this.variants = variants;
-    }
-
-    public List<VotingParticipant> getParticipants() {
-        return participants;
-    }
-
-    public void setParticipants(List<VotingParticipant> participants) {
-        this.participants = participants;
     }
 
     public Long getId() {
@@ -220,6 +207,6 @@ public class Vote {
     }
 
     public void setId(Long id) {
-       this.id = id;
+        this.id = id;
     }
 }

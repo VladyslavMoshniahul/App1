@@ -26,9 +26,9 @@ import com.example.demo.javaSrc.invitations.InvitationsService;
 import com.example.demo.javaSrc.peoples.People;
 import com.example.demo.javaSrc.school.ClassService;
 import com.example.demo.javaSrc.school.SchoolClass;
+import com.example.demo.javaSrc.voting.CreateVoteRequest;
 import com.example.demo.javaSrc.voting.Vote;
 import com.example.demo.javaSrc.voting.VoteService;
-import com.example.demo.javaSrc.voting.VotingParticipant;
 import com.example.demo.javaSrc.voting.VotingResults;
 import com.example.demo.javaSrc.voting.VotingVariant;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,7 +50,7 @@ public class VoteController {
     private final ClassService classService;
 
     public VoteController(VoteService voteService, ObjectMapper objectMapper, PeopleController userController,
-            SimpMessagingTemplate messagingTemplate,InvitationsService invitationsService,ClassService classService) {
+            SimpMessagingTemplate messagingTemplate, InvitationsService invitationsService, ClassService classService) {
         this.voteService = voteService;
         this.objectMapper = new ObjectMapper();
         this.userController = userController;
@@ -60,22 +60,27 @@ public class VoteController {
     }
 
     @PostMapping("/createVoting")
-    public ResponseEntity<Vote> createVoting(@RequestBody Vote request, Authentication auth) {
+    public ResponseEntity<Vote> createVoting(@RequestBody CreateVoteRequest request, Authentication auth) {
         try {
             Vote newVote = new Vote();
-            newVote.setSchoolId(userController.currentUser(auth).getSchoolId());
-            Long classId = request.getClassId() != null ? request.getClassId()
-                    : userController.currentUser(auth).getClassId();
-            newVote.setClassId(classId);
-            newVote.setTitle(request.getTitle());
-            newVote.setDescription(request.getDescription());
-            newVote.setCreatedBy(userController.currentUser(auth).getId());
-            newVote.setStartDate(request.getStartDate());
-            newVote.setEndDate(request.getEndDate());
+            People me = userController.currentUser(auth);
+            Long schoolId = me.getSchoolId();
+            newVote.setSchoolId(schoolId);
+            SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, request.className());
+            if (schoolClass == null) {
+                newVote.setClassId(null);
+            } else {
+                newVote.setClassId(schoolClass.getId());
+            }
+            newVote.setTitle(request.title());
+            newVote.setDescription(request.description());
+            newVote.setCreatedBy(me.getId());
+            newVote.setStartDate(request.startDateTime());
+            newVote.setEndDate(request.endDateTime());
             newVote.setMultipleChoice(request.isMultipleChoice());
 
-            if (request.getVotingLevel() != null) {
-                newVote.setVotingLevel(request.getVotingLevel());
+            if (request.votingLevel() != null) {
+                newVote.setVotingLevel(request.votingLevel());
             } else {
                 newVote.setVotingLevel(Vote.VotingLevel.SCHOOL);
             }
@@ -83,9 +88,9 @@ public class VoteController {
             newVote.setStatus(Vote.VoteStatus.OPEN);
 
             try {
-                if (request.getVariants() != null && !request.getVariants().isEmpty()) {
+                if (request.variants() != null && !request.variants().isEmpty()) {
                     String variantsJson = objectMapper.writeValueAsString(
-                            request.getVariants().stream().map(VotingVariant::getText).toList());
+                            request.variants().stream().map(VotingVariant::getText).toList());
                     newVote.setVariantsJson(variantsJson);
                 } else {
                     newVote.setVariantsJson("[]");
@@ -95,15 +100,11 @@ public class VoteController {
                 return ResponseEntity.status(500).body(null);
             }
 
-            List<String> variantStrings = request.getVariants() != null
-                    ? request.getVariants().stream().map(VotingVariant::getText).toList()
+            List<String> variantStrings = request.variants() != null
+                    ? request.variants().stream().map(VotingVariant::getText).toList()
                     : List.of();
 
-            List<Long> participantIds = request.getParticipants() != null
-                    ? request.getParticipants().stream().map(VotingParticipant::getUserId).toList()
-                    : List.of();
-
-            Vote createdVote = voteService.createVoting(newVote, variantStrings, participantIds);
+            Vote createdVote = voteService.createVoting(newVote, variantStrings);
 
             messagingTemplate.convertAndSend("/topic/votings/new", createdVote);
             if (createdVote.getSchoolId() != null) {
@@ -112,9 +113,6 @@ public class VoteController {
             if (createdVote.getClassId() != null) {
                 messagingTemplate.convertAndSend("/topic/votings/class/" + createdVote.getClassId(), createdVote);
             }
-            participantIds.forEach(userId -> {
-                messagingTemplate.convertAndSendToUser(userId.toString(), "/queue/my-votings/new", createdVote);
-            });
 
             return new ResponseEntity<>(createdVote, HttpStatus.CREATED);
         } catch (Exception ex) {
@@ -125,7 +123,7 @@ public class VoteController {
 
     @GetMapping("/votes")
     public List<Vote> getVotes(Authentication auth,
-                            @RequestParam(required = false) String className) {
+            @RequestParam(required = false) String className) {
         People currentUser = userController.currentUser(auth);
         Long schoolId = currentUser.getSchoolId();
         SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, className);
@@ -146,11 +144,11 @@ public class VoteController {
             if (schoolClass != null) {
                 Long classId = schoolClass.getId();
                 votesBySchoolOrClass.addAll(voteService.getVotingsByClassAndSchool(classId, schoolId));
-            } 
+            }
             votesBySchoolOrClass.addAll(voteService.getVotingsBySchool(schoolId));
         }
 
-        if (currentUser.getRole() == People.Role.STUDENT || currentUser.getRole() == People.Role.PARENT) {     
+        if (currentUser.getRole() == People.Role.STUDENT || currentUser.getRole() == People.Role.PARENT) {
             votesBySchoolOrClass.addAll(voteService.getVotingsByClassAndSchool(currentUser.getClassId(), schoolId));
             votesBySchoolOrClass.addAll(voteService.getVotingsBySchool(schoolId));
         }
@@ -245,11 +243,7 @@ public class VoteController {
                 ? request.getVariants().stream().map(VotingVariant::getText).toList()
                 : List.of();
 
-        List<Long> participantIds = request.getParticipants() != null
-                ? request.getParticipants().stream().map(VotingParticipant::getUserId).toList()
-                : List.of();
-
-        Vote resultVote = voteService.updateVoting(id, updatedVote, variantStrings, participantIds);
+        Vote resultVote = voteService.updateVoting(id, updatedVote, variantStrings);
 
         if (resultVote != null) {
             messagingTemplate.convertAndSend("/topic/votings/updated", resultVote);
