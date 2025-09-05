@@ -64,6 +64,18 @@ public class VoteController {
         try {
             Vote newVote = new Vote();
             People me = userController.currentUser(auth);
+            if (me == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+            }
+
+            if (request == null) {
+                return ResponseEntity.badRequest().body(null);
+            }
+
+            if (request.title() == null || request.description() == null) {
+                return ResponseEntity.badRequest().body(null);
+            }
+
             Long schoolId = me.getSchoolId();
             newVote.setSchoolId(schoolId);
             SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, request.className());
@@ -105,6 +117,9 @@ public class VoteController {
                     : List.of();
 
             Vote createdVote = voteService.createVoting(newVote, variantStrings);
+            if (createdVote == null) {
+                return ResponseEntity.status(500).body(null);
+            }
 
             messagingTemplate.convertAndSend("/topic/votings/new", createdVote);
             if (createdVote.getSchoolId() != null) {
