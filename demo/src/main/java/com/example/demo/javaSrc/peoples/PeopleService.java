@@ -101,10 +101,10 @@ public class PeopleService {
     }
 
     public Long getCountBySchoolIdAndClassIdAndRole(Long schoolId, Long classId, People.Role role) {
-        return peopleRepository.findCountBySchoolIdAndClassIdAndRole(schoolId, classId, role);
+        return peopleRepository.countBySchoolIdAndClassIdAndRole(schoolId, classId, role);
     }
 
     public Long getCountBySchoolIdAndRole(Long schoolId, People.Role role) {
-        return peopleRepository.findCountBySchoolIdAndRole(schoolId, role);
+        return peopleRepository.countBySchoolIdAndRole(schoolId, role);
     }
 }
