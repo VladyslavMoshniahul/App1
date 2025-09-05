@@ -24,3 +24,5 @@ server.ssl.key-alias=The name (alias) of the key in the keystore used for SSL.
 spring.main.allow-bean-definition-overriding=true
 spring.task.scheduling.pool.size=1
 
+logging.level.org.springframework.web=DEBUG
+logging.level.org.springframework.security.web.FilterChainProxy=DEBUG

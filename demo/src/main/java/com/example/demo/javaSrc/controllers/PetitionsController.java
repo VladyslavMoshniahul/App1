@@ -244,6 +244,7 @@ public class PetitionsController {
         return ResponseEntity.ok().build();
     }
 
+    @SuppressWarnings("null")
     @PreAuthorize("hasRole('DIRECTOR')")
     @GetMapping("/petitionsForDirector")
     public List<Petition> getPetitionsForDirector(Authentication auth,
@@ -253,7 +254,7 @@ public class PetitionsController {
         SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(me.getSchoolId(), className);
 
         List<Petition> petitions;
-        long countStudents;
+        Long countStudents;
 
         if (schoolClass == null) {
             petitions = petitionService.getPetitionBySchool(me.getSchoolId());
@@ -264,7 +265,7 @@ public class PetitionsController {
                     me.getSchoolId(), schoolClass.getId(), People.Role.STUDENT);
         }
 
-        if (petitions != null) {
+        if (petitions != null && countStudents==null) {
             for (Petition petition : petitions) {
                 if (petition.getCurrentPositiveVoteCount() <= countStudents / 2 + 1) {
                     petition.setDirectorsDecision(Petition.DirectorsDecision.NOT_ENOUGH_VOTING);
