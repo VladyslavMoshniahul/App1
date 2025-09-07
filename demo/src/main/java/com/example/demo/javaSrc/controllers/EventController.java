@@ -76,13 +76,15 @@ public class EventController {
         People me = userController.currentUser(auth);
 
         List<InvitationDTO> invitations = invitationsService.getInvitationsForUser(me.getId());
-        if(invitations == null){return List.of();}
+        if (invitations == null) {
+            return List.of();
+        }
         List<Long> eventIds = invitations.stream()
                 .filter(inv -> inv.getType() == InvitationDTO.Type.EVENT)
                 .map(InvitationDTO::getEventOrVoteId)
                 .collect(Collectors.toList());
         List<Event> events = eventIds.stream()
-                .map(eventService::getEventById) 
+                .map(eventService::getEventById)
                 .collect(Collectors.toList());
         return events;
     }
@@ -100,7 +102,7 @@ public class EventController {
     public ResponseEntity<?> createEvent(
             @RequestBody EventCreateRequest req,
             Authentication auth) {
-
+        Long classId;
         Event event = new Event();
         event.setTitle(req.title());
         event.setContent(req.content());
@@ -113,7 +115,13 @@ public class EventController {
         SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(
                 userController.currentUser(auth).getSchoolId(),
                 req.className());
-        Long classId = schoolClass != null ? schoolClass.getId() : null;
+        if (schoolClass == null) {
+            event.setClassId(null);
+            classId = null;
+        } else {
+            classId = schoolClass.getId();
+            event.setClassId(classId);
+        }
         if (userController.currentUser(auth).getRole() == People.Role.STUDENT
                 && !Objects.equals(classId, userController.currentUser(auth).getClassId())) {
             return ResponseEntity.status(403).body("Учень може створювати події лише для свого класу");
@@ -121,11 +129,7 @@ public class EventController {
         if (userController.currentUser(auth).getRole() == People.Role.PARENT) {
             return ResponseEntity.status(403).body("Батьки не можуть створювати події");
         }
-        if (schoolClass == null) {
-            event.setClassId(null);
-        } else {
-            event.setClassId(schoolClass.getId());
-        }
+        
         event.setCreatedBy(userController.currentUser(auth).getId());
 
         Event saved = eventService.createEvent(event);
@@ -233,12 +237,12 @@ public class EventController {
 
     @PostMapping("/writeComments/{eventId}")
     public ResponseEntity<EventsComment> addComment(@RequestBody EventsComment comment,
-                                                    @PathVariable Long eventId,
-                                                    Authentication auth) {
+            @PathVariable Long eventId,
+            Authentication auth) {
         EventsComment saved = new EventsComment();
         saved.setEventId(eventId);
-        saved.setUserId(userController.currentUser(auth).getId());  
-        saved = eventsCommentService.createComment(comment);                                              
+        saved.setUserId(userController.currentUser(auth).getId());
+        saved = eventsCommentService.createComment(comment);
         messagingTemplate.convertAndSend("/topic/events/" + saved.getEventId() + "/comments/new", saved);
         return ResponseEntity.ok(saved);
     }
@@ -257,7 +261,7 @@ public class EventController {
 
         return comments.stream()
                 .map(c -> {
-                    People author = userService.getPeopleById(c.getUserId()); 
+                    People author = userService.getPeopleById(c.getUserId());
                     return new EventCommentDTO(c, author);
                 })
                 .collect(Collectors.toList());

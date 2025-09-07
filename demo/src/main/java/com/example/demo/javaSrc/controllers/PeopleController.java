@@ -72,22 +72,17 @@ public class PeopleController {
     public List<People> getTeachers(
             Authentication auth,
             @RequestParam(required = false) String className) {
-
         People me = currentUser(auth);
         Long schoolId = me.getSchoolId();
         SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, className);
-        Long classId = schoolClass != null ? schoolClass.getId() : null;
-
         List<People> teachers;
-        if (className == null) {
+        if (schoolClass == null) {
             teachers = peopleService.getPeopleBySchoolAndRole(schoolId, People.Role.TEACHER);
             messagingTemplate.convertAndSend("/topic/users/teachers/list", teachers);
-
         } else {
-            teachers = peopleService.getBySchoolClassAndRole(schoolId, classId, People.Role.TEACHER);
-            messagingTemplate.convertAndSend("/topic/users/teachers/list/class/" + classId, teachers);
+            teachers = peopleService.getBySchoolClassAndRole(schoolId, schoolClass.getId(), People.Role.TEACHER);
+            messagingTemplate.convertAndSend("/topic/users/teachers/list/class/" + schoolClass.getId(), teachers);
         }
-
         return teachers;
     }
 
@@ -95,23 +90,18 @@ public class PeopleController {
     public List<People> getStudents(
             Authentication auth,
             @RequestParam(required = false) String className) {
-
         People me = currentUser(auth);
         Long schoolId = me.getSchoolId();
         SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, className);
         Long classId = schoolClass != null ? schoolClass.getId() : null;
         List<People> students;
         if (className == null) {
-
             students = peopleService.getBySchoolClassAndRole(schoolId, null, People.Role.STUDENT);
             messagingTemplate.convertAndSend("/topic/users/students/list", students);
-
         } else {
             students = peopleService.getBySchoolClassAndRole(schoolId, classId, People.Role.STUDENT);
             messagingTemplate.convertAndSend("/topic/users/students/list/class/" + classId, students);
-
         }
-
         return students;
     }
 
@@ -200,44 +190,7 @@ public class PeopleController {
         }
         return directors;
     }
-
-    @GetMapping("/users")
-    public List<People> getAllUsers(
-            @RequestParam(required = false) Long schoolId,
-            @RequestParam(required = false) Long classId,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String email) {
-
-        List<People> all = peopleService.getAllPeoples();
-
-        if (schoolId != null) {
-            all = all.stream()
-                    .filter(p -> p.getSchoolId() != null && p.getSchoolId().equals(schoolId))
-                    .toList();
-        }
-
-        if (classId != null) {
-            all = all.stream()
-                    .filter(p -> p.getClassId() != null && p.getClassId().equals(classId))
-                    .toList();
-        }
-
-        if (name != null && !name.isBlank()) {
-            all = all.stream()
-                    .filter(p -> p.getFirstName() != null
-                            && p.getFirstName().toLowerCase().contains(name.toLowerCase()))
-                    .toList();
-        }
-
-        if (email != null && !email.isBlank()) {
-            all = all.stream()
-                    .filter(p -> p.getEmail() != null && p.getEmail().equalsIgnoreCase(email))
-                    .toList();
-        }
-        messagingTemplate.convertAndSend("/topic/users/list/filtered", all);
-        return all;
-    }
-
+    
     @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR', 'ADMIN')")
     @PostMapping("/create_users")
     public ResponseEntity<People> createUser(

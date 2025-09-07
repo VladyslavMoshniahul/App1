@@ -107,4 +107,8 @@ public class PeopleService {
     public Long getCountBySchoolIdAndRole(Long schoolId, People.Role role) {
         return peopleRepository.countBySchoolIdAndRole(schoolId, role);
     }
+
+    public People getPeopleByEmail(String email){
+        return peopleRepository.findByEmail(email).orElse(null);
+    }
 }

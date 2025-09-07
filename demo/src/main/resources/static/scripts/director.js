@@ -254,39 +254,46 @@ document.getElementById("vote-create-form").addEventListener("submit", async (e)
   const level = form["vote-level"].value;
   const startDate = form["vote-startDate"].value;
   const endDate = form["vote-endDate"].value;
+  const options = Array.from(document.querySelectorAll(".vote-option"))
+  .map(input => input.value.trim())
+  .filter(text => text.length > 0)
+  .map(text => ({ text }));
 
+  const multipleChoice = form["vote-multipleChoice"].checked;
   try {
     const response = await fetch("/api/votes/createVoting", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, description, votingLevel: level, startDate, endDate }),
+      body: JSON.stringify({
+        title,
+        description,
+        votingLevel: level,
+        startDate,
+        endDate,
+        isMultipleChoice: multipleChoice,
+        variants: options
+      })
     });
 
     if (response.ok) {
       const createdVote = await response.json();
 
       if (createdVote.votingLevel === "SCHOOL") {
-        await fetch(`/api/invitations/createVoteInvitationForSchool?voteId=${createdVote.id}`, { method: "POST" });
+        await fetch(`/api/invitations/createVoteInvitationForSchool?voteId=${createdVote.id}`,
+          { method: "POST" });
       } else if (createdVote.votingLevel === "CLASS") {
         const className = form["vote-class"].value.trim();
-        await fetch(`/api/invitations/createVoteInvitationForClass?voteId=${createdVote.id}&className=${encodeURIComponent(className)}`, { method: "POST" });
+        await fetch(`/api/invitations/createVoteInvitationForClass?voteId=${createdVote.id}&className=${encodeURIComponent(className)}`,
+          { method: "POST" });
       } else if (createdVote.votingLevel === "TEACHERS_GROUP") {
-        await fetch(`/api/invitations/createVoteInvitationForTeachers?voteId=${createdVote.id}`, { method: "POST" });
+        const checked = document.querySelectorAll(".people-checkbox:checked");
+        const selectedEmails = Array.from(checked).map(cb => cb.value);
+        await sendInvitations(createdVote.id, selectedEmails);
+
       } else if (createdVote.votingLevel === "SELECTED") {
         const checked = document.querySelectorAll(".people-checkbox:checked");
-        const selectedIds = Array.from(checked).map(cb => parseInt(cb.value));
-
-        if (selectedIds.length === 0) {
-          toastr.error("Виберіть хоча б одного користувача.");
-          return;
-        }
-
-        await fetch(`/api/invitations/createVoteInvitation?voteId=${createdVote.id}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(selectedIds),
-        });
-        toastr.success("Інвайти надіслані вибраним користувачам!");
+        const selectedEmails = Array.from(checked).map(cb => cb.value);
+        await sendInvitations(createdVote.id, selectedEmails);
       }
 
       toastr.success("Голосування створено успішно!");
@@ -305,26 +312,32 @@ document.getElementById("vote-create-form").addEventListener("submit", async (e)
   }
 });
 
-async function loadTeachersForInvitations() {
-  try {
-    const response = await fetch("/api/people?role=TEACHER");
-    const teachers = await response.json();
-    const teacherList = document.getElementById("teacher-list");
-    teacherList.innerHTML = teachers.map(t =>
-      `<label><input type="checkbox" class="teacher-checkbox" value="${t.id}"> ${t.firstName} ${t.lastName} (${t.email})</label><br>`
-    ).join("");
-  } catch (error) {
-    console.error("Помилка при завантаженні вчителів:", error);
+async function sendInvitations(voteId, selectedEmails) {
+  if (selectedEmails.length === 0) {
+    toastr.error("Виберіть хоча б одного користувача.");
+    return;
+  }
+
+  const resp = await fetch(`/api/invitations/createVoteInvitation?voteId=${voteId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(selectedEmails),
+  });
+
+  if (resp.ok) {
+    toastr.success("Інвайти надіслані вибраним користувачам!");
+  } else {
+    toastr.error("Помилка при відправці інвайтів.");
   }
 }
 
 async function loadPeople(role = "ALL") {
   try {
-    const response = await fetch(`/api/people?role=${role}`);
+    const response = await fetch(`/api/user/people?role=${role}`);
     const people = await response.json();
     const peopleList = document.getElementById("people-list");
     peopleList.innerHTML = people.map(p =>
-      `<label><input type="checkbox" class="people-checkbox" value="${p.id}"> ${p.firstName} ${p.lastName} (${p.email}) [${p.role}]</label><br>`
+      `<label><input type="checkbox" class="people-checkbox" value="${p.email}"> ${p.firstName} ${p.lastName} (${p.email}) [${p.role}]</label><br>`
     ).join("");
   } catch (error) {
     console.error("Помилка при завантаженні користувачів:", error);
@@ -339,7 +352,7 @@ document.getElementById("vote-level").addEventListener("change", (e) => {
     extraContainer.innerHTML = `<input name="vote-class" placeholder="Назва класу" required>`;
   } else if (e.target.value === "TEACHERS_GROUP") {
     extraContainer.innerHTML = `<div id="teacher-list"></div>`;
-    loadTeachersForInvitations();
+    loadPeople("TEACHER");
   } else if (e.target.value === "SELECTED") {
     extraContainer.innerHTML = `
       <label>Фільтр по ролі:</label>
@@ -389,25 +402,6 @@ document
       return;
     }
 
-    let classId = null;
-    if (className) {
-      try {
-        const classResp = await fetch(
-          `/api/school/getClassIdByName?name=${encodeURIComponent(className)}`
-        );
-        if (classResp.ok) {
-          classId = await classResp.json();
-        } else {
-          toastr.error("Клас не знайдено");
-          return;
-        }
-      } catch (err) {
-        console.error("Помилка при отриманні класу:", err);
-        toastr.error("Не вдалося отримати ID класу");
-        return;
-      }
-    }
-
     const eventData = {
       title,
       content,
@@ -415,7 +409,7 @@ document
       startEvent: startDate,
       duration,
       eventType,
-      classId,
+      className,
     };
 
     try {
