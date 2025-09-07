@@ -254,12 +254,18 @@ document.getElementById("vote-create-form").addEventListener("submit", async (e)
   const level = form["vote-level"].value;
   const startDate = form["vote-startDate"].value;
   const endDate = form["vote-endDate"].value;
-  const options = Array.from(document.querySelectorAll(".vote-option"))
-  .map(input => input.value.trim())
-  .filter(text => text.length > 0)
-  .map(text => ({ text }));
-
   const multipleChoice = form["vote-multipleChoice"].checked;
+
+  const options = Array.from(document.querySelectorAll(".vote-option"))
+    .map(input => input.value.trim())
+    .filter(text => text.length > 0)
+    .map(text => ({ text }));
+
+  if (options.length < 2) {
+    toastr.error("Додайте щонайменше два варіанти для голосування.");
+    return;
+  }
+
   try {
     const response = await fetch("/api/votes/createVoting", {
       method: "POST",
@@ -275,40 +281,45 @@ document.getElementById("vote-create-form").addEventListener("submit", async (e)
       })
     });
 
-    if (response.ok) {
-      const createdVote = await response.json();
-
-      if (createdVote.votingLevel === "SCHOOL") {
-        await fetch(`/api/invitations/createVoteInvitationForSchool?voteId=${createdVote.id}`,
-          { method: "POST" });
-      } else if (createdVote.votingLevel === "CLASS") {
-        const className = form["vote-class"].value.trim();
-        await fetch(`/api/invitations/createVoteInvitationForClass?voteId=${createdVote.id}&className=${encodeURIComponent(className)}`,
-          { method: "POST" });
-      } else if (createdVote.votingLevel === "TEACHERS_GROUP") {
-        const checked = document.querySelectorAll(".people-checkbox:checked");
-        const selectedEmails = Array.from(checked).map(cb => cb.value);
-        await sendInvitations(createdVote.id, selectedEmails);
-
-      } else if (createdVote.votingLevel === "SELECTED") {
-        const checked = document.querySelectorAll(".people-checkbox:checked");
-        const selectedEmails = Array.from(checked).map(cb => cb.value);
-        await sendInvitations(createdVote.id, selectedEmails);
-      }
-
-      toastr.success("Голосування створено успішно!");
-      form.reset();
-      document.getElementById("vote-options-list").innerHTML = `
-        <input class="vote-option" name="option" placeholder="Варіант 1" required>
-        <input class="vote-option" name="option" placeholder="Варіант 2" required>
-      `;
-    } else {
+    if (!response.ok) {
       const errorText = await response.text();
       toastr.error("Помилка: " + errorText);
+      return;
     }
+
+    const createdVote = await response.json();
+
+    if (createdVote.votingLevel === "SCHOOL") {
+      await fetch(`/api/invitations/createVoteInvitationForSchool?voteId=${createdVote.id}`, {
+        method: "POST"
+      });
+    } else if (createdVote.votingLevel === "CLASS") {
+      const className = form["vote-class"]?.value.trim();
+      if (!className) {
+        toastr.error("Вкажіть назву класу.");
+        return;
+      }
+      await fetch(`/api/invitations/createVoteInvitationForClass?voteId=${createdVote.id}&className=${encodeURIComponent(className)}`, {
+        method: "POST"
+      });
+    } else if (["TEACHERS_GROUP", "SELECTED"].includes(createdVote.votingLevel)) {
+      const checked = document.querySelectorAll(".people-checkbox:checked");
+      const selectedEmails = Array.from(checked).map(cb => cb.value);
+      await sendInvitations(createdVote.id, selectedEmails);
+    }
+
+    toastr.success("Голосування створено успішно!");
+
+    form.reset();
+    document.getElementById("vote-options-list").innerHTML = `
+      <input class="vote-option" name="option" placeholder="Варіант 1" required>
+      <input class="vote-option" name="option" placeholder="Варіант 2" required>
+    `;
+    document.getElementById("vote-level-extra").innerHTML = "";
+
   } catch (error) {
     console.error("Помилка при створенні голосування:", error);
-    toastr.error("Не вдалося створити голосування.", error);
+    toastr.error("Не вдалося створити голосування.");
   }
 });
 
