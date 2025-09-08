@@ -252,9 +252,10 @@ document.getElementById("vote-create-form").addEventListener("submit", async (e)
   const title = form["vote-title"].value.trim();
   const description = form["vote-description"].value.trim();
   const level = form["vote-level"].value;
-  const startDate = form["vote-startDate"].value;
-  const endDate = form["vote-endDate"].value;
   const multipleChoice = form["vote-multipleChoice"].checked;
+
+  const startDate = new Date(form["vote-startDate"].value).toISOString();
+  const endDate = new Date(form["vote-endDate"].value).toISOString();
 
   const options = Array.from(document.querySelectorAll(".vote-option"))
     .map(input => input.value.trim())
@@ -267,15 +268,15 @@ document.getElementById("vote-create-form").addEventListener("submit", async (e)
   }
 
   try {
-    const response = await fetch("/api/votes/createVoting", {
+    const response = await fetch("/api/vote/createVoting", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title,
         description,
         votingLevel: level,
-        startDate,
-        endDate,
+        startDateTime: startDate,
+        endDateTime: endDate,
         isMultipleChoice: multipleChoice,
         variants: options
       })
@@ -293,7 +294,7 @@ document.getElementById("vote-create-form").addEventListener("submit", async (e)
       await fetch(`/api/invitations/createVoteInvitationForSchool?voteId=${createdVote.id}`, {
         method: "POST"
       });
-    } else if (createdVote.votingLevel === "CLASS") {
+    } else if (createdVote.votingLevel === "ACLASS") {
       const className = form["vote-class"]?.value.trim();
       if (!className) {
         toastr.error("Вкажіть назву класу.");
@@ -302,7 +303,7 @@ document.getElementById("vote-create-form").addEventListener("submit", async (e)
       await fetch(`/api/invitations/createVoteInvitationForClass?voteId=${createdVote.id}&className=${encodeURIComponent(className)}`, {
         method: "POST"
       });
-    } else if (["TEACHERS_GROUP", "SELECTED"].includes(createdVote.votingLevel)) {
+    } else if (["TEACHERS_GROUP", "SELECTED_USERS"].includes(createdVote.votingLevel)) {
       const checked = document.querySelectorAll(".people-checkbox:checked");
       const selectedEmails = Array.from(checked).map(cb => cb.value);
       await sendInvitations(createdVote.id, selectedEmails);
@@ -341,14 +342,17 @@ async function sendInvitations(voteId, selectedEmails) {
     toastr.error("Помилка при відправці інвайтів.");
   }
 }
-
-async function loadPeople(role = "ALL") {
+async function loadPeople(role = "ALL", targetId = "people-list") {
   try {
     const response = await fetch(`/api/user/people?role=${role}`);
     const people = await response.json();
-    const peopleList = document.getElementById("people-list");
+    const peopleList = document.getElementById(targetId);
+    if (!peopleList) return;
+
     peopleList.innerHTML = people.map(p =>
-      `<label><input type="checkbox" class="people-checkbox" value="${p.email}"> ${p.firstName} ${p.lastName} (${p.email}) [${p.role}]</label><br>`
+      `<label>
+        <input type="checkbox" class="people-checkbox" value="${p.email}"> ${p.firstName} ${p.lastName} (${p.email}) [${p.role}]
+      </label><br>`
     ).join("");
   } catch (error) {
     console.error("Помилка при завантаженні користувачів:", error);
@@ -359,12 +363,12 @@ document.getElementById("vote-level").addEventListener("change", (e) => {
   const extraContainer = document.getElementById("vote-level-extra");
   extraContainer.innerHTML = "";
 
-  if (e.target.value === "CLASS") {
+  if (e.target.value === "ACLASS") {
     extraContainer.innerHTML = `<input name="vote-class" placeholder="Назва класу" required>`;
   } else if (e.target.value === "TEACHERS_GROUP") {
     extraContainer.innerHTML = `<div id="teacher-list"></div>`;
-    loadPeople("TEACHER");
-  } else if (e.target.value === "SELECTED") {
+    loadPeople("TEACHER", "teacher-list");
+  } else if (e.target.value === "SELECTED_USERS") {
     extraContainer.innerHTML = `
       <label>Фільтр по ролі:</label>
       <select id="role-filter">
@@ -375,13 +379,14 @@ document.getElementById("vote-level").addEventListener("change", (e) => {
       </select>
       <div id="people-list"></div>
     `;
-    loadPeople();
+    loadPeople("ALL", "people-list");
 
     document.getElementById("role-filter").addEventListener("change", (ev) => {
-      loadPeople(ev.target.value);
+      loadPeople(ev.target.value, "people-list");
     });
   }
 });
+
 
 document.getElementById("add-vote-option").addEventListener("click", () => {
   const list = document.getElementById("vote-options-list");

@@ -155,12 +155,13 @@
           <label>Рівень:
             <select name="vote-level" id="vote-level" required>
               <option value="SCHOOL">Вся школа</option>
-              <option value="CLASS">Клас</option>
+              <option value="ACLASS">Клас</option>
               <option value="TEACHERS_GROUP">Група вчителів</option>
-              <option value="SELECTED">Вибрані учасники</option>
+              <option value="SELECTED_USERS">Вибрані учасники</option>
             </select>
           </label><br>
           <div id="vote-level-extra"></div>
+          <div id="people-list"></div>
           <label>Початок: <input type="datetime-local" name="vote-startDate" required></label><br>
           <label>Кінець: <input type="datetime-local" name="vote-endDate" required></label><br>
           <label><input type="checkbox" name="vote-multipleChoice"> Дозволити декілька відповідей</label><br>
