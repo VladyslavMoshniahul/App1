@@ -11,4 +11,5 @@ public interface InvitationsRepository  extends JpaRepository<Invitation, Long>{
     List<Invitation> findByVoteId(Long voteId);
     List<Invitation> findByUserId(Long userId);
     List<Invitation> findByEventIdAndUserId(Long eventId, Long userId);
+    List<Invitation> findByVoteIdAndUserId(Long voteId, Long userId);
 }

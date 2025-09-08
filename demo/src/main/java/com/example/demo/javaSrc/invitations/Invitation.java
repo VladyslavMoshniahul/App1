@@ -24,8 +24,8 @@ public class Invitation {
     @Column(name = "vote_id")
     private Long voteId;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @Column(name = "created_by", nullable = false)
+    private Long createdBy;
 
     @Column(name = "created_at", nullable = false, updatable = false, insertable = false)
     private LocalDateTime createdAt;
@@ -33,24 +33,24 @@ public class Invitation {
     public Invitation() {
     }
 
-    public Invitation(Long id, Long eventId, Long voteId, Long userId, LocalDateTime createdAt) {
+    public Invitation(Long id, Long eventId, Long voteId, Long createdBy, LocalDateTime createdAt) {
         this.id = id;
         this.eventId = eventId;
         this.voteId = voteId;
-        this.userId = userId;
+        this.createdBy = createdBy;
         this.createdAt = createdAt;
     }
 
     public Long getId() { return id; }
     public Long getEventId() { return eventId; }
     public Long getVoteId() { return voteId; }
-    public Long getUserId() { return userId; }
+    public Long getUserId() { return createdBy; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 
     public void setId(Long id) { this.id = id; }
     public void setEventId(Long eventId) { this.eventId = eventId; }
     public void setVoteId(Long voteId) { this.voteId = voteId; }
-    public void setUserId(Long userId) { this.userId = userId; }
+    public void setUserId(Long createdBy) { this.createdBy = createdBy; }
 
     @PrePersist
     @PreUpdate
