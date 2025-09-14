@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 public interface InvitationsRepository  extends JpaRepository<Invitation, Long>{
     List<Invitation> findByEventId(Long eventId);
     List<Invitation> findByVoteId(Long voteId);
-    List<Invitation> findByUserId(Long userId);
-    List<Invitation> findByEventIdAndUserId(Long eventId, Long userId);
-    List<Invitation> findByVoteIdAndUserId(Long voteId, Long userId);
+    List<Invitation> findByCreatedBy(Long created_by);
+    List<Invitation> findByEventIdAndCreatedBy(Long eventId, Long created_by);
+    List<Invitation> findByVoteIdAndCreatedBy(Long voteId, Long created_by);
 }

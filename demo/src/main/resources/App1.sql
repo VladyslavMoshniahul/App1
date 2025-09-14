@@ -152,7 +152,7 @@ CREATE TABLE IF NOT EXISTS `invitations` (
   `created_by`    BIGINT NOT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (`event_id`)   REFERENCES `events`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`user_id`)    REFERENCES `people`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`created_by`)    REFERENCES `people`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`vote_id`)    REFERENCES `voting`(`id`) ON DELETE CASCADE,
   CONSTRAINT chk_event_or_vote CHECK (
     (event_id IS NOT NULL AND vote_id IS NULL) OR
