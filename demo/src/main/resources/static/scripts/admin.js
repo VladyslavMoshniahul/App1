@@ -146,18 +146,22 @@ document.getElementById("create-school-form").addEventListener("submit", (e) => 
     toastr.error("Будь ласка, введіть назву школи.");
     return;
   }
-
-  fetchWithAuth("/api/school/create", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: schoolName })
-  })
-    .then((res) => {
-      if (!res.ok) throw new Error();
-      toastr.success(`Школу ${schoolName} успішно створено.`);
-      document.getElementById("create-school-form").reset();
+  try {
+    fetchWithAuth("/api/school/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: schoolName })
     })
-    .catch(() => toastr.error("Не вдалося створити школу."));
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        toastr.success(`Школу ${schoolName} успішно створено.`);
+        document.getElementById("create-school-form").reset();
+      })
+      .catch(() => toastr.error("Не вдалося створити школу."));
+  }
+  catch (e) {
+    console.error("Не вдалося створити школу." + e.message);
+  }
 });
 
 document.getElementById("create-class-form").addEventListener("submit", (e) => {
@@ -173,18 +177,21 @@ document.getElementById("create-class-form").addEventListener("submit", (e) => {
     toastr.error("Будь ласка, введіть назву класу.");
     return;
   }
-
-  fetchWithAuth("/api/school/create-class", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ schoolName, className })
-  })
-    .then((res) => {
-      if (!res.ok) throw new Error();
-      toastr.success(`Клас ${className} у школі ${schoolName} успішно створено.`);
-      document.getElementById("create-class-form").reset();
+  try {
+    fetchWithAuth("/api/school/create-class", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ schoolName, className })
     })
-    .catch((e) => toastr.error("Не вдалося створити клас." + e.message));
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        toastr.success(`Клас ${className} у школі ${schoolName} успішно створено.`);
+        document.getElementById("create-class-form").reset();
+      })
+      .catch((e) => toastr.error("Не вдалося створити клас." + e.message));
+  } catch (e) {
+    console.error("Не вдалося створити клас." + e.message);
+  }
 });
 
 document.getElementById("create-admin-form").addEventListener("submit", (e) => {
@@ -216,25 +223,28 @@ document.getElementById("create-admin-form").addEventListener("submit", (e) => {
     toastr.error("Будь ласка, введіть дату народження.");
     return;
   }
-
-  fetchWithAuth("/api/user/create_users", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      firstName,
-      lastName,
-      email,
-      password,
-      role: "ADMIN",
-      dateOfBirth
+  try {
+    fetchWithAuth("/api/user/create_users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName,
+        lastName,
+        email,
+        password,
+        role: "ADMIN",
+        dateOfBirth
+      })
     })
-  })
-    .then((res) => {
-      if (!res.ok) throw new Error();
-      toastr.success("Адміна успішно створено.");
-      document.getElementById("create-admin-form").reset();
-    })
-    .catch(() => toastr.error("Не вдалося створити адміна."));
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        toastr.success("Адміна успішно створено.");
+        document.getElementById("create-admin-form").reset();
+      })
+      .catch(() => toastr.error("Не вдалося створити адміна."));
+  } catch (e) {
+    console.error(e);
+  }
 });
 
 
@@ -277,26 +287,27 @@ document.getElementById("create-user-form").addEventListener("submit", (e) => {
     toastr.error("Будь ласка, введіть дату народження.");
     return;
   }
-
-  fetchWithAuth("/api/user/create_users", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      firstName,
-      lastName,
-      email,
-      password,
-      schoolName,
-      role,
-      dateOfBirth
+  try {
+    fetchWithAuth("/api/user/create_users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName,
+        lastName,
+        email,
+        password,
+        schoolName,
+        role,
+        dateOfBirth
+      })
     })
-  })
-    .then((res) => {
-      if (!res.ok) throw new Error();
-      toastr.success(`Користувача у школі ${schoolName} успішно створено.`);
-      document.getElementById("create-user-form").reset();
-    })
-    .catch(() => toastr.error("Не вдалося створити користувача."));
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        toastr.success(`Користувача у школі ${schoolName} успішно створено.`);
+        document.getElementById("create-user-form").reset();
+      })
+      .catch(() => toastr.error("Не вдалося створити користувача."));
+  } catch (e) { console.error(e); }
 });
 
 toastr.options = {
@@ -373,28 +384,34 @@ function loadProfile() {
 
 function loadAdmins() {
   const adminsList = document.getElementById('admins-list');
-  fetchWithAuth('/api/user/admins')
-    .then(response => response.json())
-    .then(data => {
-      renderList(adminsList, data, admin => `${admin.firstName} ${admin.lastName} (${admin.email})`, "Немає адмінів для відображення.");
-    })
-    .catch(error => {
-      console.error("Помилка при завантаженні адмінів:", error);
-      toastr.error("Не вдалося завантажити список адмінів.");
-    });
+  try {
+    fetchWithAuth('/api/user/admins')
+      .then(response => response.json())
+      .then(data => {
+        renderList(adminsList, data, admin => `${admin.firstName} ${admin.lastName} (${admin.email})`, "Немає адмінів для відображення.");
+      })
+      .catch(error => {
+        console.error("Помилка при завантаженні адмінів:", error);
+        toastr.error("Не вдалося завантажити список адмінів.");
+      });
+  } catch (e) { console.error(e); }
 }
 
 function loadSchools() {
   const schoolsList = document.getElementById('schools-list');
-  fetchWithAuth('/api/school/schools')
-    .then(response => response.json())
-    .then(data => {
-      renderList(schoolsList, data, school => school.name, "Немає шкіл для відображення.");
-    })
-    .catch(error => {
-      console.error("Помилка при завантаженні шкіл:", error);
-      toastr.error("Не вдалося завантажити список шкіл.");
-    });
+  try {
+    fetchWithAuth('/api/school/schools')
+      .then(response => response.json())
+      .then(data => {
+        renderList(schoolsList, data, school => school.name, "Немає шкіл для відображення.");
+      })
+      .catch(error => {
+        console.error("Помилка при завантаженні шкіл:", error);
+        toastr.error("Не вдалося завантажити список шкіл.");
+      });
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 function loadClasses(schoolName = '') {
@@ -402,15 +419,19 @@ function loadClasses(schoolName = '') {
   const url = new URL('/api/school/admin/classes', window.location.origin);
   if (schoolName) {
     url.searchParams.append('schoolName', schoolName);
+    classesList.innerHTML ="";
   }
-  fetchWithAuth(url.toString())
-    .then(response => response.json())
-    .then(data => {
-      renderList(classesList, data, cls => cls.name, `Класи для школи "${schoolName}" не знайдено.`);
-    })
-    .catch(error => {
-      console.error("Помилка при завантаженні класів:", error);
-    });
+  try {
+    classesList.innerHTML ="";
+    fetchWithAuth(url.toString())
+      .then(response => response.json())
+      .then(data => {
+        renderList(classesList, data, cls => cls.name, `Класи для школи "${schoolName}" не знайдено.`);
+      })
+      .catch(error => {
+        console.error("Помилка при завантаженні класів:", error);
+      });
+  } catch (e) { console.error(e); }
 }
 
 function loadDirectors(schoolName = '') {
@@ -419,14 +440,16 @@ function loadDirectors(schoolName = '') {
   if (schoolName) {
     url.searchParams.append('schoolName', schoolName);
   }
-  fetchWithAuth(url.toString())
-    .then(response => response.json())
-    .then(data => {
-      renderList(directorsList, data, director => `${director.firstName} ${director.lastName} (${director.email})`, `Директори для школи "${schoolName}" не знайдені.`);
-    })
-    .catch(error => {
-      console.error("Помилка при завантаженні директорів:", error);
-    });
+  try {
+    fetchWithAuth(url.toString())
+      .then(response => response.json())
+      .then(data => {
+        renderList(directorsList, data, director => `${director.firstName} ${director.lastName} (${director.email})`, `Директори для школи "${schoolName}" не знайдені.`);
+      })
+      .catch(error => {
+        console.error("Помилка при завантаженні директорів:", error);
+      });
+  } catch (e) { console.error(e); }
 }
 
 function loadTeachers(schoolName = '', className = '') {
@@ -474,7 +497,7 @@ function connectStompWebSocket() {
       const teachersList = document.getElementById('teachers-list');
       renderList(teachersList, teachers, teacher => `${teacher.firstName} ${teacher.lastName} (${teacher.email})`);
     });
-    
+
     stompClient.subscribe('/topic/users/directors/list', function (message) {
       const directors = JSON.parse(message.body);
       console.log('WebSocket: Оновлений список директорів:', directors);
@@ -582,6 +605,8 @@ document.addEventListener('DOMContentLoaded', () => {
     classesSchoolInput.addEventListener('input', (event) => {
       loadClasses(event.target.value.trim());
     });
+  }else{
+    loadClasses();
   }
 
   const directorsSchoolInput = document.getElementById('directors-school-input');
