@@ -64,25 +64,17 @@ public class PeopleController {
     @GetMapping("/admins")
     public List<People> getAdmins() {
         List<People> admins = peopleService.getPeopleByRole("ADMIN");
-        messagingTemplate.convertAndSend("/topic/users/admins/list", admins);
+        messagingTemplate.convertAndSend("/topic/user/admins/", admins);
         return admins;
     }
 
     @GetMapping("/teachers")
     public List<People> getTeachers(
-            Authentication auth,
-            @RequestParam(required = false) String className) {
+            Authentication auth) {
         People me = currentUser(auth);
         Long schoolId = me.getSchoolId();
-        SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, className);
-        List<People> teachers;
-        if (schoolClass == null) {
-            teachers = peopleService.getPeopleBySchoolAndRole(schoolId, People.Role.TEACHER);
-            messagingTemplate.convertAndSend("/topic/users/teachers/list", teachers);
-        } else {
-            teachers = peopleService.getBySchoolClassAndRole(schoolId, schoolClass.getId(), People.Role.TEACHER);
-            messagingTemplate.convertAndSend("/topic/users/teachers/list/class/" + schoolClass.getId(), teachers);
-        }
+        List<People> teachers = peopleService.getPeopleBySchoolAndRole(schoolId, People.Role.TEACHER);
+        messagingTemplate.convertAndSend("/topic/user/teachers/school/", teachers);
         return teachers;
     }
 
@@ -97,10 +89,10 @@ public class PeopleController {
         List<People> students;
         if (className == null) {
             students = peopleService.getBySchoolClassAndRole(schoolId, null, People.Role.STUDENT);
-            messagingTemplate.convertAndSend("/topic/users/students/list", students);
+            messagingTemplate.convertAndSend("/topic/user/students/school/", students);
         } else {
             students = peopleService.getBySchoolClassAndRole(schoolId, classId, People.Role.STUDENT);
-            messagingTemplate.convertAndSend("/topic/users/students/list/class/" + classId, students);
+            messagingTemplate.convertAndSend("/topic/user/students/class/" + classId, students);
         }
         return students;
     }
@@ -123,6 +115,7 @@ public class PeopleController {
                 .map(p -> new PeopleDto(p.getId(), p.getFirstName(), p.getLastName(), p.getEmail(), p.getRole().name()))
                 .toList();
 
+        messagingTemplate.convertAndSend("/topic/user/people/" + result);
         return ResponseEntity.ok(result);
     }
 
@@ -139,10 +132,10 @@ public class PeopleController {
         List<People> parents;
         if (className == null) {
             parents = peopleService.getBySchoolClassAndRole(schoolId, null, People.Role.PARENT);
-            messagingTemplate.convertAndSend("/topic/users/parents/list", parents);
+            messagingTemplate.convertAndSend("/topic/user/parents/school/", parents);
         } else {
             parents = peopleService.getBySchoolClassAndRole(schoolId, classId, People.Role.PARENT);
-            messagingTemplate.convertAndSend("/topic/users/parents/list/class/" + classId, parents);
+            messagingTemplate.convertAndSend("/topic/user/parents/class/" + classId, parents);
         }
 
         return parents;
@@ -151,23 +144,12 @@ public class PeopleController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("admin/teachers")
     public List<People> getTeachersByAdmin(
-            @RequestParam(required = false) String schoolName,
-            @RequestParam(required = false) String className) {
+            @RequestParam(required = false) String schoolName) {
         School school = schoolService.getSchoolByName(schoolName);
         Long schoolId = school != null ? school.getId() : null;
-        SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, className);
-        Long classId = schoolClass != null ? schoolClass.getId() : null;
 
-        List<People> teachers;
-        if (classId == null) {
-            teachers = peopleService.getBySchoolClassAndRole(schoolId, null, People.Role.TEACHER);
-            messagingTemplate.convertAndSend("/topic/admin/teachers/list/school/" + schoolId, teachers);
-        } else {
-            teachers = new ArrayList<>();
-            teachers.addAll(peopleService.getBySchoolClassAndRole(schoolId, classId, People.Role.TEACHER));
-            messagingTemplate.convertAndSend("/topic/admin/teachers/list/school/" + schoolId + "/class/" + classId,
-                    teachers);
-        }
+        List<People> teachers = peopleService.getBySchoolClassAndRole(schoolId, null, People.Role.TEACHER);
+        messagingTemplate.convertAndSend("/topic/user/admin/teachers/" + schoolId, teachers);
         return teachers;
     }
 
@@ -180,13 +162,11 @@ public class PeopleController {
 
         List<People> directors;
         if (schoolId == null) {
-            messagingTemplate.convertAndSend("/topic/admin/directors/error",
-                    "Школу '" + schoolName + "' не знайдено для отримання директорів.");
             return List.of();
         } else {
             directors = new ArrayList<>();
             directors.addAll(peopleService.getBySchoolClassAndRole(schoolId, null, People.Role.DIRECTOR));
-            messagingTemplate.convertAndSend("/topic/admin/directors/list/school/" + schoolId, directors);
+            messagingTemplate.convertAndSend("/topic/user/admin/directors/" + schoolId, directors);
         }
         return directors;
     }
@@ -235,28 +215,19 @@ public class PeopleController {
         }
 
         if (peopleService.findByEmail(newUser.getEmail()) != null) {
-            messagingTemplate.convertAndSend("/topic/users/create/error",
-                    "Помилка створення користувача: користувач з таким email вже існує.");
-
             return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         }
         if (newUser.getRole() != People.Role.ADMIN && newUser.getSchoolId() == null) {
-            messagingTemplate.convertAndSend("/topic/users/create/error",
-                    "Помилка створення користувача: для ролі '" + newUser.getRole() + "' обов'язково вказати школу.");
-
             return ResponseEntity.badRequest().body(null);
         }
         if ((newUser.getRole() == People.Role.PARENT || newUser.getRole() == People.Role.STUDENT)
                 && (newUser.getClassId() == null || newUser.getSchoolId() == null)) {
-
-            messagingTemplate.convertAndSend("/topic/users/create/error",
-                    "Помилка створення користувача: для учня/батька обов'язково вказати школу та клас.");
             return ResponseEntity.badRequest().body(null);
         }
 
         String rawPass = newUser.getPassword();
         newUser.setPassword(passwordEncoder.encode(rawPass));
-        messagingTemplate.convertAndSend("/topic/users/created", newUser);
+        messagingTemplate.convertAndSend("/topic/user/create_user/", newUser);
 
         return ResponseEntity.ok(peopleService.createPeople(newUser));
     }
@@ -266,9 +237,6 @@ public class PeopleController {
         String email = auth.getName();
         People user = peopleService.findByEmail(email);
         if (user == null) {
-            messagingTemplate.convertAndSend("/topic/users/profile/error",
-                    "Профіль для користувача '" + email + "' не знайдено.");
-
             return ResponseEntity.status(401).build();
         }
 
@@ -299,7 +267,7 @@ public class PeopleController {
                 user.getRole().toString(),
                 schoolName,
                 className);
-        messagingTemplate.convertAndSend("/topic/users/profile", dto);
+        messagingTemplate.convertAndSend("/topic/user/myProfile/", dto);
 
         return ResponseEntity.ok(dto);
     }
@@ -314,13 +282,9 @@ public class PeopleController {
 
         if (updatedData.getEmail() != null && !updatedData.getEmail().equals(email)) {
             if (!isValidEmail(updatedData.getEmail())) {
-                messagingTemplate.convertAndSend("/topic/users/update/error",
-                        "Не вдалося оновити профіль: недійсний формат email '" + updatedData.getEmail() + "'.");
                 return ResponseEntity.badRequest().body(null);
             }
             if (peopleService.findByEmail(updatedData.getEmail()) != null) {
-                messagingTemplate.convertAndSend("/topic/users/update/error",
-                        "Не вдалося оновити профіль: email '" + updatedData.getEmail() + "' вже зайнятий.");
                 return ResponseEntity.badRequest().body(null);
             }
         }
@@ -346,7 +310,7 @@ public class PeopleController {
 
         Long userId = currentUser.getId();
         People updated = peopleService.updatePeople(userId, currentUser);
-        messagingTemplate.convertAndSend("/topic/users/updated/id/" + userId, updated);
+        messagingTemplate.convertAndSend("/topic/user/me/" + userId, updated);
         return ResponseEntity.ok(updated);
     }
 
@@ -354,17 +318,10 @@ public class PeopleController {
         return email != null && email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
     }
 
-    @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR', 'ADMIN')")
-    @GetMapping("/loadUsers")
-    public List<People> getAllUsers() {
-        messagingTemplate.convertAndSend("/topic/users/all/list", peopleService.getAllPeoples());
-        return peopleService.getAllPeoples();
-    }
-
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users/role/{role}")
     public List<People> getUsersByRole(@PathVariable String role) {
-        messagingTemplate.convertAndSend("/topic/users/list/role/" + role, peopleService.getPeopleByRole(role));
+        messagingTemplate.convertAndSend("/topic/user/users/admin/role/" + role, peopleService.getPeopleByRole(role));
         return peopleService.getPeopleByRole(role);
     }
 
@@ -378,8 +335,7 @@ public class PeopleController {
             schoolclass = new SchoolClass();
             schoolclass.setId(null);
         }
-        String topic = "/topic/users/list/school/" + me.getSchoolId() + "/class/"
-                + (schoolclass.getId() != null ? schoolclass.getId() : "null") + "/role/" + role;
+        String topic = "/topic/user/getUsersBySchoolClassAndRole/";
         messagingTemplate.convertAndSend(topic,
                 peopleService.getBySchoolClassAndRole(me.getSchoolId(), schoolclass.getId(), role));
         return peopleService.getBySchoolClassAndRole(me.getSchoolId(), schoolclass.getId(), role);
@@ -391,11 +347,10 @@ public class PeopleController {
             @RequestBody People updatedData) {
         People updated = peopleService.updateProfile(id, updatedData);
         if (updated != null) {
-            messagingTemplate.convertAndSend("/topic/users/updated/id/" + id, updated);
+            messagingTemplate.convertAndSend("/topic/user/updatedUsers/" + id, updated);
             return ResponseEntity.ok(updated);
         } else {
-            messagingTemplate.convertAndSend("/topic/users/update/error/id/" + id,
-                    "Не вдалося оновити користувача з ID " + id + ".");
+            
             return ResponseEntity.notFound().build();
         }
     }
@@ -404,11 +359,9 @@ public class PeopleController {
     public ResponseEntity<People> getUserById(@PathVariable Long id) {
         People user = peopleService.getPeopleById(id);
         if (user != null) {
-            messagingTemplate.convertAndSend("/topic/users/details/id/" + id, user);
+            messagingTemplate.convertAndSend("/topic/user/users/" + id, user);
             return ResponseEntity.ok(user);
         } else {
-            messagingTemplate.convertAndSend("/topic/users/details/error/id/" + id,
-                    "Користувача з ID " + id + " не знайдено.");
             return ResponseEntity.notFound().build();
         }
     }
