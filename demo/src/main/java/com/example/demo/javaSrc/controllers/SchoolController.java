@@ -46,7 +46,7 @@ public class SchoolController {
     @GetMapping("/schools")
     public List<School> getAllSchools() {
         List<School> schools = schoolService.getAllSchools();
-        messagingTemplate.convertAndSend("/topic/schools/list", schools);
+        messagingTemplate.convertAndSend("/topic/school/schools/getAllSchools", schools);
         return schools;
     }
 
@@ -56,12 +56,10 @@ public class SchoolController {
         School school = schoolService.getSchoolByName(schoolName);
         Long schoolId = school != null ? school.getId() : null;
         if (schoolId == null) {
-            messagingTemplate.convertAndSend("/topic/admin/classes/error",
-                    "Школу '" + schoolName + "' не знайдено для отримання класів.");
             return List.of();
         }
         List<SchoolClass> classes = classService.getBySchoolId(schoolId);
-        messagingTemplate.convertAndSend("/topic/admin/classes/list", classes);
+        messagingTemplate.convertAndSend("/topic/school/admin/classes/getClassesForAdmin", classes);
         return classes;
     }
 
@@ -71,11 +69,10 @@ public class SchoolController {
         People me = userController.currentUser(auth);
         Long schoolId = me.getSchoolId();
         if (schoolId == null) {
-            messagingTemplate.convertAndSend("/topic/classes/error", "Користувач не прив'язаний до школи.");
             return List.of();
         }
         List<SchoolClass> classes = classService.getBySchoolId(schoolId);
-        messagingTemplate.convertAndSend("/topic/classes/list", classes);
+        messagingTemplate.convertAndSend("/topic/school/classes/getClasses", classes);
         return classes;
     }
 
@@ -83,7 +80,7 @@ public class SchoolController {
     @PostMapping("/create")
     public ResponseEntity<School> createNewSchool(@RequestBody School school) {
         School created = schoolService.createSchool(school);
-        messagingTemplate.convertAndSend("/topic/schools/created", created);
+        messagingTemplate.convertAndSend("/topic/school/schools/create", created);
         return ResponseEntity.ok(created);
     }
 
@@ -93,25 +90,13 @@ public class SchoolController {
         String schoolName = request.schoolName();
         School school = schoolService.getSchoolByName(schoolName);
         if (school == null) {
-            messagingTemplate.convertAndSend("/topic/classes/create/error",
-                    "Не вдалося створити клас: школу '" + schoolName + "' не знайдено.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
         SchoolClass schoolClass = new SchoolClass(school.getId(), request.className());
         SchoolClass created = classService.createClass(schoolClass);
-        messagingTemplate.convertAndSend("/topic/classes/created", created);
+        messagingTemplate.convertAndSend("/topic/school/classes/create-class", created);
         return ResponseEntity.ok(created);
-    }
-    
-    @GetMapping("/getClassIdByName")
-    public ResponseEntity<Long> getMethodName(@RequestParam String className, Authentication auth) {
-        Long schoolId = userController.currentUser(auth).getSchoolId();
-        SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, className);
-        if (schoolClass == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
-        return ResponseEntity.ok(schoolClass.getId());
     }
     
 }
