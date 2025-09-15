@@ -484,7 +484,7 @@ function connectStompWebSocket() {
   stompClient.connect({}, function (frame) {
     console.log('Connected: ' + frame);
 
-    stompClient.subscribe('/topic/users/admins/list', function (message) {
+   /* stompClient.subscribe('/topic/users/admins/list', function (message) {
       const admins = JSON.parse(message.body);
       console.log('WebSocket: Оновлений список адмінів:', admins);
       const adminsList = document.getElementById('admins-list');
@@ -576,7 +576,7 @@ function connectStompWebSocket() {
     stompClient.subscribe('/topic/classes/create/error', function (message) {
       const errorMessage = message.body;
       console.error('WebSocket Error: Помилка створення класу:', errorMessage);
-    });
+    });*/
 
   }, function (error) {
     console.error('WebSocket connection error:', error);
