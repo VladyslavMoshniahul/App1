@@ -46,7 +46,7 @@ public class SchoolController {
     @GetMapping("/schools")
     public List<School> getAllSchools() {
         List<School> schools = schoolService.getAllSchools();
-        messagingTemplate.convertAndSend("/topic/school/schools/getAllSchools", schools);
+        messagingTemplate.convertAndSend("/topic/school/schools/", schools);
         return schools;
     }
 
@@ -59,7 +59,7 @@ public class SchoolController {
             return List.of();
         }
         List<SchoolClass> classes = classService.getBySchoolId(schoolId);
-        messagingTemplate.convertAndSend("/topic/school/admin/classes/getClassesForAdmin", classes);
+        messagingTemplate.convertAndSend("/topic/school/admin/classes/", classes);
         return classes;
     }
 
@@ -72,7 +72,7 @@ public class SchoolController {
             return List.of();
         }
         List<SchoolClass> classes = classService.getBySchoolId(schoolId);
-        messagingTemplate.convertAndSend("/topic/school/classes/getClasses", classes);
+        messagingTemplate.convertAndSend("/topic/school/classes/", classes);
         return classes;
     }
 
@@ -80,7 +80,7 @@ public class SchoolController {
     @PostMapping("/create")
     public ResponseEntity<School> createNewSchool(@RequestBody School school) {
         School created = schoolService.createSchool(school);
-        messagingTemplate.convertAndSend("/topic/school/schools/create", created);
+        messagingTemplate.convertAndSend("/topic/school/create/", created);
         return ResponseEntity.ok(created);
     }
 
@@ -95,7 +95,7 @@ public class SchoolController {
 
         SchoolClass schoolClass = new SchoolClass(school.getId(), request.className());
         SchoolClass created = classService.createClass(schoolClass);
-        messagingTemplate.convertAndSend("/topic/school/classes/create-class", created);
+        messagingTemplate.convertAndSend("/topic/school/create-class/", created);
         return ResponseEntity.ok(created);
     }
     
