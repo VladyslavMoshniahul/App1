@@ -44,36 +44,36 @@ public class SchoolController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/schools")
-    public List<School> getAllSchools() {
+    public ResponseEntity<List<School>> getAllSchools() {
         List<School> schools = schoolService.getAllSchools();
         messagingTemplate.convertAndSend("/topic/school/schools/", schools);
-        return schools;
+        return ResponseEntity.ok(schools);
     }
 
     @GetMapping("admin/classes")
-    public List<SchoolClass> getClassesForAdmin(
+    public ResponseEntity<List<SchoolClass>> getClassesForAdmin(
             @RequestParam String schoolName) {
         School school = schoolService.getSchoolByName(schoolName);
         Long schoolId = school != null ? school.getId() : null;
         if (schoolId == null) {
-            return List.of();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
         List<SchoolClass> classes = classService.getBySchoolId(schoolId);
         messagingTemplate.convertAndSend("/topic/school/admin/classes/", classes);
-        return classes;
+        return ResponseEntity.ok(classes);
     }
 
     @GetMapping("/classes")
-    public List<SchoolClass> getClasses(
+    public ResponseEntity<List<SchoolClass>> getClasses(
             Authentication auth) {
         People me = userController.currentUser(auth);
         Long schoolId = me.getSchoolId();
         if (schoolId == null) {
-            return List.of();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
         List<SchoolClass> classes = classService.getBySchoolId(schoolId);
         messagingTemplate.convertAndSend("/topic/school/classes/", classes);
-        return classes;
+        return ResponseEntity.ok(classes);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
