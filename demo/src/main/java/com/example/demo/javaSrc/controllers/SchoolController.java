@@ -1,9 +1,9 @@
 package com.example.demo.javaSrc.controllers;
 
+import java.net.URI;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,6 +25,7 @@ import com.example.demo.javaSrc.school.SchoolService;
 @RestController
 @RequestMapping("/api/school")
 public class SchoolController {
+
     @Autowired
     private final SchoolService schoolService;
     @Autowired
@@ -34,7 +35,9 @@ public class SchoolController {
     @Autowired
     private final SimpMessagingTemplate messagingTemplate;
 
-    public SchoolController(SchoolService schoolService, ClassService classService, PeopleController userController,
+    public SchoolController(SchoolService schoolService,
+            ClassService classService,
+            PeopleController userController,
             SimpMessagingTemplate messagingTemplate) {
         this.schoolService = schoolService;
         this.classService = classService;
@@ -46,33 +49,30 @@ public class SchoolController {
     @GetMapping("/schools")
     public ResponseEntity<List<School>> getAllSchools() {
         List<School> schools = schoolService.getAllSchools();
-        messagingTemplate.convertAndSend("/topic/school/schools/", schools);
+        messagingTemplate.convertAndSend("/topic/school/schools", schools);
         return ResponseEntity.ok(schools);
     }
 
-    @GetMapping("admin/classes")
-    public ResponseEntity<List<SchoolClass>> getClassesForAdmin(
-            @RequestParam String schoolName) {
+    @GetMapping("/admin/classes")
+    public ResponseEntity<List<SchoolClass>> getClassesForAdmin(@RequestParam String schoolName) {
         School school = schoolService.getSchoolByName(schoolName);
-        Long schoolId = school != null ? school.getId() : null;
-        if (schoolId == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        if (school == null) {
+            return ResponseEntity.notFound().build();
         }
-        List<SchoolClass> classes = classService.getBySchoolId(schoolId);
-        messagingTemplate.convertAndSend("/topic/school/admin/classes/", classes);
+        List<SchoolClass> classes = classService.getBySchoolId(school.getId());
+        messagingTemplate.convertAndSend("/topic/school/admin/classes", classes);
         return ResponseEntity.ok(classes);
     }
 
     @GetMapping("/classes")
-    public ResponseEntity<List<SchoolClass>> getClasses(
-            Authentication auth) {
+    public ResponseEntity<List<SchoolClass>> getClasses(Authentication auth) {
         People me = userController.currentUser(auth);
         Long schoolId = me.getSchoolId();
         if (schoolId == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.notFound().build();
         }
         List<SchoolClass> classes = classService.getBySchoolId(schoolId);
-        messagingTemplate.convertAndSend("/topic/school/classes/", classes);
+        messagingTemplate.convertAndSend("/topic/school/classes", classes);
         return ResponseEntity.ok(classes);
     }
 
@@ -80,23 +80,25 @@ public class SchoolController {
     @PostMapping("/create")
     public ResponseEntity<School> createNewSchool(@RequestBody School school) {
         School created = schoolService.createSchool(school);
-        messagingTemplate.convertAndSend("/topic/school/create/", created);
-        return ResponseEntity.ok(created);
+        messagingTemplate.convertAndSend("/topic/school/create", created);
+
+        URI location = URI.create("/api/school/schools/" + created.getId());
+        return ResponseEntity.created(location).body(created);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','DIRECTOR')")
     @PostMapping("/create-class")
     public ResponseEntity<SchoolClass> createNewClass(@RequestBody CreateClassRequest request) {
-        String schoolName = request.schoolName();
-        School school = schoolService.getSchoolByName(schoolName);
+        School school = schoolService.getSchoolByName(request.schoolName());
         if (school == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.notFound().build();
         }
 
         SchoolClass schoolClass = new SchoolClass(school.getId(), request.className());
         SchoolClass created = classService.createClass(schoolClass);
-        messagingTemplate.convertAndSend("/topic/school/create-class/", created);
-        return ResponseEntity.ok(created);
+        messagingTemplate.convertAndSend("/topic/school/create-class", created);
+
+        URI location = URI.create("/api/school/classes/" + created.getId());
+        return ResponseEntity.created(location).body(created);
     }
-    
 }

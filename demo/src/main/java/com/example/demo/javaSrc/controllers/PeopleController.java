@@ -1,6 +1,6 @@
 package com.example.demo.javaSrc.controllers;
 
-import java.util.ArrayList;
+import java.net.URI;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,22 +33,23 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @RestController
 @RequestMapping("/api/user")
 public class PeopleController {
+
     @Autowired
     private final PeopleService peopleService;
-
     @Autowired
     private final PasswordEncoder passwordEncoder;
-
     @Autowired
     private final SchoolService schoolService;
-
     @Autowired
     private final ClassService classService;
     @Autowired
     private final SimpMessagingTemplate messagingTemplate;
 
-    public PeopleController(PeopleService peopleService, PasswordEncoder passwordEncoder,
-            SchoolService schoolService, ClassService classService, SimpMessagingTemplate messagingTemplate) {
+    public PeopleController(PeopleService peopleService,
+            PasswordEncoder passwordEncoder,
+            SchoolService schoolService,
+            ClassService classService,
+            SimpMessagingTemplate messagingTemplate) {
         this.peopleService = peopleService;
         this.passwordEncoder = passwordEncoder;
         this.schoolService = schoolService;
@@ -62,39 +63,36 @@ public class PeopleController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admins")
-    public List<People> getAdmins() {
+    public ResponseEntity<List<People>> getAdmins() {
         List<People> admins = peopleService.getPeopleByRole("ADMIN");
-        messagingTemplate.convertAndSend("/topic/user/admins/", admins);
-        return admins;
+        messagingTemplate.convertAndSend("/topic/user/admins", admins);
+        return ResponseEntity.ok(admins);
     }
 
     @GetMapping("/teachers")
-    public List<People> getTeachers(
-            Authentication auth) {
+    public ResponseEntity<List<People>> getTeachers(Authentication auth) {
         People me = currentUser(auth);
-        Long schoolId = me.getSchoolId();
-        List<People> teachers = peopleService.getPeopleBySchoolAndRole(schoolId, People.Role.TEACHER);
-        messagingTemplate.convertAndSend("/topic/user/teachers/school/", teachers);
-        return teachers;
+        List<People> teachers = peopleService.getPeopleBySchoolAndRole(me.getSchoolId(), People.Role.TEACHER);
+        messagingTemplate.convertAndSend("/topic/user/teachers/school", teachers);
+        return ResponseEntity.ok(teachers);
     }
 
     @GetMapping("/students")
-    public List<People> getStudents(
-            Authentication auth,
+    public ResponseEntity<List<People>> getStudents(Authentication auth,
             @RequestParam(required = false) String className) {
         People me = currentUser(auth);
-        Long schoolId = me.getSchoolId();
-        SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, className);
-        Long classId = schoolClass != null ? schoolClass.getId() : null;
+        SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(me.getSchoolId(), className);
+        Long classId = (schoolClass != null ? schoolClass.getId() : null);
+
         List<People> students;
         if (className == null) {
-            students = peopleService.getBySchoolClassAndRole(schoolId, null, People.Role.STUDENT);
-            messagingTemplate.convertAndSend("/topic/user/students/school/", students);
+            students = peopleService.getBySchoolClassAndRole(me.getSchoolId(), null, People.Role.STUDENT);
+            messagingTemplate.convertAndSend("/topic/user/students/school", students);
         } else {
-            students = peopleService.getBySchoolClassAndRole(schoolId, classId, People.Role.STUDENT);
+            students = peopleService.getBySchoolClassAndRole(me.getSchoolId(), classId, People.Role.STUDENT);
             messagingTemplate.convertAndSend("/topic/user/students/class/" + classId, students);
         }
-        return students;
+        return ResponseEntity.ok(students);
     }
 
     @GetMapping("/people")
@@ -112,132 +110,120 @@ public class PeopleController {
         }
 
         List<PeopleDto> result = people.stream()
-                .map(p -> new PeopleDto(p.getId(), p.getFirstName(), p.getLastName(), p.getEmail(), p.getRole().name()))
+                .map(p -> new PeopleDto(
+                        p.getId(),
+                        p.getFirstName(),
+                        p.getLastName(),
+                        p.getEmail(),
+                        p.getRole().name()))
                 .toList();
 
-        messagingTemplate.convertAndSend("/topic/user/people/" + result);
+        messagingTemplate.convertAndSend("/topic/user/people", result);
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/parents")
-    public List<People> getParents(
-            Authentication auth,
+    public ResponseEntity<List<People>> getParents(Authentication auth,
             @RequestParam(required = false) String className) {
-
         People me = currentUser(auth);
-        Long schoolId = me.getSchoolId();
-        SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(schoolId, className);
-        Long classId = schoolClass != null ? schoolClass.getId() : null;
+        SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(me.getSchoolId(), className);
+        Long classId = (schoolClass != null ? schoolClass.getId() : null);
 
         List<People> parents;
         if (className == null) {
-            parents = peopleService.getBySchoolClassAndRole(schoolId, null, People.Role.PARENT);
-            messagingTemplate.convertAndSend("/topic/user/parents/school/", parents);
+            parents = peopleService.getBySchoolClassAndRole(me.getSchoolId(), null, People.Role.PARENT);
+            messagingTemplate.convertAndSend("/topic/user/parents/school", parents);
         } else {
-            parents = peopleService.getBySchoolClassAndRole(schoolId, classId, People.Role.PARENT);
+            parents = peopleService.getBySchoolClassAndRole(me.getSchoolId(), classId, People.Role.PARENT);
             messagingTemplate.convertAndSend("/topic/user/parents/class/" + classId, parents);
         }
 
-        return parents;
+        return ResponseEntity.ok(parents);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("admin/teachers")
-    public List<People> getTeachersByAdmin(
-            @RequestParam(required = false) String schoolName) {
+    @GetMapping("/admin/teachers")
+    public ResponseEntity<List<People>> getTeachersByAdmin(@RequestParam String schoolName) {
         School school = schoolService.getSchoolByName(schoolName);
-        Long schoolId = school != null ? school.getId() : null;
-
-        List<People> teachers = peopleService.getBySchoolClassAndRole(schoolId, null, People.Role.TEACHER);
-        messagingTemplate.convertAndSend("/topic/user/admin/teachers/" + schoolId, teachers);
-        return teachers;
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("admin/directors")
-    public List<People> getDirectorsByAdmin(
-            @RequestParam(required = false) String schoolName) {
-        School school = schoolService.getSchoolByName(schoolName);
-        Long schoolId = school != null ? school.getId() : null;
-
-        List<People> directors;
-        if (schoolId == null) {
-            return List.of();
-        } else {
-            directors = new ArrayList<>();
-            directors.addAll(peopleService.getBySchoolClassAndRole(schoolId, null, People.Role.DIRECTOR));
-            messagingTemplate.convertAndSend("/topic/user/admin/directors/" + schoolId, directors);
+        if (school == null) {
+            return ResponseEntity.notFound().build();
         }
-        return directors;
+        List<People> teachers = peopleService.getBySchoolClassAndRole(school.getId(), null, People.Role.TEACHER);
+        messagingTemplate.convertAndSend("/topic/user/admin/teachers/" + school.getId(), teachers);
+        return ResponseEntity.ok(teachers);
     }
-    
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/directors")
+    public ResponseEntity<List<People>> getDirectorsByAdmin(@RequestParam String schoolName) {
+        School school = schoolService.getSchoolByName(schoolName);
+        if (school == null) {
+            return ResponseEntity.notFound().build();
+        }
+        List<People> directors = peopleService.getBySchoolClassAndRole(school.getId(), null, People.Role.DIRECTOR);
+        messagingTemplate.convertAndSend("/topic/user/admin/directors/" + school.getId(), directors);
+        return ResponseEntity.ok(directors);
+    }
+
     @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR', 'ADMIN')")
     @PostMapping("/create_users")
-    public ResponseEntity<People> createUser(
-            @RequestBody CreatePeopleRequest newUserRequest) {
+    public ResponseEntity<People> createUser(@RequestBody CreatePeopleRequest req) {
         People newUser = new People();
-        newUser.setFirstName(newUserRequest.firstName());
-        newUser.setLastName(newUserRequest.lastName());
-        newUser.setEmail(newUserRequest.email());
-        newUser.setPassword(newUserRequest.password());
-        newUser.setRole(newUserRequest.role());
-        newUser.setDateOfBirth(newUserRequest.dateOfBirth());
+        newUser.setFirstName(req.firstName());
+        newUser.setLastName(req.lastName());
+        newUser.setEmail(req.email());
+        newUser.setPassword(req.password());
+        newUser.setRole(req.role());
+        newUser.setDateOfBirth(req.dateOfBirth());
 
         if (newUser.getRole() == People.Role.ADMIN) {
             newUser.setSchoolId(null);
             newUser.setClassId(null);
         } else {
-
-            School school = schoolService.getSchoolByName(newUserRequest.schoolName());
-            SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(school.getId(),
-                    newUserRequest.className());
-            if (newUser.getRole() == People.Role.DIRECTOR) {
-                newUser.setSchoolId(school.getId());
-                newUser.setClassId(null);
+            School school = schoolService.getSchoolByName(req.schoolName());
+            if (school == null) {
+                return ResponseEntity.badRequest().build();
             }
+            SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(school.getId(), req.className());
 
-            if (newUser.getRole() == People.Role.TEACHER) {
-                newUser.setSchoolId(school.getId());
-                if (schoolClass == null) {
+            switch (newUser.getRole()) {
+                case DIRECTOR -> {
+                    newUser.setSchoolId(school.getId());
                     newUser.setClassId(null);
-                } else {
+                }
+                case TEACHER -> {
+                    newUser.setSchoolId(school.getId());
+                    newUser.setClassId(schoolClass != null ? schoolClass.getId() : null);
+                }
+                case PARENT, STUDENT -> {
+                    if (schoolClass == null)
+                        return ResponseEntity.badRequest().build();
+                    newUser.setSchoolId(school.getId());
                     newUser.setClassId(schoolClass.getId());
                 }
-            }
-
-            if (newUser.getRole() == People.Role.PARENT || newUser.getRole() == People.Role.STUDENT) {
-                if (school == null || schoolClass == null) {
-                    return ResponseEntity.badRequest().body(null);
+                default -> {
                 }
-                newUser.setSchoolId(school.getId());
-                newUser.setClassId(schoolClass.getId());
             }
         }
 
         if (peopleService.findByEmail(newUser.getEmail()) != null) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
-        }
-        if (newUser.getRole() != People.Role.ADMIN && newUser.getSchoolId() == null) {
-            return ResponseEntity.badRequest().body(null);
-        }
-        if ((newUser.getRole() == People.Role.PARENT || newUser.getRole() == People.Role.STUDENT)
-                && (newUser.getClassId() == null || newUser.getSchoolId() == null)) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
 
-        String rawPass = newUser.getPassword();
-        newUser.setPassword(passwordEncoder.encode(rawPass));
-        messagingTemplate.convertAndSend("/topic/user/create_user/", newUser);
+        newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
+        People created = peopleService.createPeople(newUser);
 
-        return ResponseEntity.ok(peopleService.createPeople(newUser));
+        messagingTemplate.convertAndSend("/topic/user/create_user", created);
+
+        URI location = URI.create("/api/user/users/" + created.getId());
+        return ResponseEntity.created(location).body(created);
     }
 
     @GetMapping("/myProfile")
     public ResponseEntity<PeopleProfileDto> getMyProfile(Authentication auth) {
-        String email = auth.getName();
-        People user = peopleService.findByEmail(email);
+        People user = peopleService.findByEmail(auth.getName());
         if (user == null) {
-            return ResponseEntity.status(401).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         String schoolName = null;
@@ -245,16 +231,14 @@ public class PeopleController {
 
         if (user.getSchoolId() != null) {
             School school = schoolService.getSchoolById(user.getSchoolId());
-            if (school != null) {
+            if (school != null)
                 schoolName = school.getName();
-            }
         }
 
         if (user.getClassId() != null) {
             SchoolClass schoolClass = classService.getBySchoolIdAndId(user.getSchoolId(), user.getClassId());
-            if (schoolClass != null) {
+            if (schoolClass != null)
                 className = schoolClass.getName();
-            }
         }
 
         PeopleProfileDto dto = new PeopleProfileDto(
@@ -267,50 +251,43 @@ public class PeopleController {
                 user.getRole().toString(),
                 schoolName,
                 className);
-        messagingTemplate.convertAndSend("/topic/user/myProfile/", dto);
 
+        messagingTemplate.convertAndSend("/topic/user/myProfile", dto);
         return ResponseEntity.ok(dto);
     }
 
     @PutMapping("/me")
     public ResponseEntity<People> updateMyProfile(@RequestBody People updatedData, Authentication auth) {
-        String email = auth.getName();
-        People currentUser = peopleService.findByEmail(email);
+        People currentUser = peopleService.findByEmail(auth.getName());
         if (currentUser == null) {
             return ResponseEntity.notFound().build();
         }
 
-        if (updatedData.getEmail() != null && !updatedData.getEmail().equals(email)) {
+        if (updatedData.getEmail() != null && !updatedData.getEmail().equals(currentUser.getEmail())) {
             if (!isValidEmail(updatedData.getEmail())) {
-                return ResponseEntity.badRequest().body(null);
+                return ResponseEntity.badRequest().build();
             }
             if (peopleService.findByEmail(updatedData.getEmail()) != null) {
-                return ResponseEntity.badRequest().body(null);
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
             }
         }
 
-        if (updatedData.getFirstName() != null) {
+        if (updatedData.getFirstName() != null)
             currentUser.setFirstName(updatedData.getFirstName());
-        }
-        if (updatedData.getLastName() != null) {
+        if (updatedData.getLastName() != null)
             currentUser.setLastName(updatedData.getLastName());
-        }
-        if (updatedData.getAboutMe() != null) {
+        if (updatedData.getAboutMe() != null)
             currentUser.setAboutMe(updatedData.getAboutMe());
-        }
-        if (updatedData.getDateOfBirth() != null) {
+        if (updatedData.getDateOfBirth() != null)
             currentUser.setDateOfBirth(updatedData.getDateOfBirth());
-        }
-        if (updatedData.getEmail() != null) {
+        if (updatedData.getEmail() != null)
             currentUser.setEmail(updatedData.getEmail());
-        }
         if (updatedData.getPassword() != null && !updatedData.getPassword().isEmpty()) {
             currentUser.setPassword(passwordEncoder.encode(updatedData.getPassword()));
         }
 
-        Long userId = currentUser.getId();
-        People updated = peopleService.updatePeople(userId, currentUser);
-        messagingTemplate.convertAndSend("/topic/user/me/" + userId, updated);
+        People updated = peopleService.updatePeople(currentUser.getId(), currentUser);
+        messagingTemplate.convertAndSend("/topic/user/me/" + currentUser.getId(), updated);
         return ResponseEntity.ok(updated);
     }
 
@@ -320,25 +297,23 @@ public class PeopleController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users/role/{role}")
-    public List<People> getUsersByRole(@PathVariable String role) {
-        messagingTemplate.convertAndSend("/topic/user/users/admin/role/" + role, peopleService.getPeopleByRole(role));
-        return peopleService.getPeopleByRole(role);
+    public ResponseEntity<List<People>> getUsersByRole(@PathVariable String role) {
+        List<People> users = peopleService.getPeopleByRole(role);
+        messagingTemplate.convertAndSend("/topic/user/users/admin/role/" + role, users);
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/users/role/school/{role}")
-    public List<People> getUsersBySchoolClassAndRole(Authentication auth,
+    public ResponseEntity<List<People>> getUsersBySchoolClassAndRole(Authentication auth,
             @RequestParam(required = false) String className,
             @PathVariable People.Role role) {
         People me = currentUser(auth);
-        SchoolClass schoolclass = classService.getClassesBySchoolIdAndName(me.getSchoolId(), className);
-        if (schoolclass == null) {
-            schoolclass = new SchoolClass();
-            schoolclass.setId(null);
-        }
-        String topic = "/topic/user/getUsersBySchoolClassAndRole/";
-        messagingTemplate.convertAndSend(topic,
-                peopleService.getBySchoolClassAndRole(me.getSchoolId(), schoolclass.getId(), role));
-        return peopleService.getBySchoolClassAndRole(me.getSchoolId(), schoolclass.getId(), role);
+        SchoolClass schoolClass = classService.getClassesBySchoolIdAndName(me.getSchoolId(), className);
+        Long classId = (schoolClass != null ? schoolClass.getId() : null);
+
+        List<People> result = peopleService.getBySchoolClassAndRole(me.getSchoolId(), classId, role);
+        messagingTemplate.convertAndSend("/topic/user/getUsersBySchoolClassAndRole", result);
+        return ResponseEntity.ok(result);
     }
 
     @PreAuthorize("hasAnyRole('TEACHER', 'DIRECTOR')")
@@ -346,23 +321,20 @@ public class PeopleController {
     public ResponseEntity<People> updateUserByTeacherOrDirector(@PathVariable Long id,
             @RequestBody People updatedData) {
         People updated = peopleService.updateProfile(id, updatedData);
-        if (updated != null) {
-            messagingTemplate.convertAndSend("/topic/user/updatedUsers/" + id, updated);
-            return ResponseEntity.ok(updated);
-        } else {
-            
+        if (updated == null) {
             return ResponseEntity.notFound().build();
         }
+        messagingTemplate.convertAndSend("/topic/user/updatedUsers/" + id, updated);
+        return ResponseEntity.ok(updated);
     }
 
     @GetMapping("/users/{id}")
     public ResponseEntity<People> getUserById(@PathVariable Long id) {
         People user = peopleService.getPeopleById(id);
-        if (user != null) {
-            messagingTemplate.convertAndSend("/topic/user/users/" + id, user);
-            return ResponseEntity.ok(user);
-        } else {
+        if (user == null) {
             return ResponseEntity.notFound().build();
         }
+        messagingTemplate.convertAndSend("/topic/user/users/" + id, user);
+        return ResponseEntity.ok(user);
     }
 }
