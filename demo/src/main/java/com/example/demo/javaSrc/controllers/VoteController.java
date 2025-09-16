@@ -137,7 +137,7 @@ public class VoteController {
     }
 
     @GetMapping("/votes")
-    public List<Vote> getVotes(Authentication auth,
+    public ResponseEntity<List<Vote>> getVotes(Authentication auth,
             @RequestParam(required = false) String className) {
         People currentUser = userController.currentUser(auth);
         Long schoolId = currentUser.getSchoolId();
@@ -168,9 +168,9 @@ public class VoteController {
             votesBySchoolOrClass.addAll(voteService.getVotingsBySchool(schoolId));
         }
 
-        return Stream.concat(invitedVotes.stream(), votesBySchoolOrClass.stream())
+        return ResponseEntity.ok(Stream.concat(invitedVotes.stream(), votesBySchoolOrClass.stream())
                 .distinct()
-                .toList();
+                .toList());
     }
 
     @GetMapping("voting/{id}")

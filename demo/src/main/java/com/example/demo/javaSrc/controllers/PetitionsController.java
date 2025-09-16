@@ -247,7 +247,7 @@ public class PetitionsController {
     @SuppressWarnings("null")
     @PreAuthorize("hasRole('DIRECTOR')")
     @GetMapping("/petitionsForDirector")
-    public List<Petition> getPetitionsForDirector(Authentication auth,
+    public ResponseEntity<List<Petition>> getPetitionsForDirector(Authentication auth,
             @RequestParam(required = false) String className) {
         People me = userController.currentUser(auth);
 
@@ -274,11 +274,11 @@ public class PetitionsController {
                 }
             }
 
-            return petitions.stream()
+            return ResponseEntity.ok(petitions.stream()
                     .filter(p -> p.getDirectorsDecision() == Petition.DirectorsDecision.PENDING)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toList()));
         } else {
-            return List.of();
+            return ResponseEntity.notFound().build();
         }
     }
 
@@ -298,20 +298,20 @@ public class PetitionsController {
     }
 
     @GetMapping("/comments/petition/{petitionId}")
-    public List<PetitonCommentDto> getCommentsByPetition(@PathVariable Long petitionId) {
+    public ResponseEntity<List<PetitonCommentDto>> getCommentsByPetition(@PathVariable Long petitionId) {
         List<PetitionsComment> comments = petitionsCommentService.getCommentsByPetitionId(petitionId);
 
-        return comments.stream()
+        return ResponseEntity.ok(comments.stream()
                 .map(c -> {
                     People author = userService.getPeopleById(c.getUserId());
                     return new PetitonCommentDto(c, author);
                 })
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
     }
 
     @GetMapping("/comments/user/{userId}")
-    public List<PetitionsComment> getCommentsByUser(@PathVariable Long userId) {
-        return petitionsCommentService.getCommentsByUserId(userId);
+    public ResponseEntity<List<PetitionsComment>> getCommentsByUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(petitionsCommentService.getCommentsByUserId(userId));
     }
 
     @DeleteMapping("/comments/{id}")
